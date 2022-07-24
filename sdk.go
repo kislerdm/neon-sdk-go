@@ -193,6 +193,10 @@ func (c *client) unmarshal(body io.ReadCloser, v interface{}) error {
 }
 
 func (c *client) ValidateAPIKey() error {
+	if c.options.APIKey == "" {
+		return fmt.Errorf("API key is not set")
+	}
+
 	_, err := c.send(c.baseURL+"users/me", get, nil)
 	return err
 }
@@ -305,14 +309,14 @@ func convertErrorResponse(res *http.Response) error {
 	}
 }
 
+const baseURL = "https://console.neon.tech/api/v1/"
+
 // NewClient initialised new client to communicate to Neon over http API.
 // See details: https://neon.tech/docs/reference/about/
-func NewClient(ctx context.Context, optFns ...func(*Options) error) (Client, error) {
+func NewClient(ctx context.Context, optFns ...func(*Options)) (Client, error) {
 	o := Options{}
 	for _, fn := range optFns {
-		if err := fn(&o); err != nil {
-			return nil, err
-		}
+		fn(&o)
 	}
 
 	resolveAPIKey(&o)
@@ -320,7 +324,7 @@ func NewClient(ctx context.Context, optFns ...func(*Options) error) (Client, err
 
 	c := client{
 		options: o,
-		baseURL: "https://console.neon.tech/api/v1/",
+		baseURL: baseURL,
 	}
 
 	if err := c.ValidateAPIKey(); err != nil {
@@ -345,9 +349,15 @@ func resolveAPIKey(o *Options) {
 }
 
 // WithAPIKey sets the API access key.
-func WithAPIKey(apiKey string) func(*Options) error {
-	return func(o *Options) error {
+func WithAPIKey(apiKey string) func(*Options) {
+	return func(o *Options) {
 		o.APIKey = apiKey
-		return nil
+	}
+}
+
+// WithHTTPClient sets custom http client.
+func WithHTTPClient(client httpClient) func(*Options) {
+	return func(o *Options) {
+		o.HTTPClient = client
 	}
 }
