@@ -1,17 +1,25 @@
 package sdk
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
 )
 
+type errorResp struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 // Error API error.
 type Error struct {
-	Code, Message string
-	HTTPCode      int
+	HTTPCode int
+	errorResp
 }
 
 func (e Error) Error() string {
@@ -105,7 +113,7 @@ type Client interface {
 	CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error)
 
 	// UpdateProject updates existing Project.
-	UpdateProject(settings ProjectSettingsRequestUpdate) (ProjectInfo, error)
+	UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error)
 
 	// DeleteProject deletes existing Project.
 	DeleteProject(projectID string) (ProjectDeleteResponse, error)
@@ -125,36 +133,176 @@ type Options struct {
 
 type client struct {
 	options Options
+
+	baseURL string
 }
 
-func (c client) ValidateAPIKey() error {
-	//TODO implement me
-	panic("implement me")
+func (c *client) send(url string, t reqType, v interface{}) (*http.Response, error) {
+	var body io.Reader
+	var err error
+	if v != nil {
+		body, err = c.marshal(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, _ := http.NewRequest(t.String(), url, body)
+	setHeaders(req, c.options.APIKey)
+
+	res, err := c.options.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 200 {
+		return res, convertErrorResponse(res)
+	}
+
+	return res, nil
 }
 
-func (c client) ListProjects() ([]ProjectInfo, error) {
-	//TODO implement me
-	panic("implement me")
+type reqType string
+
+const (
+	get    reqType = "GET"
+	post   reqType = "POST"
+	patch  reqType = "PATCH"
+	put    reqType = "PUT"
+	delete reqType = "DELETE"
+)
+
+func (r reqType) String() string {
+	return string(r)
 }
 
-func (c client) ReadInfoProject(projectID string) (ProjectInfo, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *client) marshal(v interface{}) (io.Reader, error) {
+	body, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(body), nil
 }
 
-func (c client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *client) unmarshal(body io.ReadCloser, v interface{}) error {
+	buf, err := io.ReadAll(body)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(buf, &v)
 }
 
-func (c client) UpdateProject(settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *client) ValidateAPIKey() error {
+	_, err := c.send(c.baseURL+"users/me", get, nil)
+	return err
 }
 
-func (c client) DeleteProject(projectID string) (ProjectDeleteResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *client) ListProjects() ([]ProjectInfo, error) {
+	res, err := c.send(c.baseURL+"projects", get, nil)
+	defer res.Body.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var v []ProjectInfo
+	if err := c.unmarshal(res.Body, v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (c *client) ReadInfoProject(projectID string) (ProjectInfo, error) {
+	res, err := c.send(c.baseURL+"projects/"+projectID, get, nil)
+	defer res.Body.Close()
+
+	if err != nil {
+		return ProjectInfo{}, err
+	}
+
+	var v ProjectInfo
+	if err := c.unmarshal(res.Body, v); err != nil {
+		return ProjectInfo{}, err
+	}
+	return v, nil
+}
+
+func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {
+	res, err := c.send(c.baseURL+"projects", post, settings)
+	defer res.Body.Close()
+
+	if err != nil {
+		return ProjectInfo{}, err
+	}
+
+	var v ProjectInfo
+	if err := c.unmarshal(res.Body, v); err != nil {
+		return ProjectInfo{}, err
+	}
+	return v, nil
+}
+
+func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
+	res, err := c.send(c.baseURL+"projects/"+projectID, patch, settings)
+	defer res.Body.Close()
+
+	if err != nil {
+		return ProjectInfo{}, err
+	}
+
+	var v ProjectInfo
+	if err := c.unmarshal(res.Body, v); err != nil {
+		return ProjectInfo{}, err
+	}
+	return v, nil
+}
+
+func (c *client) DeleteProject(projectID string) (ProjectDeleteResponse, error) {
+	res, err := c.send(c.baseURL+"projects/"+projectID+"/delete", post, nil)
+	defer res.Body.Close()
+
+	if err != nil {
+		return ProjectDeleteResponse{}, err
+	}
+
+	var v ProjectDeleteResponse
+	if err := c.unmarshal(res.Body, v); err != nil {
+		return ProjectDeleteResponse{}, err
+	}
+	return v, nil
+}
+
+func setHeaders(req *http.Request, token string) {
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Add("Authorization", "Bearer "+token)
+	}
+}
+
+func convertErrorResponse(res *http.Response) error {
+	var v errorResp
+	buf, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: "cannot read response bytes",
+			},
+		}
+	}
+	if err := json.Unmarshal(buf, &v); err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: err.Error(),
+			},
+		}
+	}
+	return Error{
+		HTTPCode:  res.StatusCode,
+		errorResp: v,
+	}
 }
 
 // NewClient initialised new client to communicate to Neon over http API.
@@ -170,7 +318,10 @@ func NewClient(ctx context.Context, optFns ...func(*Options) error) (Client, err
 	resolveAPIKey(&o)
 	resolveHTTPClient(&o)
 
-	c := client{options: o}
+	c := client{
+		options: o,
+		baseURL: "https://console.neon.tech/api/v1/",
+	}
 
 	if err := c.ValidateAPIKey(); err != nil {
 		return nil, fmt.Errorf(
