@@ -240,7 +240,7 @@ func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectIn
 	}
 
 	var v ProjectInfo
-	if err := c.unmarshal(res.Body, v); err != nil {
+	if err := c.unmarshal(res.Body, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
