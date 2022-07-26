@@ -155,7 +155,7 @@ func (c *client) send(url string, t reqType, v interface{}) (*http.Response, err
 		return nil, err
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode > 299 {
 		return res, convertErrorResponse(res)
 	}
 
@@ -210,7 +210,7 @@ func (c *client) ListProjects() ([]ProjectInfo, error) {
 	}
 
 	var v []ProjectInfo
-	if err := c.unmarshal(res.Body, v); err != nil {
+	if err := c.unmarshal(res.Body, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -225,7 +225,7 @@ func (c *client) ReadInfoProject(projectID string) (ProjectInfo, error) {
 	}
 
 	var v ProjectInfo
-	if err := c.unmarshal(res.Body, v); err != nil {
+	if err := c.unmarshal(res.Body, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
@@ -255,7 +255,7 @@ func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequest
 	}
 
 	var v ProjectInfo
-	if err := c.unmarshal(res.Body, v); err != nil {
+	if err := c.unmarshal(res.Body, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
@@ -270,7 +270,7 @@ func (c *client) DeleteProject(projectID string) (ProjectDeleteResponse, error) 
 	}
 
 	var v ProjectDeleteResponse
-	if err := c.unmarshal(res.Body, v); err != nil {
+	if err := c.unmarshal(res.Body, &v); err != nil {
 		return ProjectDeleteResponse{}, err
 	}
 	return v, nil

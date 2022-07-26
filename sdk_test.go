@@ -46,7 +46,7 @@ var mockHttpClient = &httpClientMock{
 		urlPrefix + "users/me": {
 			get: func(req *http.Request) (*http.Response, error) {
 				token := req.Header.Get("Authorization")
-				if token == "" || token == "Bearer fail" {
+				if token == "" || token == "Bearer invalidApiKey" {
 					return &http.Response{
 						Status:     "",
 						StatusCode: 302,
@@ -58,8 +58,78 @@ var mockHttpClient = &httpClientMock{
 				}, nil
 			},
 		},
+
+		// create and list end point
 		urlPrefix + "projects": {
+			// create project
 			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+
+				var v ProjectSettingsRequestCreate
+				buf, _ := io.ReadAll(req.Body)
+				_ = json.Unmarshal(buf, &v)
+				switch v.Name {
+				case "fail":
+					return &http.Response{
+						StatusCode: 500,
+						Body: io.NopCloser(
+							strings.NewReader(`{"message":"internal error","code":""}`),
+						),
+					}, nil
+				case "fail-response":
+					return &http.Response{
+						StatusCode: 201,
+						Body:       io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+
+				return &http.Response{
+					StatusCode: 201,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+    "id": "quiet-river-711967",
+    "parent_id": null,
+    "roles": [
+      {
+        "id": 1,
+        "name": "foo",
+        "password": ""
+      }
+    ],
+    "databases": [
+      {
+        "id": 1,
+        "name": "main",
+        "owner_id": 1
+      }
+    ],
+    "name": "foo",
+    "created_at": "2022-07-24T11:18:12.322513Z",
+    "updated_at": "2022-07-24T11:18:18.389868Z",
+    "region_id": "us-west-2",
+    "instance_handle": "",
+    "instance_type_id": "0",
+    "region_name": "US West (Oregon)",
+    "platform_name": "Serverless",
+    "platform_id": "serverless",
+    "settings": {},
+    "pending_state": null,
+    "current_state": "active",
+    "deleted": false,
+    "size": 0,
+    "max_project_size": 0,
+    "pooler_enabled": false
+  }`,
+						),
+					),
+				}, nil
+			},
+
+			// list projects
+			get: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -125,25 +195,56 @@ var mockHttpClient = &httpClientMock{
 				}, nil
 			},
 		},
-		urlPrefix + "projects/fail/delete": {
+		// delete end point
+		urlPrefix + "projects/validProjectID/delete": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode: 200,
+						Body:       io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode: 500,
+						Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+					}, nil
+				}
+
+				return &http.Response{
+					StatusCode: 200,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+  "id": 281749,
+  "created_at": "2022-07-26T08:56:59.366068468Z",
+  "updated_at": "2022-07-26T08:56:59.366068468Z",
+  "project_id": "validProjectID",
+  "uuid": "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+  "action": "stop_compute",
+  "status": "running",
+  "error": "",
+  "failures_count": 0,
+  "retry_at": "0001-01-01T00:00:00Z"
+}`,
+						),
+					),
+				}, nil
+			},
+		},
+		urlPrefix + "projects/invalidProjectID/delete": {
 			post: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
 				return &http.Response{
 					StatusCode: 500,
-					Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
-				}, nil
-			},
-		},
-		urlPrefix + "projects/fail-response/delete": {
-			post: func(req *http.Request) (*http.Response, error) {
-				if resp := authErrorResp(req); resp != nil {
-					return resp, nil
-				}
-				return &http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{`)),
+					Body:       io.NopCloser(strings.NewReader(`{"message":"project not found","code":""}`)),
 				}, nil
 			},
 		},
@@ -167,14 +268,14 @@ func TestNewClient(t *testing.T) {
 			args: args{
 				ctx: nil,
 				optFns: []func(*Options){
-					WithAPIKey("foobar"),
+					WithAPIKey("validApiKey"),
 					WithHTTPClient(mockHttpClient),
 				},
 			},
 			envVarKey: "",
 			want: &client{
 				options: Options{
-					APIKey:     "foobar",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
@@ -189,10 +290,10 @@ func TestNewClient(t *testing.T) {
 					WithHTTPClient(mockHttpClient),
 				},
 			},
-			envVarKey: "foobar",
+			envVarKey: "validApiKey",
 			want: &client{
 				options: Options{
-					APIKey:     "foobar",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
@@ -212,14 +313,14 @@ func TestNewClient(t *testing.T) {
 			wantErr:   true,
 		},
 		{
-			name: "unhappy path - wrong apiKey",
+			name: "unhappy path - invalid API key",
 			args: args{
 				ctx: nil,
 				optFns: []func(*Options){
 					WithHTTPClient(mockHttpClient),
 				},
 			},
-			envVarKey: "fail",
+			envVarKey: "invalidApiKey",
 			want:      nil,
 			wantErr:   true,
 		},
@@ -249,8 +350,8 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
-func mustParse(s string) time.Time {
-	o, _ := time.Parse(time.RFC3339, s)
+func mustParseTime(s string) time.Time {
+	o, _ := time.Parse(time.RFC3339Nano, s)
 	return o
 }
 
@@ -270,10 +371,10 @@ func Test_client_CreateProject(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid",
+			name: "happy path",
 			fields: fields{
 				options: Options{
-					APIKey:     "foo",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
@@ -284,7 +385,7 @@ func Test_client_CreateProject(t *testing.T) {
 				},
 			},
 			want: ProjectInfo{
-				CreatedAt:    mustParse("2022-07-24T11:18:12.322513Z"),
+				CreatedAt:    mustParseTime("2022-07-24T11:18:12.322513Z"),
 				CurrentState: "active",
 				Databases: []Database{
 					{
@@ -298,7 +399,7 @@ func Test_client_CreateProject(t *testing.T) {
 				InstanceHandle: "",
 				InstanceTypeID: "0",
 				MaxProjectSize: 0,
-				Name:           "quiet-river-711967",
+				Name:           "foo",
 				ParentID:       "",
 				PendingState:   "",
 				PlatformID:     "serverless",
@@ -315,7 +416,7 @@ func Test_client_CreateProject(t *testing.T) {
 				},
 				Settings:  AdditionalOptions{},
 				Size:      0,
-				UpdatedAt: mustParse("2022-07-24T11:18:18.389868Z"),
+				UpdatedAt: mustParseTime("2022-07-24T11:18:18.389868Z"),
 			},
 			wantErr: false,
 		},
@@ -323,7 +424,7 @@ func Test_client_CreateProject(t *testing.T) {
 			name: "invalid - server error",
 			fields: fields{
 				options: Options{
-					APIKey:     "foo",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
@@ -340,7 +441,7 @@ func Test_client_CreateProject(t *testing.T) {
 			name: "invalid - faulty response",
 			fields: fields{
 				options: Options{
-					APIKey:     "foo",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
@@ -386,51 +487,81 @@ func Test_client_DeleteProject(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
+		envVars map[string]string
 		want    ProjectDeleteResponse
 		wantErr bool
 	}{
-		//{
-		//	name: "valid",
-		//	fields: fields{
-		//		options: Options{
-		//			APIKey:     "foo",
-		//			HTTPClient: mockHttpClient,
-		//		},
-		//		baseURL: baseURL,
-		//	},
-		//	args: args{
-		//		projectID: "foo",
-		//	},
-		//	want:    ProjectDeleteResponse{},
-		//	wantErr: false,
-		//},
 		{
-			name: "invalid - server error",
+			name: "happy path",
 			fields: fields{
 				options: Options{
-					APIKey:     "foo",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
 			},
 			args: args{
-				projectID: "fail",
+				projectID: "validProjectID",
+			},
+			want: ProjectDeleteResponse{
+				Action:        "stop_compute",
+				CreatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				Error:         "",
+				FailuresCount: 0,
+				ID:            281749,
+				ProjectID:     "validProjectID",
+				Status:        "running",
+				UpdatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				UUID:          "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: valid projectID, internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args: args{
+				projectID: "validProjectID",
+			},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
 			},
 			want:    ProjectDeleteResponse{},
 			wantErr: true,
 		},
 		{
-			name: "invalid - faulty response",
+			name: "unhappy path: projectID not found",
 			fields: fields{
 				options: Options{
-					APIKey:     "foo",
+					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClient,
 				},
 				baseURL: baseURL,
 			},
 			args: args{
-				projectID: "fail-response",
+				projectID: "invalidProjectID",
 			},
+			want:    ProjectDeleteResponse{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: valid projectID, corrupted response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args: args{
+				projectID: "validProjectID",
+			},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
 			want:    ProjectDeleteResponse{},
 			wantErr: true,
 		},
@@ -438,6 +569,11 @@ func Test_client_DeleteProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
+
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
 				c := &client{
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
@@ -449,6 +585,14 @@ func Test_client_DeleteProject(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("DeleteProject() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+
+		t.Cleanup(
+			func() {
+				for k, _ := range tt.envVars {
+					_ = os.Unsetenv(k)
 				}
 			},
 		)
