@@ -201,11 +201,84 @@ var mockHttpClientProjects = &httpClientMock{
 					ContentLength: 1000,
 				}, nil
 			},
+
+			// update project
+			patch: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode:    500,
+						Body:          io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+						ContentLength: 1000,
+					}, nil
+				}
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 100,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+				return &http.Response{
+					StatusCode:    200,
+					ContentLength: 1000,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+    "id": "validProjectID",
+    "parent_id": null,
+    "roles": [
+      {
+        "id": 1,
+        "name": "foo",
+        "password": ""
+      }
+    ],
+    "databases": [
+      {
+        "id": 1,
+        "name": "main",
+        "owner_id": 1
+      }
+    ],
+    "name": "bar",
+    "created_at": "2022-07-24T11:18:12.322513Z",
+    "updated_at": "2022-07-24T11:18:18.389868Z",
+    "region_id": "us-west-2",
+    "instance_handle": "",
+    "instance_type_id": "0",
+    "region_name": "US West (Oregon)",
+    "platform_name": "Serverless",
+    "platform_id": "serverless",
+    "settings": {},
+    "pending_state": null,
+    "current_state": "active",
+    "deleted": false,
+    "size": 0,
+    "max_project_size": 0,
+    "pooler_enabled": false
+  }`,
+						),
+					),
+				}, nil
+			},
 		},
 
 		// test in case the project does not exist
 		urlPrefix + "projects/invalidProjectID": {
 			get: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				return &http.Response{
+					StatusCode: 404,
+					Body:       io.NopCloser(strings.NewReader(`{"message":"object not found","code":""}`)),
+				}, nil
+			},
+
+			patch: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -795,6 +868,152 @@ func Test_client_ReadInfoProject(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("ReadInfoProject() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_UpdateProject(t *testing.T) {
+	type fields struct {
+		options Options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+		settings  ProjectSettingsRequestUpdate
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    ProjectInfo
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{
+				projectID: "validProjectID",
+				settings: ProjectSettingsRequestUpdate{
+					Name: "bar",
+				},
+			},
+			want: ProjectInfo{
+				CreatedAt:    mustParseTime("2022-07-24T11:18:12.322513Z"),
+				CurrentState: "active",
+				Databases: []Database{
+					{
+						ID:      1,
+						Name:    "main",
+						OwnerId: 1,
+					},
+				},
+				Deleted:        false,
+				ID:             "validProjectID",
+				InstanceHandle: "",
+				InstanceTypeID: "0",
+				MaxProjectSize: 0,
+				Name:           "bar",
+				ParentID:       "",
+				PendingState:   "",
+				PlatformID:     "serverless",
+				PlatformName:   "Serverless",
+				PoolerEnabled:  false,
+				RegionID:       "us-west-2",
+				RegionName:     "US West (Oregon)",
+				Roles: []Role{
+					{
+						ID:       1,
+						Name:     "foo",
+						Password: "",
+					},
+				},
+				Settings:  AdditionalOptions{},
+				Size:      0,
+				UpdatedAt: mustParseTime("2022-07-24T11:18:18.389868Z"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: project is not found",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "invalidProjectID"},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.UpdateProject(tt.args.projectID, tt.args.settings)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("UpdateProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("UpdateProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
