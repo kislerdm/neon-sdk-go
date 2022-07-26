@@ -123,6 +123,7 @@ type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// Options client options.
 type Options struct {
 	// APIKey API access key.
 	APIKey string
@@ -157,6 +158,18 @@ func (c *client) send(url string, t reqType, v interface{}) (*http.Response, err
 
 	if res.StatusCode > 299 {
 		return res, convertErrorResponse(res)
+	}
+
+	// cover non-existing object which will have 200+ status code
+	// see the ticket https://github.com/neondatabase/neon/issues/2159
+	if req.Method == get.String() && res.ContentLength < 10 {
+		return nil, Error{
+			HTTPCode: 404,
+			errorResp: errorResp{
+				Code:    "",
+				Message: "object not found",
+			},
+		}
 	}
 
 	return res, nil

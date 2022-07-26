@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -27,7 +26,7 @@ func (h *httpClientMock) Do(req *http.Request) (*http.Response, error) {
 
 func authErrorResp(req *http.Request) *http.Response {
 	token := req.Header.Get("Authorization")
-	if token == "" || token == "Bearer fail" {
+	if token == "" || token == "Bearer invalidApiKey" {
 		return &http.Response{
 			Status:     "",
 			StatusCode: 403,
@@ -54,7 +53,28 @@ var mockHttpClient = &httpClientMock{
 				}
 				return &http.Response{
 					StatusCode: 200,
-					Body:       nil,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+  "id": "ec82e2ee-0500-4f9f-b925-43ecdd1c3e89",
+  "email": "admin@dkisler.com",
+  "login": "kislerdm",
+  "name": "Dmitry Kisler",
+  "image": "https://avatars.githubusercontent.com/u/13434797?v=4",
+  "projects_limit": 3,
+  "auth_accounts": [
+    {
+      "provider": "github",
+      "email": "admin@dkisler.com",
+      "name": "Dmitry Kisler",
+      "login": "kislerdm",
+      "image": "https://avatars.githubusercontent.com/u/13434797?v=4"
+    }
+  ]
+}`,
+						),
+					),
+					ContentLength: 370,
 				}, nil
 			},
 		},
@@ -66,25 +86,19 @@ var mockHttpClient = &httpClientMock{
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
-
-				var v ProjectSettingsRequestCreate
-				buf, _ := io.ReadAll(req.Body)
-				_ = json.Unmarshal(buf, &v)
-				switch v.Name {
-				case "fail":
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
 					return &http.Response{
 						StatusCode: 500,
-						Body: io.NopCloser(
-							strings.NewReader(`{"message":"internal error","code":""}`),
-						),
-					}, nil
-				case "fail-response":
-					return &http.Response{
-						StatusCode: 201,
-						Body:       io.NopCloser(strings.NewReader(`{`)),
+						Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
 					}, nil
 				}
-
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
 				return &http.Response{
 					StatusCode: 201,
 					Body: io.NopCloser(
@@ -133,30 +147,26 @@ var mockHttpClient = &httpClientMock{
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
-
-				var v ProjectSettingsRequestCreate
-				buf, _ := io.ReadAll(req.Body)
-				_ = json.Unmarshal(buf, &v)
-				switch v.Name {
-				case "fail":
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
 					return &http.Response{
-						StatusCode: 500,
-						Body: io.NopCloser(
-							strings.NewReader(`{"message":"internal error","code":""}`),
-						),
-					}, nil
-				case "fail-response":
-					return &http.Response{
-						StatusCode: 200,
-						Body:       io.NopCloser(strings.NewReader(`{`)),
+						StatusCode:    500,
+						Body:          io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+						ContentLength: 1000,
 					}, nil
 				}
-
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 100,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
 				return &http.Response{
-					StatusCode: 200,
+					StatusCode:    200,
+					ContentLength: 1000,
 					Body: io.NopCloser(
 						strings.NewReader(
-							`{
+							`[{
     "id": "quiet-river-711967",
     "parent_id": null,
     "roles": [
@@ -173,7 +183,71 @@ var mockHttpClient = &httpClientMock{
         "owner_id": 1
       }
     ],
-    "name": "quiet-river-711967",
+    "name": "foo",
+    "created_at": "2022-07-24T11:18:12.322513Z",
+    "updated_at": "2022-07-24T11:18:18.389868Z",
+    "region_id": "us-west-2",
+    "instance_handle": "",
+    "instance_type_id": "0",
+    "region_name": "US West (Oregon)",
+    "platform_name": "Serverless",
+    "platform_id": "serverless",
+    "settings": {},
+    "pending_state": null,
+    "current_state": "active",
+    "deleted": false,
+    "size": 0,
+    "max_project_size": 0,
+    "pooler_enabled": false
+  }]`,
+						),
+					),
+				}, nil
+			},
+		},
+
+		// read project info end point
+		urlPrefix + "projects/validProjectID": {
+			get: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode:    500,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+					}, nil
+				}
+				return &http.Response{
+					StatusCode: 200,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+    "id": "validProjectID",
+    "parent_id": null,
+    "roles": [
+      {
+        "id": 1,
+        "name": "foo",
+        "password": ""
+      }
+    ],
+    "databases": [
+      {
+        "id": 1,
+        "name": "main",
+        "owner_id": 1
+      }
+    ],
+    "name": "foo",
     "created_at": "2022-07-24T11:18:12.322513Z",
     "updated_at": "2022-07-24T11:18:18.389868Z",
     "region_id": "us-west-2",
@@ -192,30 +266,43 @@ var mockHttpClient = &httpClientMock{
   }`,
 						),
 					),
+					ContentLength: 1000,
 				}, nil
 			},
 		},
+
+		// test in case the project does not exist
+		urlPrefix + "projects/invalidProjectID": {
+			get: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				return &http.Response{
+					StatusCode: 404,
+					Body:       io.NopCloser(strings.NewReader(`{"message":"object not found","code":""}`)),
+				}, nil
+			},
+		},
+
 		// delete end point
 		urlPrefix + "projects/validProjectID/delete": {
 			post: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
-
 				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
 					return &http.Response{
-						StatusCode: 200,
-						Body:       io.NopCloser(strings.NewReader(`{`)),
+						StatusCode:    200,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
 					}, nil
 				}
-
 				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
 					return &http.Response{
 						StatusCode: 500,
 						Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
 					}, nil
 				}
-
 				return &http.Response{
 					StatusCode: 200,
 					Body: io.NopCloser(
@@ -234,6 +321,7 @@ var mockHttpClient = &httpClientMock{
 }`,
 						),
 					),
+					ContentLength: 1000,
 				}, nil
 			},
 		},
@@ -243,7 +331,7 @@ var mockHttpClient = &httpClientMock{
 					return resp, nil
 				}
 				return &http.Response{
-					StatusCode: 500,
+					StatusCode: 404,
 					Body:       io.NopCloser(strings.NewReader(`{"message":"project not found","code":""}`)),
 				}, nil
 			},
@@ -367,6 +455,7 @@ func Test_client_CreateProject(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
+		envVars map[string]string
 		want    ProjectInfo
 		wantErr bool
 	}{
@@ -421,7 +510,7 @@ func Test_client_CreateProject(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid - server error",
+			name: "unhappy path: internal error",
 			fields: fields{
 				options: Options{
 					APIKey:     "validApiKey",
@@ -431,14 +520,17 @@ func Test_client_CreateProject(t *testing.T) {
 			},
 			args: args{
 				settings: ProjectSettingsRequestCreate{
-					Name: "fail",
+					Name: "foo",
 				},
+			},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
 			},
 			want:    ProjectInfo{},
 			wantErr: true,
 		},
 		{
-			name: "invalid - faulty response",
+			name: "unhappy path: corrupt response content",
 			fields: fields{
 				options: Options{
 					APIKey:     "validApiKey",
@@ -448,21 +540,36 @@ func Test_client_CreateProject(t *testing.T) {
 			},
 			args: args{
 				settings: ProjectSettingsRequestCreate{
-					Name: "fail-response",
+					Name: "foo",
 				},
 			},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
 			want:    ProjectInfo{},
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
 				c := &client{
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
 				got, err := c.CreateProject(tt.args.settings)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
 				if (err != nil) != tt.wantErr {
 					t.Errorf("CreateProject() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -566,6 +673,7 @@ func Test_client_DeleteProject(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
@@ -579,8 +687,20 @@ func Test_client_DeleteProject(t *testing.T) {
 					baseURL: tt.fields.baseURL,
 				}
 				got, err := c.DeleteProject(tt.args.projectID)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
 				if (err != nil) != tt.wantErr {
-					t.Errorf("DeleteProject() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf(
+						"DeleteProject() error = %v, wantErr %v; %s", err, tt.wantErr,
+						os.Getenv("SDK_TEST_INTERNAL_ERROR"),
+					)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
@@ -588,11 +708,265 @@ func Test_client_DeleteProject(t *testing.T) {
 				}
 			},
 		)
+	}
+}
 
-		t.Cleanup(
-			func() {
-				for k, _ := range tt.envVars {
-					_ = os.Unsetenv(k)
+func Test_client_ListProjects(t *testing.T) {
+	type fields struct {
+		options Options
+		baseURL string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		envVars map[string]string
+		want    []ProjectInfo
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			want: []ProjectInfo{
+				{
+					CreatedAt:    mustParseTime("2022-07-24T11:18:12.322513Z"),
+					CurrentState: "active",
+					Databases: []Database{
+						{
+							ID:      1,
+							Name:    "main",
+							OwnerId: 1,
+						},
+					},
+					Deleted:        false,
+					ID:             "quiet-river-711967",
+					InstanceHandle: "",
+					InstanceTypeID: "0",
+					MaxProjectSize: 0,
+					Name:           "foo",
+					ParentID:       "",
+					PendingState:   "",
+					PlatformID:     "serverless",
+					PlatformName:   "Serverless",
+					PoolerEnabled:  false,
+					RegionID:       "us-west-2",
+					RegionName:     "US West (Oregon)",
+					Roles: []Role{
+						{
+							ID:       1,
+							Name:     "foo",
+							Password: "",
+						},
+					},
+					Settings:  AdditionalOptions{},
+					Size:      0,
+					UpdatedAt: mustParseTime("2022-07-24T11:18:18.389868Z"),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.ListProjects()
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjects() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ReadInfoProject(t *testing.T) {
+	type fields struct {
+		options Options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    ProjectInfo
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			want: ProjectInfo{
+				CreatedAt:    mustParseTime("2022-07-24T11:18:12.322513Z"),
+				CurrentState: "active",
+				Databases: []Database{
+					{
+						ID:      1,
+						Name:    "main",
+						OwnerId: 1,
+					},
+				},
+				Deleted:        false,
+				ID:             "validProjectID",
+				InstanceHandle: "",
+				InstanceTypeID: "0",
+				MaxProjectSize: 0,
+				Name:           "foo",
+				ParentID:       "",
+				PendingState:   "",
+				PlatformID:     "serverless",
+				PlatformName:   "Serverless",
+				PoolerEnabled:  false,
+				RegionID:       "us-west-2",
+				RegionName:     "US West (Oregon)",
+				Roles: []Role{
+					{
+						ID:       1,
+						Name:     "foo",
+						Password: "",
+					},
+				},
+				Settings:  AdditionalOptions{},
+				Size:      0,
+				UpdatedAt: mustParseTime("2022-07-24T11:18:18.389868Z"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: project is not found",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClient,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "invalidProjectID"},
+			want:    ProjectInfo{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.ReadInfoProject(tt.args.projectID)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ReadInfoProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ReadInfoProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
