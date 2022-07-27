@@ -289,7 +289,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 		},
 
-		// delete end point
+		// del end point
 		urlPrefix + "projects/validProjectID/delete": {
 			post: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
@@ -571,7 +571,7 @@ func Test_client_CreateProject(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -697,7 +697,7 @@ func Test_client_DeleteProject(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -822,7 +822,7 @@ func Test_client_ListProjects(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -840,7 +840,7 @@ func Test_client_ListProjects(t *testing.T) {
 	}
 }
 
-func Test_client_ReadInfoProject(t *testing.T) {
+func Test_client_ReadProject(t *testing.T) {
 	type fields struct {
 		options Options
 		baseURL string
@@ -958,22 +958,22 @@ func Test_client_ReadInfoProject(t *testing.T) {
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
-				got, err := c.ReadInfoProject(tt.args.projectID)
+				got, err := c.ReadProject(tt.args.projectID)
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
 				)
 
 				if (err != nil) != tt.wantErr {
-					t.Errorf("ReadInfoProject() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("ReadProject() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ReadInfoProject() got = %v, want %v", got, tt.want)
+					t.Errorf("ReadProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1009,7 +1009,12 @@ func Test_client_UpdateProject(t *testing.T) {
 			args: args{
 				projectID: "validProjectID",
 				settings: ProjectSettingsRequestUpdate{
-					Name: "bar",
+					Project: struct {
+						InstanceTypeId string                 `json:"instance_type_id"`
+						Name           string                 `json:"name"`
+						PoolerEnabled  bool                   `json:"pooler_enabled"`
+						Settings       map[string]interface{} `json:"settings"`
+					}{Name: "bar"},
 				},
 			},
 			want: ProjectInfo{
@@ -1108,7 +1113,7 @@ func Test_client_UpdateProject(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -1226,7 +1231,7 @@ func Test_client_StartProject(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -1344,7 +1349,7 @@ func Test_client_StopProject(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},

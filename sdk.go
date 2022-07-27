@@ -19,8 +19,8 @@ type Client interface {
 	// ListProjects returns existing projects.
 	ListProjects() ([]ProjectInfo, error)
 
-	// ReadInfoProject returns project info.
-	ReadInfoProject(projectID string) (ProjectInfo, error)
+	// ReadProject returns project info.
+	ReadProject(projectID string) (ProjectInfo, error)
 
 	// CreateProject creates new project.
 	CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error)
@@ -40,7 +40,7 @@ type Client interface {
 	// ListDatabases return existing databases.
 	ListDatabases(projectID string) ([]DatabaseResponse, error)
 
-	// CreateDatabase creates a new database in the project.
+	// CreateDatabase creates new database in the project.
 	CreateDatabase(projectID string, cfg DatabaseRequest) (DatabaseResponse, error)
 
 	// UpdateDatabase updates the database in the project.
@@ -49,8 +49,23 @@ type Client interface {
 	// DeleteDatabase deletes the database in the project.
 	DeleteDatabase(projectID string, databaseID int) (DatabaseResponse, error)
 
-	// ReadInfoDatabase returns database info.
-	ReadInfoDatabase(projectID string, databaseID int) (DatabaseResponse, error)
+	// ReadDatabase returns database info.
+	ReadDatabase(projectID string, databaseID int) (DatabaseResponse, error)
+
+	// ListRoles return existing roles.
+	ListRoles(projectID string) ([]RoleResponse, error)
+
+	// CreateRole creates new role in the project.
+	CreateRole(projectID string, cfg RoleRequest) (RoleResponse, error)
+
+	// ReadRole returns role info.
+	ReadRole(projectID string, roleName string) (RoleResponse, error)
+
+	// DeleteRole deletes the role in the project.
+	DeleteRole(projectID string, roleName string) (RoleResponse, error)
+
+	// ResetRolePassword resets the role's password.
+	ResetRolePassword(projectID string, roleName string) (RolePasswordResponse, error)
 }
 
 type httpClient interface {
@@ -69,11 +84,11 @@ type Options struct {
 type reqType string
 
 const (
-	get    reqType = "GET"
-	post   reqType = "POST"
-	patch  reqType = "PATCH"
-	put    reqType = "PUT"
-	delete reqType = "DELETE"
+	get   reqType = "GET"
+	post  reqType = "POST"
+	patch reqType = "PATCH"
+	put   reqType = "PUT"
+	del   reqType = "DELETE"
 )
 
 func (r reqType) String() string {
@@ -101,6 +116,48 @@ type client struct {
 	baseURL string
 }
 
+func (c *client) ListRoles(projectID string) ([]RoleResponse, error) {
+	var v []RoleResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", get, nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (c *client) CreateRole(projectID string, cfg RoleRequest) (RoleResponse, error) {
+	var v RoleResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", post, cfg, &v); err != nil {
+		return RoleResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) ReadRole(projectID string, roleName string) (RoleResponse, error) {
+	var v RoleResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, get, nil, &v); err != nil {
+		return RoleResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) DeleteRole(projectID string, roleName string) (RoleResponse, error) {
+	var v RoleResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, del, nil, &v); err != nil {
+		return RoleResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) ResetRolePassword(projectID string, roleName string) (RolePasswordResponse, error) {
+	var v RolePasswordResponse
+	if err := c.requestHandler(
+		c.baseURL+"projects/"+projectID+"/roles/"+roleName+"/reset_password", post, nil, &v,
+	); err != nil {
+		return RolePasswordResponse{}, err
+	}
+	return v, nil
+}
+
 func (c *client) ListDatabases(projectID string) ([]DatabaseResponse, error) {
 	var v []DatabaseResponse
 	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", get, nil, &v); err != nil {
@@ -109,7 +166,7 @@ func (c *client) ListDatabases(projectID string) ([]DatabaseResponse, error) {
 	return v, nil
 }
 
-func (c *client) ReadInfoDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
+func (c *client) ReadDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(
 		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), get, nil, &v,
@@ -140,7 +197,7 @@ func (c *client) UpdateDatabase(projectID string, databaseID int, cfg DatabaseRe
 func (c *client) DeleteDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(
-		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), delete, nil, &v,
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), del, nil, &v,
 	); err != nil {
 		return DatabaseResponse{}, err
 	}
@@ -304,12 +361,16 @@ func (c *client) projectInfo(projectID string, requestType reqType) (ProjectInfo
 	return v, nil
 }
 
-func (c *client) ReadInfoProject(projectID string) (ProjectInfo, error) {
+func (c *client) ReadProject(projectID string) (ProjectInfo, error) {
 	return c.projectInfo(projectID, get)
 }
 
 func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
-	return c.projectInfo(projectID, patch)
+	var v ProjectInfo
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID, patch, settings, &v); err != nil {
+		return ProjectInfo{}, err
+	}
+	return v, nil
 }
 
 func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {

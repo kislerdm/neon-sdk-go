@@ -2,6 +2,26 @@ package sdk
 
 import "time"
 
+type RoleRequest struct {
+	Role struct {
+		Name string `json:"name"`
+	} `json:"role"`
+}
+type RolePasswordResponse struct {
+	Password    string `json:"password"`
+	OperationID int    `json:"operation_id"`
+}
+
+type RoleResponse struct {
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string    `json:"name"`
+	Password  string    `json:"password"`
+	ProjectId string    `json:"project_id"`
+	Id        int       `json:"id"`
+	Protected bool      `json:"protected"`
+}
+
 type DatabaseRequest struct {
 	Database struct {
 		Name    string `json:"name"`
@@ -70,10 +90,12 @@ type ProjectSettingsRequestCreate struct {
 
 // ProjectSettingsRequestUpdate settings to update existing Project.
 type ProjectSettingsRequestUpdate struct {
-	InstanceTypeID string            `json:"instance_type_id"`
-	Name           string            `json:"name"`
-	PoolerEnabled  bool              `json:"pooler_enabled"`
-	Settings       AdditionalOptions `json:"settings"`
+	Project struct {
+		InstanceTypeId string                 `json:"instance_type_id"`
+		Name           string                 `json:"name"`
+		PoolerEnabled  bool                   `json:"pooler_enabled"`
+		Settings       map[string]interface{} `json:"settings"`
+	} `json:"project"`
 }
 
 // ProjectStatus response to project start/stop requests.

@@ -191,7 +191,7 @@ var mockHttpClientDatabases = &httpClientMock{
 					),
 				}, nil
 			},
-			delete: func(req *http.Request) (*http.Response, error) {
+			del: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -228,9 +228,9 @@ var mockHttpClientDatabases = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/validProjectID/databases/1": {
-			get:    objNotFoundResponse,
-			put:    objNotFoundResponse,
-			delete: objNotFoundResponse,
+			get: objNotFoundResponse,
+			put: objNotFoundResponse,
+			del: objNotFoundResponse,
 		},
 	},
 }
@@ -333,7 +333,7 @@ func Test_client_ListDatabases(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -446,7 +446,7 @@ func Test_client_CreateDatabase(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -464,7 +464,7 @@ func Test_client_CreateDatabase(t *testing.T) {
 	}
 }
 
-func Test_client_ReadInfoDatabase(t *testing.T) {
+func Test_client_ReadDatabase(t *testing.T) {
 	type fields struct {
 		options Options
 		baseURL string
@@ -560,22 +560,22 @@ func Test_client_ReadInfoDatabase(t *testing.T) {
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
-				got, err := c.ReadInfoDatabase(tt.args.projectID, tt.args.databaseID)
+				got, err := c.ReadDatabase(tt.args.projectID, tt.args.databaseID)
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
 				)
 
 				if (err != nil) != tt.wantErr {
-					t.Errorf("ReadInfoDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("ReadDatabase() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ReadInfoDatabase() got = %v, want %v", got, tt.want)
+					t.Errorf("ReadDatabase() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -689,7 +689,7 @@ func Test_client_UpdateDatabase(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
@@ -807,7 +807,7 @@ func Test_client_DeleteDatabase(t *testing.T) {
 
 				t.Cleanup(
 					func() {
-						for k, _ := range tt.envVars {
+						for k := range tt.envVars {
 							_ = os.Unsetenv(k)
 						}
 					},
