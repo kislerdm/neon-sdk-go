@@ -487,7 +487,7 @@ func Test_client_CreateProject(t *testing.T) {
 					{
 						ID:      1,
 						Name:    "main",
-						OwnerId: 1,
+						OwnerID: 1,
 					},
 				},
 				Deleted:        false,
@@ -747,7 +747,7 @@ func Test_client_ListProjects(t *testing.T) {
 						{
 							ID:      1,
 							Name:    "main",
-							OwnerId: 1,
+							OwnerID: 1,
 						},
 					},
 					Deleted:        false,
@@ -873,7 +873,7 @@ func Test_client_ReadInfoProject(t *testing.T) {
 					{
 						ID:      1,
 						Name:    "main",
-						OwnerId: 1,
+						OwnerID: 1,
 					},
 				},
 				Deleted:        false,
@@ -1019,7 +1019,7 @@ func Test_client_UpdateProject(t *testing.T) {
 					{
 						ID:      1,
 						Name:    "main",
-						OwnerId: 1,
+						OwnerID: 1,
 					},
 				},
 				Deleted:        false,
