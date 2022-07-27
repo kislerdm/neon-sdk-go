@@ -2,11 +2,27 @@ package sdk
 
 import "time"
 
+type DatabaseRequest struct {
+	Database struct {
+		Name    string `json:"name"`
+		OwnerID int    `json:"owner_id"`
+	} `json:"database"`
+}
+
+type DatabaseResponse struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	OwnerID   int       `json:"owner_id"`
+	ProjectID string    `json:"project_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // Database Neon Database metadata.
 type Database struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
-	OwnerId int    `json:"owner_id"`
+	OwnerID int    `json:"owner_id"`
 }
 
 // Role Neon Role metadata.

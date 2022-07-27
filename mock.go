@@ -39,3 +39,13 @@ func mustParseTime(s string) time.Time {
 	o, _ := time.Parse(time.RFC3339Nano, s)
 	return o
 }
+
+func objNotFoundResponse(req *http.Request) (*http.Response, error) {
+	if resp := authErrorResp(req); resp != nil {
+		return resp, nil
+	}
+	return &http.Response{
+		StatusCode: 404,
+		Body:       io.NopCloser(strings.NewReader(`{"message":"object not found","code":""}`)),
+	}, nil
+}

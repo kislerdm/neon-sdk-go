@@ -16,26 +16,41 @@ type Client interface {
 	// ValidateAPIKey makes a call to validate API access key.
 	ValidateAPIKey() error
 
-	// ListProjects returns existing Projects.
+	// ListProjects returns existing projects.
 	ListProjects() ([]ProjectInfo, error)
 
-	// ReadInfoProject returns Project info.
+	// ReadInfoProject returns project info.
 	ReadInfoProject(projectID string) (ProjectInfo, error)
 
-	// CreateProject creates new Project.
+	// CreateProject creates new project.
 	CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error)
 
-	// UpdateProject updates existing Project.
+	// UpdateProject updates existing project.
 	UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error)
 
-	// DeleteProject deletes existing Project.
+	// DeleteProject deletes existing project.
 	DeleteProject(projectID string) (ProjectStatus, error)
 
-	// StartProject starts the Project.
+	// StartProject starts the project.
 	StartProject(projectID string) (ProjectStatus, error)
 
-	// StopProject starts running Project.
+	// StopProject starts running project.
 	StopProject(projectID string) (ProjectStatus, error)
+
+	// ListDatabases return existing databases.
+	ListDatabases(projectID string) ([]DatabaseResponse, error)
+
+	// CreateDatabase creates a new database in the project.
+	CreateDatabase(projectID string, cfg DatabaseRequest) (DatabaseResponse, error)
+
+	// UpdateDatabase updates the database in the project.
+	UpdateDatabase(projectID string, databaseID int, cfg DatabaseRequest) (DatabaseResponse, error)
+
+	// DeleteDatabase deletes the database in the project.
+	DeleteDatabase(projectID string, databaseID int) (DatabaseResponse, error)
+
+	// ReadInfoDatabase returns database info.
+	ReadInfoDatabase(projectID string, databaseID int) (DatabaseResponse, error)
 }
 
 type httpClient interface {
@@ -84,6 +99,52 @@ type client struct {
 	options Options
 
 	baseURL string
+}
+
+func (c *client) ListDatabases(projectID string) ([]DatabaseResponse, error) {
+	var v []DatabaseResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", get, nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+func (c *client) ReadInfoDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
+	var v DatabaseResponse
+	if err := c.requestHandler(
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), get, nil, &v,
+	); err != nil {
+		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) CreateDatabase(projectID string, cfg DatabaseRequest) (DatabaseResponse, error) {
+	var v DatabaseResponse
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", post, cfg, &v); err != nil {
+		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) UpdateDatabase(projectID string, databaseID int, cfg DatabaseRequest) (DatabaseResponse, error) {
+	var v DatabaseResponse
+	if err := c.requestHandler(
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), put, cfg, &v,
+	); err != nil {
+		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
+func (c *client) DeleteDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
+	var v DatabaseResponse
+	if err := c.requestHandler(
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), delete, nil, &v,
+	); err != nil {
+		return DatabaseResponse{}, err
+	}
+	return v, nil
 }
 
 func (c *client) requestHandler(url string, t reqType, reqPayload interface{}, responsePayload interface{}) error {
