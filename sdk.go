@@ -30,6 +30,12 @@ type Client interface {
 
 	// DeleteProject deletes existing Project.
 	DeleteProject(projectID string) (ProjectDeleteResponse, error)
+
+	// StartProject starts the Project.
+	StartProject(projectID string) (ProjectRunStatus, error)
+
+	// StopProject starts running Project.
+	StopProject(projectID string) (ProjectRunStatus, error)
 }
 
 type httpClient interface {
@@ -43,12 +49,6 @@ type Options struct {
 
 	// HTTPClient client to communicate with the API over http.
 	HTTPClient httpClient
-}
-
-type client struct {
-	options Options
-
-	baseURL string
 }
 
 type reqType string
@@ -80,30 +80,22 @@ func (e Error) Error() string {
 	return fmt.Sprintf("[HTTP Code: %d][Error Code: %s] %s", e.HTTPCode, e.Code, e.Message)
 }
 
-func (c *client) marshal(v interface{}) (io.Reader, error) {
-	body, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(body), nil
+type client struct {
+	options Options
+
+	baseURL string
 }
 
-func (c *client) unmarshal(body io.ReadCloser, v interface{}) error {
-	buf, err := io.ReadAll(body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(buf, &v)
-}
-
-func (c *client) send(url string, t reqType, v interface{}) (*http.Response, error) {
+func (c *client) requestHandler(url string, t reqType, reqPayload interface{}, responsePayload interface{}) error {
 	var body io.Reader
 	var err error
-	if v != nil {
-		body, err = c.marshal(v)
+
+	if reqPayload != nil {
+		b, err := json.Marshal(reqPayload)
 		if err != nil {
-			return nil, err
+			return err
 		}
+		body = bytes.NewReader(b)
 	}
 
 	req, _ := http.NewRequest(t.String(), url, body)
@@ -111,17 +103,17 @@ func (c *client) send(url string, t reqType, v interface{}) (*http.Response, err
 
 	res, err := c.options.HTTPClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if res.StatusCode > 299 {
-		return res, convertErrorResponse(res)
+		return convertErrorResponse(res)
 	}
 
 	// cover non-existing object which will have 200+ status code
 	// see the ticket https://github.com/neondatabase/neon/issues/2159
 	if req.Method == get.String() && res.ContentLength < 10 {
-		return nil, Error{
+		return Error{
 			HTTPCode: 404,
 			errorResp: errorResp{
 				Code:    "",
@@ -130,7 +122,15 @@ func (c *client) send(url string, t reqType, v interface{}) (*http.Response, err
 		}
 	}
 
-	return res, nil
+	if responsePayload != nil {
+		buf, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(buf, responsePayload)
+	}
+
+	return nil
 }
 
 const baseURL = "https://console.neon.tech/api/v1/"
@@ -165,8 +165,7 @@ func (c *client) ValidateAPIKey() error {
 		return fmt.Errorf("API key is not set")
 	}
 
-	_, err := c.send(c.baseURL+"users/me", get, nil)
-	return err
+	return c.requestHandler(c.baseURL+"users/me", get, nil, nil)
 }
 
 func resolveHTTPClient(o *Options) {
@@ -229,76 +228,57 @@ func convertErrorResponse(res *http.Response) error {
 }
 
 func (c *client) ListProjects() ([]ProjectInfo, error) {
-	res, err := c.send(c.baseURL+"projects", get, nil)
-	defer res.Body.Close()
-
-	if err != nil {
+	var v []ProjectInfo
+	if err := c.requestHandler(c.baseURL+"projects", get, nil, &v); err != nil {
 		return nil, err
 	}
+	return v, nil
+}
 
-	var v []ProjectInfo
-	if err := c.unmarshal(res.Body, &v); err != nil {
-		return nil, err
+func (c *client) projectInfo(projectID string, requestType reqType) (ProjectInfo, error) {
+	var v ProjectInfo
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID, requestType, nil, &v); err != nil {
+		return ProjectInfo{}, err
 	}
 	return v, nil
 }
 
 func (c *client) ReadInfoProject(projectID string) (ProjectInfo, error) {
-	res, err := c.send(c.baseURL+"projects/"+projectID, get, nil)
-	defer res.Body.Close()
-
-	if err != nil {
-		return ProjectInfo{}, err
-	}
-
-	var v ProjectInfo
-	if err := c.unmarshal(res.Body, &v); err != nil {
-		return ProjectInfo{}, err
-	}
-	return v, nil
-}
-
-func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {
-	res, err := c.send(c.baseURL+"projects", post, settings)
-	defer res.Body.Close()
-
-	if err != nil {
-		return ProjectInfo{}, err
-	}
-
-	var v ProjectInfo
-	if err := c.unmarshal(res.Body, &v); err != nil {
-		return ProjectInfo{}, err
-	}
-	return v, nil
+	return c.projectInfo(projectID, get)
 }
 
 func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
-	res, err := c.send(c.baseURL+"projects/"+projectID, patch, settings)
-	defer res.Body.Close()
+	return c.projectInfo(projectID, patch)
+}
 
-	if err != nil {
-		return ProjectInfo{}, err
-	}
-
+func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {
 	var v ProjectInfo
-	if err := c.unmarshal(res.Body, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects", post, settings, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
 }
 
 func (c *client) DeleteProject(projectID string) (ProjectDeleteResponse, error) {
-	res, err := c.send(c.baseURL+"projects/"+projectID+"/delete", post, nil)
-	defer res.Body.Close()
-
-	if err != nil {
-		return ProjectDeleteResponse{}, err
-	}
-
 	var v ProjectDeleteResponse
-	if err := c.unmarshal(res.Body, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/delete", post, nil, &v); err != nil {
 		return ProjectDeleteResponse{}, err
 	}
 	return v, nil
+}
+
+func (c *client) projectRunStatusUpdate(url string) (ProjectRunStatus, error) {
+	var v ProjectRunStatus
+	if err := c.requestHandler(url, post, nil, &v); err != nil {
+		return ProjectRunStatus{}, err
+	}
+	return v, nil
+}
+
+func (c *client) StartProject(projectID string) (ProjectRunStatus, error) {
+	return c.projectRunStatusUpdate(c.baseURL + "projects/" + projectID + "/start")
+}
+
+func (c *client) StopProject(projectID string) (ProjectRunStatus, error) {
+	return c.projectRunStatusUpdate(c.baseURL + "projects/" + projectID + "/stop")
 }
