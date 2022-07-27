@@ -353,16 +353,12 @@ func (c *client) ListProjects() ([]ProjectInfo, error) {
 	return v, nil
 }
 
-func (c *client) projectInfo(projectID string, requestType reqType) (ProjectInfo, error) {
+func (c *client) ReadProject(projectID string) (ProjectInfo, error) {
 	var v ProjectInfo
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID, requestType, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID, get, nil, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
-}
-
-func (c *client) ReadProject(projectID string) (ProjectInfo, error) {
-	return c.projectInfo(projectID, get)
 }
 
 func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
