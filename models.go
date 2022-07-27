@@ -60,22 +60,8 @@ type ProjectSettingsRequestUpdate struct {
 	Settings       AdditionalOptions `json:"settings"`
 }
 
-// ProjectDeleteResponse response to the Project deletion request.
-type ProjectDeleteResponse struct {
-	Action        string    `json:"action"`
-	CreatedAt     time.Time `json:"created_at"`
-	Error         string    `json:"error"`
-	FailuresCount int       `json:"failures_count"`
-	ID            int       `json:"id"`
-	ProjectID     string    `json:"project_id"`
-	RetryAt       time.Time `json:"retry_at"`
-	Status        string    `json:"status"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	UUID          string    `json:"uuid"`
-}
-
-// ProjectRunStatus response to project start/stop requests.
-type ProjectRunStatus struct {
+// ProjectStatus response to project start/stop requests.
+type ProjectStatus struct {
 	Action        string    `json:"action"`
 	CreatedAt     time.Time `json:"created_at"`
 	Error         string    `json:"error"`

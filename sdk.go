@@ -29,13 +29,13 @@ type Client interface {
 	UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error)
 
 	// DeleteProject deletes existing Project.
-	DeleteProject(projectID string) (ProjectDeleteResponse, error)
+	DeleteProject(projectID string) (ProjectStatus, error)
 
 	// StartProject starts the Project.
-	StartProject(projectID string) (ProjectRunStatus, error)
+	StartProject(projectID string) (ProjectStatus, error)
 
 	// StopProject starts running Project.
-	StopProject(projectID string) (ProjectRunStatus, error)
+	StopProject(projectID string) (ProjectStatus, error)
 }
 
 type httpClient interface {
@@ -259,26 +259,26 @@ func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectIn
 	return v, nil
 }
 
-func (c *client) DeleteProject(projectID string) (ProjectDeleteResponse, error) {
-	var v ProjectDeleteResponse
+func (c *client) DeleteProject(projectID string) (ProjectStatus, error) {
+	var v ProjectStatus
 	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/delete", post, nil, &v); err != nil {
-		return ProjectDeleteResponse{}, err
+		return ProjectStatus{}, err
 	}
 	return v, nil
 }
 
-func (c *client) projectRunStatusUpdate(url string) (ProjectRunStatus, error) {
-	var v ProjectRunStatus
+func (c *client) projectRunStatusUpdate(url string) (ProjectStatus, error) {
+	var v ProjectStatus
 	if err := c.requestHandler(url, post, nil, &v); err != nil {
-		return ProjectRunStatus{}, err
+		return ProjectStatus{}, err
 	}
 	return v, nil
 }
 
-func (c *client) StartProject(projectID string) (ProjectRunStatus, error) {
+func (c *client) StartProject(projectID string) (ProjectStatus, error) {
 	return c.projectRunStatusUpdate(c.baseURL + "projects/" + projectID + "/start")
 }
 
-func (c *client) StopProject(projectID string) (ProjectRunStatus, error) {
+func (c *client) StopProject(projectID string) (ProjectStatus, error) {
 	return c.projectRunStatusUpdate(c.baseURL + "projects/" + projectID + "/stop")
 }

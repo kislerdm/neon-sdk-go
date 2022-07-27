@@ -341,6 +341,112 @@ var mockHttpClientProjects = &httpClientMock{
 				}, nil
 			},
 		},
+
+		// start project end point
+		urlPrefix + "projects/validProjectID/start": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode: 500,
+						Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+					}, nil
+				}
+				return &http.Response{
+					StatusCode: 200,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+  "id": 281749,
+  "created_at": "2022-07-26T08:56:59.366068468Z",
+  "updated_at": "2022-07-26T08:56:59.366068468Z",
+  "project_id": "validProjectID",
+  "uuid": "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+  "action": "start_compute",
+  "status": "running",
+  "error": "",
+  "failures_count": 0,
+  "retry_at": "0001-01-01T00:00:00Z"
+}`,
+						),
+					),
+					ContentLength: 1000,
+				}, nil
+			},
+		},
+		urlPrefix + "projects/invalidProjectID/start": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				return &http.Response{
+					StatusCode: 404,
+					Body:       io.NopCloser(strings.NewReader(`{"message":"project not found","code":""}`)),
+				}, nil
+			},
+		},
+
+		// stop project end point
+		urlPrefix + "projects/validProjectID/stop": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 1000,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode: 500,
+						Body:       io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+					}, nil
+				}
+				return &http.Response{
+					StatusCode: 200,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+  "id": 281749,
+  "created_at": "2022-07-26T08:56:59.366068468Z",
+  "updated_at": "2022-07-26T08:56:59.366068468Z",
+  "project_id": "validProjectID",
+  "uuid": "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+  "action": "stop_compute",
+  "status": "running",
+  "error": "",
+  "failures_count": 0,
+  "retry_at": "0001-01-01T00:00:00Z"
+}`,
+						),
+					),
+					ContentLength: 1000,
+				}, nil
+			},
+		},
+		urlPrefix + "projects/invalidProjectID/stop": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				return &http.Response{
+					StatusCode: 404,
+					Body:       io.NopCloser(strings.NewReader(`{"message":"project not found","code":""}`)),
+				}, nil
+			},
+		},
 	},
 }
 
@@ -496,7 +602,7 @@ func Test_client_DeleteProject(t *testing.T) {
 		fields  fields
 		args    args
 		envVars map[string]string
-		want    ProjectDeleteResponse
+		want    ProjectStatus
 		wantErr bool
 	}{
 		{
@@ -511,7 +617,7 @@ func Test_client_DeleteProject(t *testing.T) {
 			args: args{
 				projectID: "validProjectID",
 			},
-			want: ProjectDeleteResponse{
+			want: ProjectStatus{
 				Action:        "stop_compute",
 				CreatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
 				Error:         "",
@@ -539,7 +645,7 @@ func Test_client_DeleteProject(t *testing.T) {
 			envVars: map[string]string{
 				"SDK_TEST_INTERNAL_ERROR": "TRUE",
 			},
-			want:    ProjectDeleteResponse{},
+			want:    ProjectStatus{},
 			wantErr: true,
 		},
 		{
@@ -554,7 +660,7 @@ func Test_client_DeleteProject(t *testing.T) {
 			args: args{
 				projectID: "invalidProjectID",
 			},
-			want:    ProjectDeleteResponse{},
+			want:    ProjectStatus{},
 			wantErr: true,
 		},
 		{
@@ -570,7 +676,7 @@ func Test_client_DeleteProject(t *testing.T) {
 				projectID: "validProjectID",
 			},
 			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
-			want:    ProjectDeleteResponse{},
+			want:    ProjectStatus{},
 			wantErr: true,
 		},
 	}
@@ -1014,6 +1120,242 @@ func Test_client_UpdateProject(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("UpdateProject() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_StartProject(t *testing.T) {
+	type fields struct {
+		options Options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    ProjectStatus
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			want: ProjectStatus{
+				Action:        "start_compute",
+				CreatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				Error:         "",
+				FailuresCount: 0,
+				ID:            281749,
+				ProjectID:     "validProjectID",
+				RetryAt:       mustParseTime("0001-01-01T00:00:00Z"),
+				Status:        "running",
+				UpdatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				UUID:          "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: project is not found",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "invalidProjectID"},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.StartProject(tt.args.projectID)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("StartProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("StartProject() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_StopProject(t *testing.T) {
+	type fields struct {
+		options Options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    ProjectStatus
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			want: ProjectStatus{
+				Action:        "stop_compute",
+				CreatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				Error:         "",
+				FailuresCount: 0,
+				ID:            281749,
+				ProjectID:     "validProjectID",
+				RetryAt:       mustParseTime("0001-01-01T00:00:00Z"),
+				Status:        "running",
+				UpdatedAt:     mustParseTime("2022-07-26T08:56:59.366068468Z"),
+				UUID:          "ab8421dd-fd07-4bf7-bd8f-4952f430eb1d",
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: project is not found",
+			fields: fields{
+				options: Options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientProjects,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "invalidProjectID"},
+			want:    ProjectStatus{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.StopProject(tt.args.projectID)
+
+				t.Cleanup(
+					func() {
+						for k, _ := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("StopProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("StopProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
