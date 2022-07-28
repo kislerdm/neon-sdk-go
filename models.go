@@ -17,8 +17,8 @@ type RoleResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Name      string    `json:"name"`
 	Password  string    `json:"password"`
-	ProjectId string    `json:"project_id"`
-	Id        int       `json:"id"`
+	ProjectID string    `json:"project_id"`
+	ID        int       `json:"id"`
 	Protected bool      `json:"protected"`
 }
 

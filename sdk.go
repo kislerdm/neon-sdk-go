@@ -68,17 +68,9 @@ type Client interface {
 	ResetRolePassword(projectID string, roleName string) (RolePasswordResponse, error)
 }
 
-type httpClient interface {
+// HTTPClient client to handle http requests.
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
-}
-
-// Options client options.
-type Options struct {
-	// APIKey API access key.
-	APIKey string
-
-	// HTTPClient client to communicate with the API over http.
-	HTTPClient httpClient
 }
 
 type reqType string
@@ -110,8 +102,16 @@ func (e Error) Error() string {
 	return fmt.Sprintf("[HTTP Code: %d][Error Code: %s] %s", e.HTTPCode, e.Code, e.Message)
 }
 
+type options struct {
+	// APIKey API access key.
+	APIKey string
+
+	// HTTPClient client to communicate with the API over http.
+	HTTPClient HTTPClient
+}
+
 type client struct {
-	options Options
+	options options
 
 	baseURL string
 }
@@ -255,8 +255,8 @@ const baseURL = "https://console.neon.tech/api/v1/"
 
 // NewClient initialised new client to communicate to Neon over http API.
 // See details: https://neon.tech/docs/reference/about/
-func NewClient(ctx context.Context, optFns ...func(*Options)) (Client, error) {
-	o := Options{}
+func NewClient(ctx context.Context, optFns ...func(*options)) (Client, error) {
+	o := options{}
 	for _, fn := range optFns {
 		fn(&o)
 	}
@@ -286,28 +286,28 @@ func (c *client) ValidateAPIKey() error {
 	return c.requestHandler(c.baseURL+"users/me", get, nil, nil)
 }
 
-func resolveHTTPClient(o *Options) {
+func resolveHTTPClient(o *options) {
 	if o.HTTPClient == nil {
 		o.HTTPClient = &http.Client{Timeout: 5 * time.Minute}
 	}
 }
 
-func resolveAPIKey(o *Options) {
+func resolveAPIKey(o *options) {
 	if o.APIKey == "" {
 		o.APIKey = os.Getenv("NEON_API_KEY")
 	}
 }
 
 // WithAPIKey sets the API access key.
-func WithAPIKey(apiKey string) func(*Options) {
-	return func(o *Options) {
+func WithAPIKey(apiKey string) func(*options) {
+	return func(o *options) {
 		o.APIKey = apiKey
 	}
 }
 
 // WithHTTPClient sets custom http client.
-func WithHTTPClient(client httpClient) func(*Options) {
-	return func(o *Options) {
+func WithHTTPClient(client HTTPClient) func(*options) {
+	return func(o *options) {
 		o.HTTPClient = client
 	}
 }

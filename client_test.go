@@ -55,7 +55,7 @@ var mockHttpClientValidateAPI = &httpClientMock{
 func TestNewClient(t *testing.T) {
 	type args struct {
 		ctx    context.Context
-		optFns []func(*Options)
+		optFns []func(*options)
 	}
 	tests := []struct {
 		name      string
@@ -68,14 +68,14 @@ func TestNewClient(t *testing.T) {
 			name: "happy path",
 			args: args{
 				ctx: nil,
-				optFns: []func(*Options){
+				optFns: []func(*options){
 					WithAPIKey("validApiKey"),
 					WithHTTPClient(mockHttpClientValidateAPI),
 				},
 			},
 			envVarKey: "",
 			want: &client{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientValidateAPI,
 				},
@@ -87,13 +87,13 @@ func TestNewClient(t *testing.T) {
 			name: "happy path - apiKey from env var",
 			args: args{
 				ctx: nil,
-				optFns: []func(*Options){
+				optFns: []func(*options){
 					WithHTTPClient(mockHttpClientValidateAPI),
 				},
 			},
 			envVarKey: "validApiKey",
 			want: &client{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientValidateAPI,
 				},
@@ -105,7 +105,7 @@ func TestNewClient(t *testing.T) {
 			name: "unhappy path - missing apiKey",
 			args: args{
 				ctx: nil,
-				optFns: []func(*Options){
+				optFns: []func(*options){
 					WithHTTPClient(mockHttpClientValidateAPI),
 				},
 			},
@@ -117,7 +117,7 @@ func TestNewClient(t *testing.T) {
 			name: "unhappy path - invalid API key",
 			args: args{
 				ctx: nil,
-				optFns: []func(*Options){
+				optFns: []func(*options){
 					WithHTTPClient(mockHttpClientValidateAPI),
 				},
 			},

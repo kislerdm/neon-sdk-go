@@ -452,7 +452,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 func Test_client_CreateProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -469,7 +469,7 @@ func Test_client_CreateProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -519,7 +519,7 @@ func Test_client_CreateProject(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -539,7 +539,7 @@ func Test_client_CreateProject(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -591,7 +591,7 @@ func Test_client_CreateProject(t *testing.T) {
 
 func Test_client_DeleteProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -608,7 +608,7 @@ func Test_client_DeleteProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -633,7 +633,7 @@ func Test_client_DeleteProject(t *testing.T) {
 		{
 			name: "unhappy path: valid projectID, internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -651,7 +651,7 @@ func Test_client_DeleteProject(t *testing.T) {
 		{
 			name: "unhappy path: projectID not found",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -666,7 +666,7 @@ func Test_client_DeleteProject(t *testing.T) {
 		{
 			name: "unhappy path: valid projectID, corrupted response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -720,7 +720,7 @@ func Test_client_DeleteProject(t *testing.T) {
 
 func Test_client_ListProjects(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	tests := []struct {
@@ -733,7 +733,7 @@ func Test_client_ListProjects(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -780,7 +780,7 @@ func Test_client_ListProjects(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -795,7 +795,7 @@ func Test_client_ListProjects(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -842,7 +842,7 @@ func Test_client_ListProjects(t *testing.T) {
 
 func Test_client_ReadProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -859,7 +859,7 @@ func Test_client_ReadProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -905,7 +905,7 @@ func Test_client_ReadProject(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -921,7 +921,7 @@ func Test_client_ReadProject(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -935,7 +935,7 @@ func Test_client_ReadProject(t *testing.T) {
 		{
 			name: "unhappy path: project is not found",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -982,7 +982,7 @@ func Test_client_ReadProject(t *testing.T) {
 
 func Test_client_UpdateProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -1000,7 +1000,7 @@ func Test_client_UpdateProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1056,7 +1056,7 @@ func Test_client_UpdateProject(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1072,7 +1072,7 @@ func Test_client_UpdateProject(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1086,7 +1086,7 @@ func Test_client_UpdateProject(t *testing.T) {
 		{
 			name: "unhappy path: project is not found",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1133,7 +1133,7 @@ func Test_client_UpdateProject(t *testing.T) {
 
 func Test_client_StartProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -1150,7 +1150,7 @@ func Test_client_StartProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1174,7 +1174,7 @@ func Test_client_StartProject(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1190,7 +1190,7 @@ func Test_client_StartProject(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1204,7 +1204,7 @@ func Test_client_StartProject(t *testing.T) {
 		{
 			name: "unhappy path: project is not found",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1251,7 +1251,7 @@ func Test_client_StartProject(t *testing.T) {
 
 func Test_client_StopProject(t *testing.T) {
 	type fields struct {
-		options Options
+		options options
 		baseURL string
 	}
 	type args struct {
@@ -1268,7 +1268,7 @@ func Test_client_StopProject(t *testing.T) {
 		{
 			name: "happy path",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1292,7 +1292,7 @@ func Test_client_StopProject(t *testing.T) {
 		{
 			name: "unhappy path: internal error",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1308,7 +1308,7 @@ func Test_client_StopProject(t *testing.T) {
 		{
 			name: "unhappy path: corrupt response content",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},
@@ -1322,7 +1322,7 @@ func Test_client_StopProject(t *testing.T) {
 		{
 			name: "unhappy path: project is not found",
 			fields: fields{
-				options: Options{
+				options: options{
 					APIKey:     "validApiKey",
 					HTTPClient: mockHttpClientProjects,
 				},

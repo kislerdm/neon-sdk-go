@@ -11,9 +11,9 @@ import (
 	"testing"
 )
 
-var mockHttpClientDatabases = &httpClientMock{
+var mockHttpClientRoles = &httpClientMock{
 	m: map[string]map[reqType]resp{
-		urlPrefix + "projects/validProjectID/databases": {
+		urlPrefix + "projects/validProjectID/roles": {
 			get: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
@@ -40,8 +40,8 @@ var mockHttpClientDatabases = &httpClientMock{
   {
     "created_at": "2022-07-27T09:13:06.855Z",
     "id": 0,
-    "name": "main",
-    "owner_id": 0,
+    "name": "validRole",
+    "password": "xxx",
     "project_id": "validProjectID",
     "updated_at": "2022-07-27T09:13:06.855Z"
   }
@@ -51,8 +51,6 @@ var mockHttpClientDatabases = &httpClientMock{
 					ContentLength: 1000,
 				}, nil
 			},
-
-			// update project
 			post: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
@@ -76,8 +74,8 @@ var mockHttpClientDatabases = &httpClientMock{
 				if err != nil {
 					panic(err)
 				}
-				var db DatabaseRequest
-				if err := json.Unmarshal(b, &db); err != nil {
+				var r RoleRequest
+				if err := json.Unmarshal(b, &r); err != nil {
 					panic(err)
 				}
 
@@ -91,23 +89,23 @@ var mockHttpClientDatabases = &httpClientMock{
     "created_at": "2022-07-27T09:13:06.855Z",
     "id": 0,
     "name": "%s",
-    "owner_id": %d,
+    "password": "xxx",
+	"protected": true,
     "project_id": "validProjectID",
     "updated_at": "2022-07-27T09:13:06.855Z"
-  }`,
-								db.Database.Name, db.Database.OwnerID,
+  }`, r.Role.Name,
 							),
 						),
 					),
 				}, nil
 			},
 		},
-		urlPrefix + "projects/invalidProjectID/databases": {
+		urlPrefix + "projects/invalidProjectID/roles": {
 			get:  objNotFoundResponse,
 			post: objNotFoundResponse,
 		},
 
-		urlPrefix + "projects/validProjectID/databases/0": {
+		urlPrefix + "projects/validProjectID/roles/validRole": {
 			get: func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
@@ -133,62 +131,15 @@ var mockHttpClientDatabases = &httpClientMock{
 							`{
     "created_at": "2022-07-27T09:13:06.855Z",
     "id": 0,
-    "name": "main",
-    "owner_id": 1,
+    "name": "validRole",
+    "password": "xxx",
+	"protected": true,
     "project_id": "validProjectID",
     "updated_at": "2022-07-27T09:13:06.855Z"
 }`,
 						),
 					),
 					ContentLength: 1000,
-				}, nil
-			},
-			put: func(req *http.Request) (*http.Response, error) {
-				if resp := authErrorResp(req); resp != nil {
-					return resp, nil
-				}
-				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
-					return &http.Response{
-						StatusCode:    500,
-						Body:          io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
-						ContentLength: 1000,
-					}, nil
-				}
-				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
-					return &http.Response{
-						StatusCode:    200,
-						ContentLength: 100,
-						Body:          io.NopCloser(strings.NewReader(`{`)),
-					}, nil
-				}
-
-				b, err := io.ReadAll(req.Body)
-				if err != nil {
-					panic(err)
-				}
-				var db DatabaseRequest
-				if err := json.Unmarshal(b, &db); err != nil {
-					panic(err)
-				}
-
-				return &http.Response{
-					StatusCode:    200,
-					ContentLength: 1000,
-					Body: io.NopCloser(
-						strings.NewReader(
-							fmt.Sprintf(
-								`{
-    "created_at": "2022-07-27T09:13:06.855Z",
-    "id": 0,
-    "name": "%s",
-    "owner_id": %d,
-    "project_id": "validProjectID",
-    "updated_at": "2022-07-27T09:13:06.855Z"
-  }`,
-								db.Database.Name, db.Database.OwnerID,
-							),
-						),
-					),
 				}, nil
 			},
 			del: func(req *http.Request) (*http.Response, error) {
@@ -216,8 +167,9 @@ var mockHttpClientDatabases = &httpClientMock{
 							`{
     "created_at": "2022-07-27T09:13:06.855Z",
     "id": 0,
-    "name": "main",
-    "owner_id": 1,
+    "name": "validRole",
+    "password": "xxx",
+	"protected": true,
     "project_id": "validProjectID",
     "updated_at": "2022-07-27T09:13:06.855Z"
 }`,
@@ -227,15 +179,51 @@ var mockHttpClientDatabases = &httpClientMock{
 				}, nil
 			},
 		},
-		urlPrefix + "projects/validProjectID/databases/1": {
+		urlPrefix + "projects/validProjectID/roles/invalidRole": {
 			get: objNotFoundResponse,
-			put: objNotFoundResponse,
 			del: objNotFoundResponse,
+		},
+
+		urlPrefix + "projects/validProjectID/roles/validRole/reset_password": {
+			post: func(req *http.Request) (*http.Response, error) {
+				if resp := authErrorResp(req); resp != nil {
+					return resp, nil
+				}
+				if os.Getenv("SDK_TEST_INTERNAL_ERROR") == "TRUE" {
+					return &http.Response{
+						StatusCode:    500,
+						Body:          io.NopCloser(strings.NewReader(`{"message":"internal error","code":""}`)),
+						ContentLength: 1000,
+					}, nil
+				}
+				if os.Getenv("SDK_TEST_RESPONSE_FAIL") == "TRUE" {
+					return &http.Response{
+						StatusCode:    200,
+						ContentLength: 100,
+						Body:          io.NopCloser(strings.NewReader(`{`)),
+					}, nil
+				}
+				return &http.Response{
+					StatusCode:    200,
+					ContentLength: 1000,
+					Body: io.NopCloser(
+						strings.NewReader(
+							`{
+	"operation_id": 1,
+	"password": "xxx"
+}`,
+						),
+					),
+				}, nil
+			},
+		},
+		urlPrefix + "projects/validProjectID/roles/invalidRole/reset_password": {
+			post: objNotFoundResponse,
 		},
 	},
 }
 
-func Test_client_ListDatabases(t *testing.T) {
+func Test_client_ListRoles(t *testing.T) {
 	type fields struct {
 		options options
 		baseURL string
@@ -248,7 +236,7 @@ func Test_client_ListDatabases(t *testing.T) {
 		fields  fields
 		args    args
 		envVars map[string]string
-		want    []DatabaseResponse
+		want    []RoleResponse
 		wantErr bool
 	}{
 		{
@@ -256,18 +244,18 @@ func Test_client_ListDatabases(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
 			args: args{projectID: "validProjectID"},
-			want: []DatabaseResponse{
+			want: []RoleResponse{
 				{
 					CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
 					ID:        0,
-					Name:      "main",
-					OwnerID:   0,
+					Name:      "validRole",
 					ProjectID: "validProjectID",
+					Password:  "xxx",
 					UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
 				},
 			},
@@ -278,7 +266,7 @@ func Test_client_ListDatabases(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
@@ -294,7 +282,7 @@ func Test_client_ListDatabases(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
@@ -308,7 +296,7 @@ func Test_client_ListDatabases(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
@@ -329,7 +317,7 @@ func Test_client_ListDatabases(t *testing.T) {
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
-				got, err := c.ListDatabases(tt.args.projectID)
+				got, err := c.ListRoles(tt.args.projectID)
 
 				t.Cleanup(
 					func() {
@@ -340,32 +328,32 @@ func Test_client_ListDatabases(t *testing.T) {
 				)
 
 				if (err != nil) != tt.wantErr {
-					t.Errorf("ListDatabases() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("ListRoles() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListDatabases() got = %v, want %v", got, tt.want)
+					t.Errorf("ListRoles() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
 	}
 }
 
-func Test_client_CreateDatabase(t *testing.T) {
+func Test_client_CreateRole(t *testing.T) {
 	type fields struct {
 		options options
 		baseURL string
 	}
 	type args struct {
 		projectID string
-		cfg       DatabaseRequest
+		cfg       RoleRequest
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
 		envVars map[string]string
-		want    DatabaseResponse
+		want    RoleResponse
 		wantErr bool
 	}{
 		{
@@ -373,259 +361,28 @@ func Test_client_CreateDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
 			args: args{
 				projectID: "validProjectID",
-				cfg: DatabaseRequest{
-					Database: struct {
-						Name    string `json:"name"`
-						OwnerID int    `json:"owner_id"`
+				cfg: RoleRequest{
+					Role: struct {
+						Name string `json:"name"`
 					}{
-						Name:    "main",
-						OwnerID: 1,
+						Name: "foo",
 					},
 				},
 			},
-			want: DatabaseResponse{
+			want: RoleResponse{
 				CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-				ID:        0,
-				Name:      "main",
-				OwnerID:   1,
-				ProjectID: "validProjectID",
 				UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-			},
-			wantErr: false,
-		},
-		{
-			name: "unhappy path: internal error",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args: args{projectID: "validProjectID"},
-			envVars: map[string]string{
-				"SDK_TEST_INTERNAL_ERROR": "TRUE",
-			},
-			want:    DatabaseResponse{},
-			wantErr: true,
-		},
-		{
-			name: "unhappy path: corrupt response content",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args:    args{projectID: "validProjectID"},
-			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
-			want:    DatabaseResponse{},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				for k, v := range tt.envVars {
-					_ = os.Setenv(k, v)
-				}
-
-				c := &client{
-					options: tt.fields.options,
-					baseURL: tt.fields.baseURL,
-				}
-				got, err := c.CreateDatabase(tt.args.projectID, tt.args.cfg)
-
-				t.Cleanup(
-					func() {
-						for k := range tt.envVars {
-							_ = os.Unsetenv(k)
-						}
-					},
-				)
-
-				if (err != nil) != tt.wantErr {
-					t.Errorf("CreateDatabase() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("CreateDatabase() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_ReadDatabase(t *testing.T) {
-	type fields struct {
-		options options
-		baseURL string
-	}
-	type args struct {
-		projectID  string
-		databaseID int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		envVars map[string]string
-		want    DatabaseResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args: args{
-				projectID:  "validProjectID",
-				databaseID: 0,
-			},
-			want: DatabaseResponse{
-				CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-				ID:        0,
-				Name:      "main",
-				OwnerID:   1,
-				ProjectID: "validProjectID",
-				UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-			},
-			wantErr: false,
-		},
-		{
-			name: "unhappy path: internal error",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args: args{projectID: "validProjectID"},
-			envVars: map[string]string{
-				"SDK_TEST_INTERNAL_ERROR": "TRUE",
-			},
-			want:    DatabaseResponse{},
-			wantErr: true,
-		},
-		{
-			name: "unhappy path: corrupt response content",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args:    args{projectID: "validProjectID"},
-			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
-			want:    DatabaseResponse{},
-			wantErr: true,
-		},
-		{
-			name: "unhappy path: db not found",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args:    args{projectID: "validProjectID", databaseID: 1},
-			want:    DatabaseResponse{},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				for k, v := range tt.envVars {
-					_ = os.Setenv(k, v)
-				}
-
-				c := &client{
-					options: tt.fields.options,
-					baseURL: tt.fields.baseURL,
-				}
-				got, err := c.ReadDatabase(tt.args.projectID, tt.args.databaseID)
-
-				t.Cleanup(
-					func() {
-						for k := range tt.envVars {
-							_ = os.Unsetenv(k)
-						}
-					},
-				)
-
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ReadDatabase() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ReadDatabase() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_UpdateDatabase(t *testing.T) {
-	type fields struct {
-		options options
-		baseURL string
-	}
-	type args struct {
-		projectID  string
-		databaseID int
-		cfg        DatabaseRequest
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		envVars map[string]string
-		want    DatabaseResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			fields: fields{
-				options: options{
-					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
-				},
-				baseURL: baseURL,
-			},
-			args: args{
-				projectID:  "validProjectID",
-				databaseID: 0,
-				cfg: DatabaseRequest{
-					Database: struct {
-						Name    string `json:"name"`
-						OwnerID int    `json:"owner_id"`
-					}{Name: "foo", OwnerID: 1},
-				},
-			},
-			want: DatabaseResponse{
-				CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-				ID:        0,
 				Name:      "foo",
-				OwnerID:   1,
+				Password:  "xxx",
 				ProjectID: "validProjectID",
-				UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
+				ID:        0,
+				Protected: true,
 			},
 			wantErr: false,
 		},
@@ -634,7 +391,7 @@ func Test_client_UpdateDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
@@ -642,7 +399,7 @@ func Test_client_UpdateDatabase(t *testing.T) {
 			envVars: map[string]string{
 				"SDK_TEST_INTERNAL_ERROR": "TRUE",
 			},
-			want:    DatabaseResponse{},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 		{
@@ -650,26 +407,26 @@ func Test_client_UpdateDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
 			args:    args{projectID: "validProjectID"},
 			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
-			want:    DatabaseResponse{},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 		{
-			name: "unhappy path: db not found",
+			name: "unhappy path: project not found",
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
-			args:    args{projectID: "validProjectID", databaseID: 1},
-			want:    DatabaseResponse{},
+			args:    args{projectID: "invalidProjectID"},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 	}
@@ -685,7 +442,7 @@ func Test_client_UpdateDatabase(t *testing.T) {
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
-				got, err := c.UpdateDatabase(tt.args.projectID, tt.args.databaseID, tt.args.cfg)
+				got, err := c.CreateRole(tt.args.projectID, tt.args.cfg)
 
 				t.Cleanup(
 					func() {
@@ -696,32 +453,32 @@ func Test_client_UpdateDatabase(t *testing.T) {
 				)
 
 				if (err != nil) != tt.wantErr {
-					t.Errorf("UpdateDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("CreateRole() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("UpdateDatabase() got = %v, want %v", got, tt.want)
+					t.Errorf("CreateRole() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
 	}
 }
 
-func Test_client_DeleteDatabase(t *testing.T) {
+func Test_client_ReadRole(t *testing.T) {
 	type fields struct {
 		options options
 		baseURL string
 	}
 	type args struct {
-		projectID  string
-		databaseID int
+		projectID string
+		roleName  string
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
 		envVars map[string]string
-		want    DatabaseResponse
+		want    RoleResponse
 		wantErr bool
 	}{
 		{
@@ -729,21 +486,22 @@ func Test_client_DeleteDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
 			args: args{
-				projectID:  "validProjectID",
-				databaseID: 0,
+				projectID: "validProjectID",
+				roleName:  "validRole",
 			},
-			want: DatabaseResponse{
+			want: RoleResponse{
 				CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
-				ID:        0,
-				Name:      "main",
-				OwnerID:   1,
-				ProjectID: "validProjectID",
 				UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
+				Name:      "validRole",
+				Password:  "xxx",
+				ProjectID: "validProjectID",
+				ID:        0,
+				Protected: true,
 			},
 			wantErr: false,
 		},
@@ -752,15 +510,15 @@ func Test_client_DeleteDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
-			args: args{projectID: "validProjectID"},
+			args: args{projectID: "validProjectID", roleName: "validRole"},
 			envVars: map[string]string{
 				"SDK_TEST_INTERNAL_ERROR": "TRUE",
 			},
-			want:    DatabaseResponse{},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 		{
@@ -768,26 +526,26 @@ func Test_client_DeleteDatabase(t *testing.T) {
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
-			args:    args{projectID: "validProjectID"},
+			args:    args{projectID: "validProjectID", roleName: "validRole"},
 			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
-			want:    DatabaseResponse{},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 		{
-			name: "unhappy path: db not found",
+			name: "unhappy path: role not found",
 			fields: fields{
 				options: options{
 					APIKey:     "validApiKey",
-					HTTPClient: mockHttpClientDatabases,
+					HTTPClient: mockHttpClientRoles,
 				},
 				baseURL: baseURL,
 			},
-			args:    args{projectID: "validProjectID", databaseID: 1},
-			want:    DatabaseResponse{},
+			args:    args{projectID: "validProjectID", roleName: "invalidRole"},
+			want:    RoleResponse{},
 			wantErr: true,
 		},
 	}
@@ -803,7 +561,7 @@ func Test_client_DeleteDatabase(t *testing.T) {
 					options: tt.fields.options,
 					baseURL: tt.fields.baseURL,
 				}
-				got, err := c.DeleteDatabase(tt.args.projectID, tt.args.databaseID)
+				got, err := c.ReadRole(tt.args.projectID, tt.args.roleName)
 
 				t.Cleanup(
 					func() {
@@ -814,11 +572,241 @@ func Test_client_DeleteDatabase(t *testing.T) {
 				)
 
 				if (err != nil) != tt.wantErr {
-					t.Errorf("DeleteDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("ReadRole() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("DeleteDatabase() got = %v, want %v", got, tt.want)
+					t.Errorf("ReadRole() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_DeleteRole(t *testing.T) {
+	type fields struct {
+		options options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+		roleName  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    RoleResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID", roleName: "validRole"},
+			want: RoleResponse{
+				CreatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
+				UpdatedAt: mustParseTime("2022-07-27T09:13:06.855Z"),
+				Name:      "validRole",
+				Password:  "xxx",
+				ProjectID: "validProjectID",
+				ID:        0,
+				Protected: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID", roleName: "validRole"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    RoleResponse{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID", roleName: "validRole"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    RoleResponse{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: role not found",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID", roleName: "invalidRole"},
+			want:    RoleResponse{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.DeleteRole(tt.args.projectID, tt.args.roleName)
+
+				t.Cleanup(
+					func() {
+						for k := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteRole() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("DeleteRole() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ResetRolePassword(t *testing.T) {
+	type fields struct {
+		options options
+		baseURL string
+	}
+	type args struct {
+		projectID string
+		roleName  string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		envVars map[string]string
+		want    RolePasswordResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args: args{
+				projectID: "validProjectID",
+				roleName:  "validRole",
+			},
+			want: RolePasswordResponse{
+				Password:    "xxx",
+				OperationID: 1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: internal error",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args: args{projectID: "validProjectID", roleName: "validRole"},
+			envVars: map[string]string{
+				"SDK_TEST_INTERNAL_ERROR": "TRUE",
+			},
+			want:    RolePasswordResponse{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: corrupt response content",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID", roleName: "validRole"},
+			envVars: map[string]string{"SDK_TEST_RESPONSE_FAIL": "TRUE"},
+			want:    RolePasswordResponse{},
+			wantErr: true,
+		},
+		{
+			name: "unhappy path: role not found",
+			fields: fields{
+				options: options{
+					APIKey:     "validApiKey",
+					HTTPClient: mockHttpClientRoles,
+				},
+				baseURL: baseURL,
+			},
+			args:    args{projectID: "validProjectID", roleName: "invalidRole"},
+			want:    RolePasswordResponse{},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				for k, v := range tt.envVars {
+					_ = os.Setenv(k, v)
+				}
+
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				got, err := c.ResetRolePassword(tt.args.projectID, tt.args.roleName)
+
+				t.Cleanup(
+					func() {
+						for k := range tt.envVars {
+							_ = os.Unsetenv(k)
+						}
+					},
+				)
+
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ResetRolePassword() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ResetRolePassword() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
