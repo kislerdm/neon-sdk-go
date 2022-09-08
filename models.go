@@ -2,11 +2,68 @@ package sdk
 
 import "time"
 
+// QueryRequest request to the query endpoints.
+type QueryRequest struct {
+	Password string          `json:"password"`
+	Query    string          `json:"query"`
+	DbID     int             `json:"db_id"`
+	UserID   int             `json:"user_id"`
+	Options  map[string]bool `json:"options"`
+}
+
+type StatementData struct {
+	Fields    []string   `json:"fields"`
+	Rows      [][]string `json:"rows"`
+	Truncated bool       `json:"truncated"`
+}
+
+type ExplainData struct {
+	QueryPlan string `json:"QUERY PLAN"`
+}
+
+type StatementResult struct {
+	Data        StatementData `json:"data"`
+	Error       string        `json:"error"`
+	Query       string        `json:"query"`
+	ExplainData []ExplainData `json:"explain_data"`
+}
+
+type QueryResponse struct {
+	// query duration in ns.
+	Duration time.Duration     `json:"duration"`
+	Response []StatementResult `json:"response"`
+	Success  bool              `json:"success"`
+}
+
+type QuerySaved struct {
+	CreatedAt time.Time `json:"created_at"`
+	// UUID
+	CreatedBy  string    `json:"created_by"`
+	DatabaseId int       `json:"database_id"`
+	ID         int       `json:"id"`
+	Name       string    `json:"name"`
+	ProjectID  string    `json:"project_id"`
+	Query      string    `json:"query"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+type QuerySavedCreatePayload struct {
+	Name       string `json:"name"`
+	Query      string `json:"query"`
+	DatabaseID int    `json:"database_id"`
+}
+
+type QuerySavedUpdate struct {
+	Name  string `json:"name"`
+	Query string `json:"query"`
+}
+
 type RoleRequest struct {
 	Role struct {
 		Name string `json:"name"`
 	} `json:"role"`
 }
+
 type RolePasswordResponse struct {
 	Password    string `json:"password"`
 	OperationID int    `json:"operation_id"`
