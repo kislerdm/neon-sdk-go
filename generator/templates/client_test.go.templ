@@ -1,0 +1,78 @@
+package sdk
+
+import (
+	"net/http"
+	"reflect"
+	"testing"
+	"time"
+)
+
+func TestNewClient(t *testing.T) {
+	type args struct {
+		key    string
+		optFns []func(*Options)
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *Client
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				key:    "foo",
+				optFns: nil,
+			},
+			want: &Client{
+				options: Options{
+					key:        "foo",
+					httpClient: &http.Client{Timeout: defaultTimeout},
+				},
+				baseURL: baseURL,
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: missing api key",
+			args: args{
+				key:    "",
+				optFns: nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "happy path: custom http client",
+			args: args{
+				key: "bar",
+				optFns: []func(*Options){
+					WithHTTPClient(&http.Client{Timeout: 1 * time.Minute}),
+				},
+			},
+			want: &Client{
+				options: Options{
+					key:        "bar",
+					httpClient: &http.Client{Timeout: 1 * time.Minute},
+				},
+				baseURL: baseURL,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				got, err := NewClient(tt.args.key, tt.args.optFns...)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("NewClient() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}

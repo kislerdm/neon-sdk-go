@@ -44,7 +44,8 @@ func init() {
 }
 
 type templateInput struct {
-	Info *string
+	Info      *string
+	ServerURL string
 }
 
 // Config generator configurations.
@@ -92,7 +93,12 @@ func Run(cfg Config) error {
 }
 
 func extractSpecs(spec openAPISpec) templateInput {
+	if len(spec.Servers) < 1 {
+		panic("no server spec found")
+	}
+
 	return templateInput{
-		Info: spec.Info.Description,
+		Info:      spec.Info.Description,
+		ServerURL: spec.Servers[0].URL,
 	}
 }

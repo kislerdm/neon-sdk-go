@@ -53,9 +53,11 @@ func TestRun(t *testing.T) {
 			},
 			wantErr: false,
 			files: map[string]struct{}{
-				"doc.go": {},
-				"go.mod": {},
-				"go.sum": {},
+				"go.mod":         {},
+				"go.sum":         {},
+				"doc.go":         {},
+				"client.go":      {},
+				"client_test.go": {},
 			},
 		},
 	}

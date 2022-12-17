@@ -1,0 +1,171 @@
+package sdk
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"strconv"
+	"time"
+)
+
+// HTTPClient client to handle http requests.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// Options defines the client options.
+type Options struct {
+	// key API access key.
+	key string
+
+	// httpClient Client to communicate with the API over http.
+	httpClient HTTPClient
+}
+
+// Client defines the SDK client.
+type Client struct {
+	options Options
+
+	baseURL string
+}
+
+const (
+	baseURL = "https://console.neon.tech{{.ServerURL}}"
+
+	defaultTimeout = 2 * time.Minute
+)
+
+// NewClient initialised the Client to communicate to the Neon Platform.
+func NewClient(apiKey string, optFns ...func(*Options)) (*Client, error) {
+	if apiKey == "" {
+		return nil, errors.New(
+			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
+		)
+	}
+
+	o := Options{
+		key:        apiKey,
+		httpClient: nil,
+	}
+
+	for _, fn := range optFns {
+		fn(&o)
+	}
+
+	resolveHTTPClient(&o)
+
+	return &Client{
+		baseURL: baseURL,
+		options: o,
+	}, nil
+}
+
+func resolveHTTPClient(o *Options) {
+	if o.httpClient == nil {
+		o.httpClient = &http.Client{Timeout: defaultTimeout}
+	}
+}
+
+// WithHTTPClient sets custom http Client.
+func WithHTTPClient(client HTTPClient) func(*Options) {
+	return func(o *Options) {
+		o.httpClient = client
+	}
+}
+
+func setHeaders(req *http.Request, token string) {
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	if token != "" {
+		req.Header.Add("Authorization", "Bearer "+token)
+	}
+}
+
+func (c *Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
+	var body io.Reader
+	var err error
+
+	if reqPayload != nil {
+		b, err := json.Marshal(reqPayload)
+		if err != nil {
+			return err
+		}
+		body = bytes.NewReader(b)
+	}
+
+	req, _ := http.NewRequest(t, url, body)
+	setHeaders(req, c.options.key)
+
+	res, err := c.options.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode > 299 {
+		return convertErrorResponse(res)
+	}
+
+	// cover non-existing object which will have 200+ status code
+	// see the ticket https://github.com/neondatabase/neon/issues/2159
+	if req.Method == "GET" && res.ContentLength < 10 {
+		return Error{
+			HTTPCode: 404,
+			errorResp: errorResp{
+				Code:    "",
+				Message: "object not found",
+			},
+		}
+	}
+
+	if responsePayload != nil {
+		buf, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(buf, responsePayload)
+	}
+
+	return nil
+}
+
+type errorResp struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// Error API error.
+type Error struct {
+	HTTPCode int
+	errorResp
+}
+
+func (e Error) Error() string {
+	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
+}
+
+func convertErrorResponse(res *http.Response) error {
+	var v errorResp
+	buf, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: "cannot read response bytes",
+			},
+		}
+	}
+	if err := json.Unmarshal(buf, &v); err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: err.Error(),
+			},
+		}
+	}
+	return Error{
+		HTTPCode:  res.StatusCode,
+		errorResp: v,
+	}
+}
