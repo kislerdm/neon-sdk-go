@@ -12,9 +12,9 @@ import (
 )
 
 var mockHttpClientValidateAPI = &httpClientMock{
-	m: map[string]map[reqType]resp{
+	m: map[string]map[string]resp{
 		urlPrefix + "users/me": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				token := req.Header.Get("Authorization")
 				if token == "" || token == "Bearer invalidApiKey" {
 					return &http.Response{

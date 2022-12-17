@@ -10,11 +10,11 @@ import (
 )
 
 var mockHttpClientProjects = &httpClientMock{
-	m: map[string]map[reqType]resp{
+	m: map[string]map[string]resp{
 		// create and list end point
 		urlPrefix + "projects": {
 			// create project
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -75,7 +75,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 
 			// list projects
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -140,7 +140,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 		// read project info end point
 		urlPrefix + "projects/validProjectID": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -203,7 +203,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 
 			// update project
-			patch: func(req *http.Request) (*http.Response, error) {
+			"PATCH": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -268,7 +268,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 		// test in case the project does not exist
 		urlPrefix + "projects/invalidProjectID": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -278,7 +278,7 @@ var mockHttpClientProjects = &httpClientMock{
 				}, nil
 			},
 
-			patch: func(req *http.Request) (*http.Response, error) {
+			"PATCH": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -291,7 +291,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 		// del end point
 		urlPrefix + "projects/validProjectID/delete": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -331,7 +331,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/invalidProjectID/delete": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -344,7 +344,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 		// start project end point
 		urlPrefix + "projects/validProjectID/start": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -384,7 +384,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/invalidProjectID/start": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -397,7 +397,7 @@ var mockHttpClientProjects = &httpClientMock{
 
 		// stop project end point
 		urlPrefix + "projects/validProjectID/stop": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -437,7 +437,7 @@ var mockHttpClientProjects = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/invalidProjectID/stop": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}

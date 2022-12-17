@@ -73,20 +73,6 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type reqType string
-
-const (
-	get   reqType = "GET"
-	post  reqType = "POST"
-	patch reqType = "PATCH"
-	put   reqType = "PUT"
-	del   reqType = "DELETE"
-)
-
-func (r reqType) String() string {
-	return string(r)
-}
-
 type errorResp struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -118,7 +104,7 @@ type client struct {
 
 func (c *client) ListRoles(projectID string) ([]RoleResponse, error) {
 	var v []RoleResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", get, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", "GET", nil, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -126,7 +112,7 @@ func (c *client) ListRoles(projectID string) ([]RoleResponse, error) {
 
 func (c *client) CreateRole(projectID string, cfg RoleRequest) (RoleResponse, error) {
 	var v RoleResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", post, cfg, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles", "POST", cfg, &v); err != nil {
 		return RoleResponse{}, err
 	}
 	return v, nil
@@ -134,7 +120,7 @@ func (c *client) CreateRole(projectID string, cfg RoleRequest) (RoleResponse, er
 
 func (c *client) ReadRole(projectID string, roleName string) (RoleResponse, error) {
 	var v RoleResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, get, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, "GET", nil, &v); err != nil {
 		return RoleResponse{}, err
 	}
 	return v, nil
@@ -142,7 +128,7 @@ func (c *client) ReadRole(projectID string, roleName string) (RoleResponse, erro
 
 func (c *client) DeleteRole(projectID string, roleName string) (RoleResponse, error) {
 	var v RoleResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, del, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/roles/"+roleName, "DELETE", nil, &v); err != nil {
 		return RoleResponse{}, err
 	}
 	return v, nil
@@ -151,7 +137,7 @@ func (c *client) DeleteRole(projectID string, roleName string) (RoleResponse, er
 func (c *client) ResetRolePassword(projectID string, roleName string) (RolePasswordResponse, error) {
 	var v RolePasswordResponse
 	if err := c.requestHandler(
-		c.baseURL+"projects/"+projectID+"/roles/"+roleName+"/reset_password", post, nil, &v,
+		c.baseURL+"projects/"+projectID+"/roles/"+roleName+"/reset_password", "POST", nil, &v,
 	); err != nil {
 		return RolePasswordResponse{}, err
 	}
@@ -160,7 +146,7 @@ func (c *client) ResetRolePassword(projectID string, roleName string) (RolePassw
 
 func (c *client) ListDatabases(projectID string) ([]DatabaseResponse, error) {
 	var v []DatabaseResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", get, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", "GET", nil, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -169,7 +155,7 @@ func (c *client) ListDatabases(projectID string) ([]DatabaseResponse, error) {
 func (c *client) ReadDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(
-		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), get, nil, &v,
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), "GET", nil, &v,
 	); err != nil {
 		return DatabaseResponse{}, err
 	}
@@ -178,7 +164,7 @@ func (c *client) ReadDatabase(projectID string, databaseID int) (DatabaseRespons
 
 func (c *client) CreateDatabase(projectID string, cfg DatabaseRequest) (DatabaseResponse, error) {
 	var v DatabaseResponse
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", post, cfg, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/databases", "POST", cfg, &v); err != nil {
 		return DatabaseResponse{}, err
 	}
 	return v, nil
@@ -187,7 +173,7 @@ func (c *client) CreateDatabase(projectID string, cfg DatabaseRequest) (Database
 func (c *client) UpdateDatabase(projectID string, databaseID int, cfg DatabaseRequest) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(
-		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), put, cfg, &v,
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), "PUT", cfg, &v,
 	); err != nil {
 		return DatabaseResponse{}, err
 	}
@@ -197,14 +183,14 @@ func (c *client) UpdateDatabase(projectID string, databaseID int, cfg DatabaseRe
 func (c *client) DeleteDatabase(projectID string, databaseID int) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(
-		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), del, nil, &v,
+		fmt.Sprintf("%sprojects/%s/databases/%d", c.baseURL, projectID, databaseID), "DELETE", nil, &v,
 	); err != nil {
 		return DatabaseResponse{}, err
 	}
 	return v, nil
 }
 
-func (c *client) requestHandler(url string, t reqType, reqPayload interface{}, responsePayload interface{}) error {
+func (c *client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
 	var body io.Reader
 	var err error
 
@@ -216,7 +202,7 @@ func (c *client) requestHandler(url string, t reqType, reqPayload interface{}, r
 		body = bytes.NewReader(b)
 	}
 
-	req, _ := http.NewRequest(t.String(), url, body)
+	req, _ := http.NewRequest(t, url, body)
 	setHeaders(req, c.options.APIKey)
 
 	res, err := c.options.HTTPClient.Do(req)
@@ -230,7 +216,7 @@ func (c *client) requestHandler(url string, t reqType, reqPayload interface{}, r
 
 	// cover non-existing object which will have 200+ status code
 	// see the ticket https://github.com/neondatabase/neon/issues/2159
-	if req.Method == get.String() && res.ContentLength < 10 {
+	if req.Method == "GET" && res.ContentLength < 10 {
 		return Error{
 			HTTPCode: 404,
 			errorResp: errorResp{
@@ -283,7 +269,7 @@ func (c *client) ValidateAPIKey() error {
 		return fmt.Errorf("API key is not set")
 	}
 
-	return c.requestHandler(c.baseURL+"users/me", get, nil, nil)
+	return c.requestHandler(c.baseURL+"users/me", "GET", nil, nil)
 }
 
 func resolveHTTPClient(o *options) {
@@ -347,7 +333,7 @@ func convertErrorResponse(res *http.Response) error {
 
 func (c *client) ListProjects() ([]ProjectInfo, error) {
 	var v []ProjectInfo
-	if err := c.requestHandler(c.baseURL+"projects", get, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects", "GET", nil, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -355,7 +341,7 @@ func (c *client) ListProjects() ([]ProjectInfo, error) {
 
 func (c *client) ReadProject(projectID string) (ProjectInfo, error) {
 	var v ProjectInfo
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID, get, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
@@ -363,7 +349,7 @@ func (c *client) ReadProject(projectID string) (ProjectInfo, error) {
 
 func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequestUpdate) (ProjectInfo, error) {
 	var v ProjectInfo
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID, patch, settings, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID, "PATCH", settings, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
@@ -371,7 +357,7 @@ func (c *client) UpdateProject(projectID string, settings ProjectSettingsRequest
 
 func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectInfo, error) {
 	var v ProjectInfo
-	if err := c.requestHandler(c.baseURL+"projects", post, settings, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects", "POST", settings, &v); err != nil {
 		return ProjectInfo{}, err
 	}
 	return v, nil
@@ -379,7 +365,7 @@ func (c *client) CreateProject(settings ProjectSettingsRequestCreate) (ProjectIn
 
 func (c *client) DeleteProject(projectID string) (ProjectStatus, error) {
 	var v ProjectStatus
-	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/delete", post, nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"projects/"+projectID+"/delete", "POST", nil, &v); err != nil {
 		return ProjectStatus{}, err
 	}
 	return v, nil
@@ -387,7 +373,7 @@ func (c *client) DeleteProject(projectID string) (ProjectStatus, error) {
 
 func (c *client) projectRunStatusUpdate(url string) (ProjectStatus, error) {
 	var v ProjectStatus
-	if err := c.requestHandler(url, post, nil, &v); err != nil {
+	if err := c.requestHandler(url, "POST", nil, &v); err != nil {
 		return ProjectStatus{}, err
 	}
 	return v, nil

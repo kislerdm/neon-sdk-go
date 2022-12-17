@@ -12,9 +12,9 @@ import (
 )
 
 var mockHttpClientRoles = &httpClientMock{
-	m: map[string]map[reqType]resp{
+	m: map[string]map[string]resp{
 		urlPrefix + "projects/validProjectID/roles": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -51,7 +51,7 @@ var mockHttpClientRoles = &httpClientMock{
 					ContentLength: 1000,
 				}, nil
 			},
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -101,12 +101,12 @@ var mockHttpClientRoles = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/invalidProjectID/roles": {
-			get:  objNotFoundResponse,
-			post: objNotFoundResponse,
+			"GET":  objNotFoundResponse,
+			"POST": objNotFoundResponse,
 		},
 
 		urlPrefix + "projects/validProjectID/roles/validRole": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -142,7 +142,7 @@ var mockHttpClientRoles = &httpClientMock{
 					ContentLength: 1000,
 				}, nil
 			},
-			del: func(req *http.Request) (*http.Response, error) {
+			"DELETE": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -180,12 +180,12 @@ var mockHttpClientRoles = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/validProjectID/roles/invalidRole": {
-			get: objNotFoundResponse,
-			del: objNotFoundResponse,
+			"GET":    objNotFoundResponse,
+			"DELETE": objNotFoundResponse,
 		},
 
 		urlPrefix + "projects/validProjectID/roles/validRole/reset_password": {
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -218,7 +218,7 @@ var mockHttpClientRoles = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/validProjectID/roles/invalidRole/reset_password": {
-			post: objNotFoundResponse,
+			"POST": objNotFoundResponse,
 		},
 	},
 }

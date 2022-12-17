@@ -10,13 +10,12 @@ import (
 type resp func(*http.Request) (*http.Response, error)
 
 type httpClientMock struct {
-	m map[string]map[reqType]resp
+	m map[string]map[string]resp
 }
 
 func (h *httpClientMock) Do(req *http.Request) (*http.Response, error) {
 	p := req.URL.Path
-	m := reqType(req.Method)
-	return h.m[p][m](req)
+	return h.m[p][req.Method](req)
 }
 
 func authErrorResp(req *http.Request) *http.Response {

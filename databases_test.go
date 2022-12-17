@@ -12,9 +12,9 @@ import (
 )
 
 var mockHttpClientDatabases = &httpClientMock{
-	m: map[string]map[reqType]resp{
+	m: map[string]map[string]resp{
 		urlPrefix + "projects/validProjectID/databases": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -53,7 +53,7 @@ var mockHttpClientDatabases = &httpClientMock{
 			},
 
 			// update project
-			post: func(req *http.Request) (*http.Response, error) {
+			"POST": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -103,12 +103,12 @@ var mockHttpClientDatabases = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/invalidProjectID/databases": {
-			get:  objNotFoundResponse,
-			post: objNotFoundResponse,
+			"GET":  objNotFoundResponse,
+			"POST": objNotFoundResponse,
 		},
 
 		urlPrefix + "projects/validProjectID/databases/0": {
-			get: func(req *http.Request) (*http.Response, error) {
+			"GET": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -143,7 +143,7 @@ var mockHttpClientDatabases = &httpClientMock{
 					ContentLength: 1000,
 				}, nil
 			},
-			put: func(req *http.Request) (*http.Response, error) {
+			"PUT": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -191,7 +191,7 @@ var mockHttpClientDatabases = &httpClientMock{
 					),
 				}, nil
 			},
-			del: func(req *http.Request) (*http.Response, error) {
+			"DELETE": func(req *http.Request) (*http.Response, error) {
 				if resp := authErrorResp(req); resp != nil {
 					return resp, nil
 				}
@@ -228,9 +228,9 @@ var mockHttpClientDatabases = &httpClientMock{
 			},
 		},
 		urlPrefix + "projects/validProjectID/databases/1": {
-			get: objNotFoundResponse,
-			put: objNotFoundResponse,
-			del: objNotFoundResponse,
+			"GET":    objNotFoundResponse,
+			"PUT":    objNotFoundResponse,
+			"DELETE": objNotFoundResponse,
 		},
 	},
 }
