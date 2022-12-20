@@ -4,9 +4,12 @@ import (
 	_ "embed"
 	"io/fs"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/getkin/kin-openapi/openapi3"
 )
 
 //go:embed fixtures/openapi.json
@@ -103,7 +106,7 @@ func Test_endpointImplementation_generateFunctionCode(t *testing.T) {
 		Description           string
 		RequestBodyStruct     string
 		ResponseStruct        string
-		RequestParametersPath map[string]string
+		RequestParametersPath []parameterPath
 	}
 	tests := []struct {
 		name   string
@@ -139,12 +142,55 @@ func (c *Client) ListProjects() (ProjectsResponse, error) {
 				Description:           "Retrieves information about the specified project",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ProjectsResponse",
-				RequestParametersPath: map[string]string{"project_id": "string"},
+				RequestParametersPath: []parameterPath{{"project_id", "string", ""}},
 			},
 			want: `// GetProject Retrieves information about the specified project
 func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}`,
+		},
+		{
+			name: "get project details",
+			fields: fields{
+				Name:              "ListProjectBranchDatabases",
+				Method:            "GET",
+				Route:             "/projects/{project_id}/branches/{branch_id}/databases",
+				Description:       "Retrieves a list of databases for the specified branch",
+				RequestBodyStruct: "",
+				ResponseStruct:    "DatabasesResponse",
+				RequestParametersPath: []parameterPath{
+					{"project_id", "string", ""},
+					{"branch_id", "string", ""},
+				},
+			},
+			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
+func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
+	var v DatabasesResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}`,
+		},
+		{
+			name: "revoke api key",
+			fields: fields{
+				Name:                  "RevokeApiKey",
+				Method:                "DELETE",
+				Route:                 "/api_keys/{key_id}",
+				Description:           "Revokes the specified API key",
+				RequestBodyStruct:     "",
+				ResponseStruct:        "ApiKeyRevokeResponse",
+				RequestParametersPath: []parameterPath{{"key_id", "integer", "int64"}},
+			},
+			want: `// RevokeApiKey Revokes the specified API key
+func (c *Client) RevokeApiKey(keyID integer) (ApiKeyRevokeResponse, error) {
+	var v ApiKeyRevokeResponse
+	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -165,6 +211,241 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 				}
 				if got := e.generateFunctionCode(); got != tt.want {
 					t.Errorf("generateFunctionCode() = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_generateEndpointsImplementationMethods(t *testing.T) {
+	type args struct {
+		o openAPISpec
+	}
+	tests := []struct {
+		name          string
+		args          args
+		wantEndpoints []string
+	}{
+		{
+			name: "happy path",
+			args: args{
+				o: openAPISpec{
+					T: openapi3.T{
+						OpenAPI:    "3.0.3",
+						Components: openapi3.Components{},
+						Info: &openapi3.Info{
+							Title:       "foo",
+							Description: "bar",
+							Version:     "v2",
+						},
+						Paths: openapi3.Paths{
+							"/foo/{bar}/{qux_id}": {
+								Summary:     "/foo endpoint",
+								Description: "/foo endpoint",
+								Connect:     nil,
+								Delete:      nil,
+								Get: &openapi3.Operation{
+									Summary:     "get /foo",
+									Description: "get /foo",
+									OperationID: "fooEndpoint",
+									Responses: openapi3.Responses{
+										"200": &openapi3.ResponseRef{
+											Ref: "",
+											Value: &openapi3.Response{
+												Content: openapi3.Content{
+													"application/json": &openapi3.MediaType{
+														Schema: &openapi3.SchemaRef{
+															Ref: "",
+															Value: &openapi3.Schema{
+																Type: "array",
+																Example: []map[string]interface{}{
+																	{
+																		"foo_id": "bar",
+																		"bar":    1,
+																	},
+																	{
+																		"foo_id": "aff",
+																		"bar":    2,
+																	},
+																},
+																Items: &openapi3.SchemaRef{
+																	Ref: "#/components/schemas/FooResponse",
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+									Deprecated: false,
+								},
+								Parameters: openapi3.Parameters{
+									{
+										Ref: "",
+										Value: &openapi3.Parameter{
+											Name:            "bar",
+											In:              "path",
+											Description:     "bar parameter",
+											AllowEmptyValue: false,
+											Required:        true,
+											Schema: &openapi3.SchemaRef{
+												Ref: "",
+												Value: &openapi3.Schema{
+													Type: "string",
+												},
+											},
+										},
+									},
+									{
+										Ref: "",
+										Value: &openapi3.Parameter{
+											Name:            "qux_id",
+											In:              "path",
+											Description:     "qux parameter",
+											AllowEmptyValue: false,
+											Required:        true,
+											Schema: &openapi3.SchemaRef{
+												Ref: "",
+												Value: &openapi3.Schema{
+													Type: "int64",
+												},
+											},
+										},
+									},
+								},
+							},
+							"/foo/bar/{qux_id}/{date_submit}": {
+								Summary:     "/foo/bar endpoint",
+								Description: "/foo/bar endpoint",
+								Connect:     nil,
+								Delete:      nil,
+								Get: &openapi3.Operation{
+									Summary:     "get /foo/bar",
+									Description: "get /foo/bar",
+									OperationID: "fooBarEndpoint",
+									Responses: openapi3.Responses{
+										"200": &openapi3.ResponseRef{
+											Ref: "",
+											Value: &openapi3.Response{
+												Content: openapi3.Content{
+													"application/json": &openapi3.MediaType{
+														Schema: &openapi3.SchemaRef{
+															Ref: "#/components/schemas/FooBarResponse",
+														},
+													},
+												},
+											},
+										},
+									},
+									Deprecated: false,
+								},
+								Parameters: openapi3.Parameters{
+									{
+										Value: &openapi3.Parameter{
+											Name:            "qux_id",
+											In:              "path",
+											Description:     "qux parameter",
+											AllowEmptyValue: false,
+											Required:        true,
+											Schema: &openapi3.SchemaRef{
+												Ref: "",
+												Value: &openapi3.Schema{
+													Type: "int64",
+												},
+											},
+										},
+									},
+									{
+										Value: &openapi3.Parameter{
+											Name:            "date_submit",
+											In:              "path",
+											Description:     "date parameter",
+											AllowEmptyValue: false,
+											Required:        true,
+											Schema: &openapi3.SchemaRef{
+												Ref: "",
+												Value: &openapi3.Schema{
+													Type:   "string",
+													Format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantEndpoints: []string{
+				`// FooEndpoint get /foo
+func (c *Client) FooEndpoint(bar string, quxID int64) ([]FooResponse, error) {
+	var v []FooResponse
+	if err := c.requestHandler(c.baseURL+"/foo/"+bar+"/"+strconv.FormatInt(quxID, 10), "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}`,
+				`// FooBarEndpoint get /foo/bar
+func (c *Client) FooBarEndpoint(quxID int64, dateSubmit time.Time) (FooBarResponse, error) {
+	var v FooBarResponse
+	if err := c.requestHandler(c.baseURL+"/foo/bar/"+strconv.FormatInt(quxID, 10)+"/"+dateSubmit.Format(time.RFC3339), "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}`,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if gotEndpoints := generateEndpointsImplementationMethods(tt.args.o); !reflect.DeepEqual(
+					gotEndpoints, tt.wantEndpoints,
+				) {
+					t.Errorf("generateEndpointsImplementationMethods() = %v, want %v", gotEndpoints, tt.wantEndpoints)
+				}
+			},
+		)
+	}
+}
+
+func Test_parameterPath_canonicalName(t *testing.T) {
+	type fields struct {
+		k string
+		v string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name:   "project_id",
+			fields: fields{"project_id", "string"},
+			want:   "projectID",
+		},
+		{
+			name:   "api_key_id",
+			fields: fields{"api_key_id", "string"},
+			want:   "apiKeyID",
+		},
+		{
+			name:   "database_name",
+			fields: fields{"database_name", "string"},
+			want:   "databaseName",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				v := parameterPath{
+					k: tt.fields.k,
+					v: tt.fields.v,
+				}
+				if got := v.canonicalName(); got != tt.want {
+					t.Errorf("canonicalName() = %v, want %v", got, tt.want)
 				}
 			},
 		)

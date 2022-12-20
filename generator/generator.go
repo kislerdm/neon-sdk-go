@@ -43,6 +43,62 @@ func init() {
 	}
 }
 
+type parameterPath struct {
+	k, v, format string
+}
+
+func (v parameterPath) canonicalName() string {
+	o := ""
+	for i, s := range strings.Split(v.k, "_") {
+		if i > 0 {
+			s = strings.ToUpper(s[:1]) + s[1:]
+		}
+		o += s
+	}
+
+	switch o[len(o)-2:] {
+	case "id", "Id", "iD":
+		return o[:len(o)-2] + "ID"
+	default:
+		return o
+	}
+}
+
+func (v parameterPath) routeElement() string {
+	r := v.canonicalName()
+
+	switch v.format {
+	case "int64":
+		return "strconv.FormatInt(" + r + ", 10)"
+	case "int32":
+		return "strconv.FormatInt(int64(" + r + "), 10)"
+	case "double":
+		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
+	case "float":
+		return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
+	case "date-time":
+		return r + ".Format(time.RFC3339)"
+	case "uuid":
+		return r + ".String()"
+	default:
+		if v.v == "integer" {
+			return "strconv.FormatInt(int64(" + r + "), 10)"
+		}
+		return r
+	}
+}
+
+func (v parameterPath) argType() string {
+	switch v.format {
+	case "date-time":
+		return "time.Time"
+	case "uuid":
+		return "uuid.UUID"
+	default:
+		return v.v
+	}
+}
+
 type endpointImplementation struct {
 	Name                  string
 	Method                string
@@ -50,7 +106,7 @@ type endpointImplementation struct {
 	Description           string
 	RequestBodyStruct     string
 	ResponseStruct        string
-	RequestParametersPath map[string]string
+	RequestParametersPath []parameterPath
 }
 
 func (e endpointImplementation) functionDescription() string {
@@ -77,18 +133,77 @@ func (e endpointImplementation) generateFunctionCode() string {
 		o = e.functionDescription() + "\n" + o
 	}
 
-	inputArgs := ""
-	reqObj := "nil"
-	route := e.Route
+	args := e.inputArgStr()
 
-	o += "(" + inputArgs + ") (" + e.ResponseStruct + `, error) {
+	reqObj := "nil"
+
+	if e.RequestBodyStruct != "" {
+		reqObj = "cfg"
+		args += ", cfg " + e.RequestBodyStruct
+	}
+
+	o += "(" + args + ") "
+	if e.ResponseStruct == "" {
+		o += `error {
+	return c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, nil)
+}`
+		return o
+	}
+
+	o += "(" + e.ResponseStruct + `, error) {
 	var v ` + e.ResponseStruct + `
-	if err := c.requestHandler(c.baseURL+"` + route + `", "` + e.Method + `", ` + reqObj + `, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }`
 
+	return o
+}
+
+func (e endpointImplementation) route() string {
+	if !strings.Contains(e.Route, "{") {
+		return `"` + e.Route + `"`
+	}
+
+	o := `"/`
+	els := strings.Split(e.Route, "/")[1:]
+	for i, el := range els {
+		if el[0] != '{' {
+			o += el
+			if i < len(els)-1 {
+				o += "/"
+			} else {
+				o += `"`
+			}
+			continue
+		}
+
+		for _, p := range e.RequestParametersPath {
+			if p.k == el[1:len(el)-1] {
+				prefix := `+"/`
+				if o[len(o)-1] == '/' {
+					prefix = ""
+				}
+				o += prefix + `"+` + p.routeElement()
+				if i < len(els)-1 {
+					o += `+"/`
+				}
+				break
+			}
+		}
+	}
+	return o
+}
+
+func (e endpointImplementation) inputArgStr() string {
+	o := ""
+	for i, v := range e.RequestParametersPath {
+		o += v.canonicalName() + " " + v.argType()
+		if i < len(e.RequestParametersPath)-1 {
+			o += ", "
+		}
+	}
 	return o
 }
 
@@ -152,10 +267,13 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []string) 
 				RequestParametersPath: extractParametersPath(p.Parameters),
 			}
 
-			if v, ok := ops.Responses["200"]; ok && v.Value != nil {
-				e.ResponseStruct = modelNameFromRef(v.Ref)
-				if vv, ok := v.Value.Content["application/json"]; !ok {
-					e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+			if v, ok := ops.Responses["200"]; ok {
+				if v.Value == nil {
+					e.ResponseStruct = modelNameFromRef(v.Ref)
+				} else {
+					if vv, ok := v.Value.Content["application/json"]; ok {
+						e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+					}
 				}
 			}
 
@@ -174,10 +292,14 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []string) 
 	return
 }
 
-func extractParametersPath(params openapi3.Parameters) map[string]string {
-	o := make(map[string]string, len(params))
-	for _, p := range params {
-		o[p.Value.Name] = p.Value.Schema.Value.Type
+func extractParametersPath(params openapi3.Parameters) []parameterPath {
+	o := make([]parameterPath, len(params))
+	for i, p := range params {
+		o[i] = parameterPath{
+			k:      p.Value.Name,
+			v:      p.Value.Schema.Value.Type,
+			format: p.Value.Schema.Value.Format,
+		}
 	}
 	return o
 }
