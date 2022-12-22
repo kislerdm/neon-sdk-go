@@ -1,5 +1,8 @@
 package sdk
+{{ if .EndpointsImportsStr }}
+{{ .EndpointsImportsStr }}
 
+{{ end }}
 {{ range .Endpoints }}
 {{.}}
 {{ end }}

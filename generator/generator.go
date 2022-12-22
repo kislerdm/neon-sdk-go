@@ -1,8 +1,10 @@
 package generator
 
 import (
+	"bytes"
 	"embed"
 	"errors"
+	"go/format"
 	"io"
 	"io/fs"
 	"os"
@@ -73,16 +75,19 @@ func (v parameterPath) routeElement() string {
 	case "int32":
 		return "strconv.FormatInt(int64(" + r + "), 10)"
 	case "double":
-		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
-	case "float":
 		return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
-	case "date-time":
+	case "float":
+		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
+	case "date-time", "date":
 		return r + ".Format(time.RFC3339)"
 	case "uuid":
 		return r + ".String()"
 	default:
-		if v.v == "integer" {
+		switch v.v {
+		case "integer":
 			return "strconv.FormatInt(int64(" + r + "), 10)"
+		case "boolean":
+			return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
 		}
 		return r
 	}
@@ -90,13 +95,33 @@ func (v parameterPath) routeElement() string {
 
 func (v parameterPath) argType() string {
 	switch v.format {
-	case "date-time":
+	case "date-time", "date":
 		return "time.Time"
 	case "uuid":
 		return "uuid.UUID"
+	case "int64", "int32":
+		return v.format
+	case "double":
+		return "float64"
+	case "float":
+		return "float32"
 	default:
+		switch v.v {
+		case "integer":
+			return "int"
+		case "boolean":
+			return "bool"
+		}
 		return v.v
 	}
+}
+
+func (v parameterPath) hasUUIDArg() bool {
+	return v.format == "uuid"
+}
+
+func (v parameterPath) hasTimeArg() bool {
+	return v.format == "date" || v.format == "date-time"
 }
 
 type endpointImplementation struct {
@@ -138,8 +163,11 @@ func (e endpointImplementation) generateFunctionCode() string {
 	reqObj := "nil"
 
 	if e.RequestBodyStruct != "" {
+		if args != "" {
+			args += ", "
+		}
+		args += "cfg " + e.RequestBodyStruct
 		reqObj = "cfg"
-		args += ", cfg " + e.RequestBodyStruct
 	}
 
 	o += "(" + args + ") "
@@ -226,10 +254,11 @@ type model struct {
 }
 
 type templateInput struct {
-	Info      string
-	ServerURL string
-	Endpoints []string
-	Models    []model
+	Info                string
+	ServerURL           string
+	Endpoints           []string
+	EndpointsImportsStr string
+	Models              []model
 }
 
 // Config generator configurations.
@@ -254,7 +283,8 @@ func implementationNameFromID(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []string) {
+func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports) (endpoints []string) {
+	httpCodes := []string{"200", "201"}
 	for route, p := range o.Paths {
 		for httpMethod, ops := range p.Operations() {
 			e := endpointImplementation{
@@ -264,16 +294,23 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []string) 
 				Description:           ops.Description,
 				RequestBodyStruct:     "",
 				ResponseStruct:        "",
-				RequestParametersPath: extractParametersPath(p.Parameters),
+				RequestParametersPath: extractParametersPath(p.Parameters, dependencies),
 			}
 
-			if v, ok := ops.Responses["200"]; ok {
-				if v.Value == nil {
-					e.ResponseStruct = modelNameFromRef(v.Ref)
-				} else {
-					if vv, ok := v.Value.Content["application/json"]; ok {
-						e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+			e.RequestParametersPath = append(
+				e.RequestParametersPath, extractParametersPath(ops.Parameters, dependencies)...,
+			)
+
+			for _, httpCode := range httpCodes {
+				if v, ok := ops.Responses[httpCode]; ok {
+					if v.Value == nil {
+						e.ResponseStruct = modelNameFromRef(v.Ref)
+					} else {
+						if vv, ok := v.Value.Content["application/json"]; ok {
+							e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+						}
 					}
+					break
 				}
 			}
 
@@ -292,13 +329,42 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []string) 
 	return
 }
 
-func extractParametersPath(params openapi3.Parameters) []parameterPath {
+type imports map[string]struct{}
+
+func (v imports) set(s string) {
+	v[s] = struct{}{}
+}
+
+func (v imports) generateImportsStr() string {
+	if len(v) == 0 {
+		return ""
+	}
+
+	o := "import (\n"
+	for k := range v {
+		o += `"` + k + `"` + "\n"
+	}
+	o += ")"
+
+	return o
+}
+
+func extractParametersPath(params openapi3.Parameters, dependencies *imports) []parameterPath {
 	o := make([]parameterPath, len(params))
 	for i, p := range params {
 		o[i] = parameterPath{
 			k:      p.Value.Name,
 			v:      p.Value.Schema.Value.Type,
 			format: p.Value.Schema.Value.Format,
+		}
+
+		if dependencies != nil {
+			if o[i].hasTimeArg() {
+				dependencies.set("time")
+			}
+			if o[i].hasUUIDArg() {
+				dependencies.set("github.com/google/uuid")
+			}
 		}
 	}
 	return o
@@ -321,13 +387,27 @@ func Run(cfg Config) error {
 	var f io.WriteCloser
 
 	for fName, temp := range templateGen {
-		if f, err = os.Create(cfg.PathOutput + "/" + strings.Replace(fName, ".templ", "", -1)); err != nil {
+		fName = strings.Replace(fName, ".templ", "", -1)
+		if f, err = os.Create(cfg.PathOutput + "/" + fName); err != nil {
 			return err
 		}
 
 		defer func() { _ = f.Close() }()
 
-		if err := temp.Execute(f, &tempInput); err != nil {
+		var buf bytes.Buffer
+		if err := temp.Execute(&buf, &tempInput); err != nil {
+			return err
+		}
+
+		o := buf.Bytes()
+		if strings.HasSuffix(fName, ".go") {
+			o, err = format.Source(buf.Bytes())
+			if err != nil {
+				return err
+			}
+		}
+
+		if _, err := f.Write(o); err != nil {
 			return err
 		}
 	}
@@ -340,9 +420,11 @@ func extractSpecs(spec openAPISpec) templateInput {
 		panic("no server spec found")
 	}
 
+	i := imports{}
 	return templateInput{
-		Info:      spec.Info.Description,
-		ServerURL: spec.Servers[0].URL,
-		Endpoints: generateEndpointsImplementationMethods(spec),
+		Info:                spec.Info.Description,
+		ServerURL:           spec.Servers[0].URL,
+		Endpoints:           generateEndpointsImplementationMethods(spec, &i),
+		EndpointsImportsStr: i.generateImportsStr(),
 	}
 }

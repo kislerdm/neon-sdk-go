@@ -188,9 +188,29 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 				RequestParametersPath: []parameterPath{{"key_id", "integer", "int64"}},
 			},
 			want: `// RevokeApiKey Revokes the specified API key
-func (c *Client) RevokeApiKey(keyID integer) (ApiKeyRevokeResponse, error) {
+func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}`,
+		},
+		{
+			name: "create a project",
+			fields: fields{
+				Name:                  "CreateProject",
+				Method:                "POST",
+				Route:                 "/projects",
+				Description:           "Creates a Neon project",
+				RequestBodyStruct:     "ProjectCreateRequest",
+				ResponseStruct:        "CreatedProject",
+				RequestParametersPath: nil,
+			},
+			want: `// CreateProject Creates a Neon project
+func (c *Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
+	var v CreatedProject
+	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
@@ -308,7 +328,8 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 											Schema: &openapi3.SchemaRef{
 												Ref: "",
 												Value: &openapi3.Schema{
-													Type: "int64",
+													Type:   "integer",
+													Format: "int64",
 												},
 											},
 										},
@@ -351,7 +372,8 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 											Schema: &openapi3.SchemaRef{
 												Ref: "",
 												Value: &openapi3.Schema{
-													Type: "int64",
+													Type:   "integer",
+													Format: "int64",
 												},
 											},
 										},
@@ -401,7 +423,7 @@ func (c *Client) FooBarEndpoint(quxID int64, dateSubmit time.Time) (FooBarRespon
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				if gotEndpoints := generateEndpointsImplementationMethods(tt.args.o); !reflect.DeepEqual(
+				if gotEndpoints := generateEndpointsImplementationMethods(tt.args.o, nil); !reflect.DeepEqual(
 					gotEndpoints, tt.wantEndpoints,
 				) {
 					t.Errorf("generateEndpointsImplementationMethods() = %v, want %v", gotEndpoints, tt.wantEndpoints)
@@ -446,6 +468,88 @@ func Test_parameterPath_canonicalName(t *testing.T) {
 				}
 				if got := v.canonicalName(); got != tt.want {
 					t.Errorf("canonicalName() = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_parameterPath_routeElement(t *testing.T) {
+	type fields struct {
+		k      string
+		v      string
+		format string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "int64",
+			fields: fields{
+				k:      "qux_id",
+				v:      "integer",
+				format: "int64",
+			},
+			want: "strconv.FormatInt(quxID, 10)",
+		},
+		{
+			name: "int32",
+			fields: fields{
+				k:      "qux_id",
+				v:      "integer",
+				format: "int32",
+			},
+			want: "strconv.FormatInt(int64(quxID), 10)",
+		},
+		{
+			name: "uuid",
+			fields: fields{
+				k:      "qux_id",
+				v:      "string",
+				format: "uuid",
+			},
+			want: "quxID.String()",
+		},
+		{
+			name: "double",
+			fields: fields{
+				k:      "qux_id",
+				v:      "number",
+				format: "double",
+			},
+			want: "strconv.FormatFloat(quxID, 'f', -1, 64)",
+		},
+		{
+			name: "float",
+			fields: fields{
+				k:      "qux_id",
+				v:      "number",
+				format: "float",
+			},
+			want: "strconv.FormatFloat(quxID, 'f', -1, 32)",
+		},
+		{
+			name: "date-time",
+			fields: fields{
+				k:      "qux_id",
+				v:      "string",
+				format: "date-time",
+			},
+			want: "quxID.Format(time.RFC3339)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				v := parameterPath{
+					k:      tt.fields.k,
+					v:      tt.fields.v,
+					format: tt.fields.format,
+				}
+				if got := v.routeElement(); got != tt.want {
+					t.Errorf("routeElement() = %v, want %v", got, tt.want)
 				}
 			},
 		)
