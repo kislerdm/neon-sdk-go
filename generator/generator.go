@@ -45,11 +45,12 @@ func init() {
 	}
 }
 
-type parameterPath struct {
+type field struct {
 	k, v, format string
+	required     bool
 }
 
-func (v parameterPath) canonicalName() string {
+func (v field) canonicalName() string {
 	o := ""
 	for i, s := range strings.Split(v.k, "_") {
 		if i > 0 {
@@ -66,7 +67,7 @@ func (v parameterPath) canonicalName() string {
 	}
 }
 
-func (v parameterPath) routeElement() string {
+func (v field) routeElement() string {
 	r := v.canonicalName()
 
 	switch v.format {
@@ -93,7 +94,7 @@ func (v parameterPath) routeElement() string {
 	}
 }
 
-func (v parameterPath) argType() string {
+func (v field) argType() string {
 	switch v.format {
 	case "date-time", "date":
 		return "time.Time"
@@ -116,11 +117,11 @@ func (v parameterPath) argType() string {
 	}
 }
 
-func (v parameterPath) hasUUIDArg() bool {
+func (v field) hasUUIDArg() bool {
 	return v.format == "uuid"
 }
 
-func (v parameterPath) hasTimeArg() bool {
+func (v field) hasTimeArg() bool {
 	return v.format == "date" || v.format == "date-time"
 }
 
@@ -131,7 +132,7 @@ type endpointImplementation struct {
 	Description           string
 	RequestBodyStruct     string
 	ResponseStruct        string
-	RequestParametersPath []parameterPath
+	RequestParametersPath []field
 }
 
 func (e endpointImplementation) functionDescription() string {
@@ -242,15 +243,9 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 	return modelNameFromRef(schema.Ref)
 }
 
-type modelField struct {
-	Name     string
-	Type     string
-	Required bool
-}
-
 type model struct {
 	Name   string
-	Fields []modelField
+	Fields []field
 }
 
 type templateInput struct {
@@ -259,6 +254,7 @@ type templateInput struct {
 	Endpoints           []string
 	EndpointsImportsStr string
 	Models              []model
+	ModelsImportsStr    string
 }
 
 // Config generator configurations.
@@ -349,10 +345,10 @@ func (v imports) generateImportsStr() string {
 	return o
 }
 
-func extractParametersPath(params openapi3.Parameters, dependencies *imports) []parameterPath {
-	o := make([]parameterPath, len(params))
+func extractParametersPath(params openapi3.Parameters, dependencies *imports) []field {
+	o := make([]field, len(params))
 	for i, p := range params {
-		o[i] = parameterPath{
+		o[i] = field{
 			k:      p.Value.Name,
 			v:      p.Value.Schema.Value.Type,
 			format: p.Value.Schema.Value.Format,
@@ -421,10 +417,17 @@ func extractSpecs(spec openAPISpec) templateInput {
 	}
 
 	i := imports{}
+	modelsImports := imports{}
 	return templateInput{
 		Info:                spec.Info.Description,
 		ServerURL:           spec.Servers[0].URL,
 		Endpoints:           generateEndpointsImplementationMethods(spec, &i),
 		EndpointsImportsStr: i.generateImportsStr(),
+		Models:              generateModels(spec, &modelsImports),
+		ModelsImportsStr:    modelsImports.generateImportsStr(),
 	}
+}
+
+func generateModels(spec openAPISpec, i *imports) []model {
+	panic("todo")
 }

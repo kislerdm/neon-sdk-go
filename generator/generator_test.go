@@ -51,6 +51,7 @@ func TestRun(t *testing.T) {
 				"client.go":      {},
 				"client_test.go": {},
 				"endpoints.go":   {},
+				"models.go":      {},
 			},
 		},
 	}
@@ -106,7 +107,7 @@ func Test_endpointImplementation_generateFunctionCode(t *testing.T) {
 		Description           string
 		RequestBodyStruct     string
 		ResponseStruct        string
-		RequestParametersPath []parameterPath
+		RequestParametersPath []field
 	}
 	tests := []struct {
 		name   string
@@ -142,7 +143,7 @@ func (c *Client) ListProjects() (ProjectsResponse, error) {
 				Description:           "Retrieves information about the specified project",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ProjectsResponse",
-				RequestParametersPath: []parameterPath{{"project_id", "string", ""}},
+				RequestParametersPath: []field{{"project_id", "string", "", true}},
 			},
 			want: `// GetProject Retrieves information about the specified project
 func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
@@ -162,9 +163,9 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 				Description:       "Retrieves a list of databases for the specified branch",
 				RequestBodyStruct: "",
 				ResponseStruct:    "DatabasesResponse",
-				RequestParametersPath: []parameterPath{
-					{"project_id", "string", ""},
-					{"branch_id", "string", ""},
+				RequestParametersPath: []field{
+					{"project_id", "string", "", true},
+					{"branch_id", "string", "", true},
 				},
 			},
 			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
@@ -185,7 +186,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 				Description:           "Revokes the specified API key",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ApiKeyRevokeResponse",
-				RequestParametersPath: []parameterPath{{"key_id", "integer", "int64"}},
+				RequestParametersPath: []field{{"key_id", "integer", "int64", true}},
 			},
 			want: `// RevokeApiKey Revokes the specified API key
 func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
@@ -462,7 +463,7 @@ func Test_parameterPath_canonicalName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				v := parameterPath{
+				v := field{
 					k: tt.fields.k,
 					v: tt.fields.v,
 				}
@@ -543,7 +544,7 @@ func Test_parameterPath_routeElement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				v := parameterPath{
+				v := field{
 					k:      tt.fields.k,
 					v:      tt.fields.v,
 					format: tt.fields.format,

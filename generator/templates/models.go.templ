@@ -1,0 +1,8 @@
+package sdk
+{{ if .ModelsImportsStr }}
+{{ .ModelsImportsStr }}
+
+{{ end }}
+{{ range .Models }}
+{{.}}
+{{ end }}
