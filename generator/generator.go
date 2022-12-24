@@ -179,10 +179,15 @@ func (e endpointImplementation) generateFunctionCode() string {
 		return o
 	}
 
+	returnStatementUnhappyPath := e.ResponseStruct + "{}"
+	if e.ResponseStruct[0] == '[' {
+		returnStatementUnhappyPath = "nil"
+	}
+
 	o += "(" + e.ResponseStruct + `, error) {
 	var v ` + e.ResponseStruct + `
 	if err := c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
-		return nil, err
+		return ` + returnStatementUnhappyPath + `, err
 	}
 	return v, nil
 }`
@@ -423,8 +428,8 @@ func extractSpecs(spec openAPISpec) templateInput {
 		ServerURL:           spec.Servers[0].URL,
 		Endpoints:           generateEndpointsImplementationMethods(spec, &i),
 		EndpointsImportsStr: i.generateImportsStr(),
-		Models:              generateModels(spec, &modelsImports),
-		ModelsImportsStr:    modelsImports.generateImportsStr(),
+		//Models:              generateModels(spec, &modelsImports),
+		ModelsImportsStr: modelsImports.generateImportsStr(),
 	}
 }
 
