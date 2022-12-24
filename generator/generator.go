@@ -48,6 +48,8 @@ func init() {
 type field struct {
 	k, v, format string
 	required     bool
+	isInPath     bool
+	isInQuery    bool
 }
 
 func (v field) canonicalName() string {
@@ -296,18 +298,30 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 	for route, p := range o.Paths {
 		for httpMethod, ops := range p.Operations() {
 			e := endpointImplementation{
-				Name:                  implementationNameFromID(ops.OperationID),
-				Method:                httpMethod,
-				Route:                 route,
-				Description:           ops.Description,
-				RequestBodyStruct:     "",
-				ResponseStruct:        "",
-				RequestParametersPath: extractParametersPath(p.Parameters, dependencies),
+				Name:              implementationNameFromID(ops.OperationID),
+				Method:            httpMethod,
+				Route:             route,
+				Description:       ops.Description,
+				RequestBodyStruct: "",
+				ResponseStruct:    "",
 			}
 
-			e.RequestParametersPath = append(
-				e.RequestParametersPath, extractParametersPath(ops.Parameters, dependencies)...,
-			)
+			pp := p.Parameters
+			pp = append(pp, ops.Parameters...)
+			for _, p := range extractParameters(pp) {
+				if !p.isInPath {
+					continue
+				}
+				e.RequestParametersPath = append(e.RequestParametersPath, p)
+				if dependencies != nil {
+					if p.hasTimeArg() {
+						dependencies.set("time")
+					}
+					if p.hasUUIDArg() {
+						dependencies.set("github.com/google/uuid")
+					}
+				}
+			}
 
 			for _, httpCode := range httpCodes {
 				if v, ok := ops.Responses[httpCode]; ok {
@@ -359,23 +373,16 @@ func (v imports) generateImportsStr() string {
 	return o
 }
 
-func extractParametersPath(params openapi3.Parameters, dependencies *imports) []field {
+func extractParameters(params openapi3.Parameters) []field {
 	o := make([]field, len(params))
 	for i, p := range params {
 		o[i] = field{
-			k:        p.Value.Name,
-			v:        p.Value.Schema.Value.Type,
-			format:   p.Value.Schema.Value.Format,
-			required: p.Value.Required,
-		}
-
-		if dependencies != nil {
-			if o[i].hasTimeArg() {
-				dependencies.set("time")
-			}
-			if o[i].hasUUIDArg() {
-				dependencies.set("github.com/google/uuid")
-			}
+			k:         p.Value.Name,
+			v:         p.Value.Schema.Value.Type,
+			format:    p.Value.Schema.Value.Format,
+			required:  p.Value.Required,
+			isInPath:  p.Value.In == openapi3.ParameterInPath,
+			isInQuery: p.Value.In == openapi3.ParameterInQuery,
 		}
 	}
 	return o

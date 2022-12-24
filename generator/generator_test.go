@@ -143,7 +143,7 @@ func (c *Client) ListProjects() (ProjectsResponse, error) {
 				Description:           "Retrieves information about the specified project",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ProjectsResponse",
-				RequestParametersPath: []field{{"project_id", "string", "", true}},
+				RequestParametersPath: []field{{"project_id", "string", "", true, true, false}},
 			},
 			want: `// GetProject Retrieves information about the specified project
 func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
@@ -164,8 +164,8 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 				RequestBodyStruct: "",
 				ResponseStruct:    "DatabasesResponse",
 				RequestParametersPath: []field{
-					{"project_id", "string", "", true},
-					{"branch_id", "string", "", true},
+					{"project_id", "string", "", true, true, false},
+					{"branch_id", "string", "", true, true, false},
 				},
 			},
 			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
@@ -186,7 +186,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 				Description:           "Revokes the specified API key",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ApiKeyRevokeResponse",
-				RequestParametersPath: []field{{"key_id", "integer", "int64", true}},
+				RequestParametersPath: []field{{"key_id", "integer", "int64", true, true, false}},
 			},
 			want: `// RevokeApiKey Revokes the specified API key
 func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
@@ -366,7 +366,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 									{
 										Value: &openapi3.Parameter{
 											Name:            "qux_id",
-											In:              "path",
+											In:              openapi3.ParameterInPath,
 											Description:     "qux parameter",
 											AllowEmptyValue: false,
 											Required:        true,
@@ -382,7 +382,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 									{
 										Value: &openapi3.Parameter{
 											Name:            "date_submit",
-											In:              "path",
+											In:              openapi3.ParameterInPath,
 											Description:     "date parameter",
 											AllowEmptyValue: false,
 											Required:        true,
@@ -391,6 +391,21 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 												Value: &openapi3.Schema{
 													Type:   "string",
 													Format: "date-time",
+												},
+											},
+										},
+									},
+									{
+										Value: &openapi3.Parameter{
+											Name:            "limit",
+											In:              openapi3.ParameterInQuery,
+											Description:     "query limit",
+											AllowEmptyValue: false,
+											Required:        false,
+											Schema: &openapi3.SchemaRef{
+												Ref: "",
+												Value: &openapi3.Schema{
+													Type: "integer",
 												},
 											},
 										},
@@ -415,12 +430,14 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 							v:        "string",
 							format:   "",
 							required: true,
+							isInPath: true,
 						},
 						{
 							k:        "qux_id",
 							v:        "integer",
 							format:   "int64",
 							required: true,
+							isInPath: true,
 						},
 					},
 				},
@@ -437,12 +454,14 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 							v:        "integer",
 							format:   "int64",
 							required: true,
+							isInPath: true,
 						},
 						{
 							k:        "date_submit",
 							v:        "string",
 							format:   "date-time",
 							required: true,
+							isInPath: true,
 						},
 					},
 				},
