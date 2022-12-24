@@ -126,13 +126,16 @@ func (v field) hasTimeArg() bool {
 }
 
 type endpointImplementation struct {
-	Name                  string
-	Method                string
-	Route                 string
-	Description           string
-	RequestBodyStruct     string
-	ResponseStruct        string
-	RequestParametersPath []field
+	Name                        string
+	Method                      string
+	Route                       string
+	Description                 string
+	RequestBodyRequires         bool
+	RequestBodyStruct           string
+	RequestBodyStructExample    interface{}
+	ResponseStruct              string
+	RequestParametersPath       []field
+	ResponsePositivePathExample interface{}
 }
 
 func (e endpointImplementation) functionDescription() string {
@@ -162,12 +165,16 @@ func (e endpointImplementation) generateFunctionCode() string {
 	args := e.inputArgStr()
 
 	reqObj := "nil"
+	reqPointer := ""
 
 	if e.RequestBodyStruct != "" {
 		if args != "" {
 			args += ", "
 		}
-		args += "cfg " + e.RequestBodyStruct
+		if !e.RequestBodyRequires {
+			reqPointer = "*"
+		}
+		args += "cfg " + reqPointer + e.RequestBodyStruct
 		reqObj = "cfg"
 	}
 
@@ -284,7 +291,7 @@ func implementationNameFromID(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports) (endpoints []string) {
+func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports) (endpoints []endpointImplementation) {
 	httpCodes := []string{"200", "201"}
 	for route, p := range o.Paths {
 		for httpMethod, ops := range p.Operations() {
@@ -309,6 +316,7 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 					} else {
 						if vv, ok := v.Value.Content["application/json"]; ok {
 							e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+							e.ResponsePositivePathExample = vv.Example
 						}
 					}
 					break
@@ -320,11 +328,12 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 				if v.Value != nil {
 					if vv, ok := v.Value.Content["application/json"]; ok {
 						e.RequestBodyStruct = extractStructFromSchemaRef(vv.Schema)
+						e.RequestBodyRequires = v.Value.Required
 					}
 				}
 			}
 
-			endpoints = append(endpoints, e.generateFunctionCode())
+			endpoints = append(endpoints, e)
 		}
 	}
 	return
@@ -354,9 +363,10 @@ func extractParametersPath(params openapi3.Parameters, dependencies *imports) []
 	o := make([]field, len(params))
 	for i, p := range params {
 		o[i] = field{
-			k:      p.Value.Name,
-			v:      p.Value.Schema.Value.Type,
-			format: p.Value.Schema.Value.Format,
+			k:        p.Value.Name,
+			v:        p.Value.Schema.Value.Type,
+			format:   p.Value.Schema.Value.Format,
+			required: p.Value.Required,
 		}
 
 		if dependencies != nil {
@@ -423,10 +433,17 @@ func extractSpecs(spec openAPISpec) templateInput {
 
 	i := imports{}
 	modelsImports := imports{}
+
+	endpoints := generateEndpointsImplementationMethods(spec, &i)
+	endpointsStr := make([]string, len(endpoints))
+	for i, s := range endpoints {
+		endpointsStr[i] = s.generateFunctionCode()
+	}
+
 	return templateInput{
 		Info:                spec.Info.Description,
 		ServerURL:           spec.Servers[0].URL,
-		Endpoints:           generateEndpointsImplementationMethods(spec, &i),
+		Endpoints:           endpointsStr,
 		EndpointsImportsStr: i.generateImportsStr(),
 		//Models:              generateModels(spec, &modelsImports),
 		ModelsImportsStr: modelsImports.generateImportsStr(),

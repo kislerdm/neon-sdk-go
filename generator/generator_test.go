@@ -129,7 +129,7 @@ func Test_endpointImplementation_generateFunctionCode(t *testing.T) {
 func (c *Client) ListProjects() (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects", "GET", nil, &v); err != nil {
-		return nil, err
+		return ProjectsResponse{}, err
 	}
 	return v, nil
 }`,
@@ -149,7 +149,7 @@ func (c *Client) ListProjects() (ProjectsResponse, error) {
 func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
-		return nil, err
+		return ProjectsResponse{}, err
 	}
 	return v, nil
 }`,
@@ -172,7 +172,7 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
-		return nil, err
+		return DatabasesResponse{}, err
 	}
 	return v, nil
 }`,
@@ -192,7 +192,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
-		return nil, err
+		return ApiKeyRevokeResponse{}, err
 	}
 	return v, nil
 }`,
@@ -209,10 +209,10 @@ func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 				RequestParametersPath: nil,
 			},
 			want: `// CreateProject Creates a Neon project
-func (c *Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
+func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
 	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
-		return nil, err
+		return CreatedProject{}, err
 	}
 	return v, nil
 }`,
@@ -245,7 +245,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	tests := []struct {
 		name          string
 		args          args
-		wantEndpoints []string
+		wantEndpoints []endpointImplementation
 	}{
 		{
 			name: "happy path",
@@ -401,23 +401,51 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					},
 				},
 			},
-			wantEndpoints: []string{
-				`// FooEndpoint get /foo
-func (c *Client) FooEndpoint(bar string, quxID int64) ([]FooResponse, error) {
-	var v []FooResponse
-	if err := c.requestHandler(c.baseURL+"/foo/"+bar+"/"+strconv.FormatInt(quxID, 10), "GET", nil, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}`,
-				`// FooBarEndpoint get /foo/bar
-func (c *Client) FooBarEndpoint(quxID int64, dateSubmit time.Time) (FooBarResponse, error) {
-	var v FooBarResponse
-	if err := c.requestHandler(c.baseURL+"/foo/bar/"+strconv.FormatInt(quxID, 10)+"/"+dateSubmit.Format(time.RFC3339), "GET", nil, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}`,
+			wantEndpoints: []endpointImplementation{
+				{
+					Name:              "FooEndpoint",
+					Method:            "GET",
+					Route:             "/foo/{bar}/{qux_id}",
+					Description:       "get /foo",
+					RequestBodyStruct: "",
+					ResponseStruct:    "[]FooResponse",
+					RequestParametersPath: []field{
+						{
+							k:        "bar",
+							v:        "string",
+							format:   "",
+							required: true,
+						},
+						{
+							k:        "qux_id",
+							v:        "integer",
+							format:   "int64",
+							required: true,
+						},
+					},
+				},
+				{
+					Name:              "FooBarEndpoint",
+					Method:            "GET",
+					Route:             "/foo/bar/{qux_id}/{date_submit}",
+					Description:       "get /foo/bar",
+					RequestBodyStruct: "",
+					ResponseStruct:    "FooBarResponse",
+					RequestParametersPath: []field{
+						{
+							k:        "qux_id",
+							v:        "integer",
+							format:   "int64",
+							required: true,
+						},
+						{
+							k:        "date_submit",
+							v:        "string",
+							format:   "date-time",
+							required: true,
+						},
+					},
+				},
 			},
 		},
 	}
