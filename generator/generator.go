@@ -77,6 +77,10 @@ func objNameGoConvention(s string) string {
 	}
 }
 
+func objNameGoConventionExport(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
 func (v field) routeElement() string {
 	r := v.canonicalName()
 
@@ -260,7 +264,15 @@ func (e endpointImplementation) inputArgStr() string {
 
 func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 	if schema.Value != nil && schema.Value.Type == "array" {
-		return "[]" + modelNameFromRef(schema.Value.Items.Ref)
+		t := modelNameFromRef(schema.Value.Items.Ref)
+		if t == "" {
+			t = field{
+				k:      "",
+				v:      schema.Value.Items.Value.Type,
+				format: schema.Value.Items.Value.Format,
+			}.argType()
+		}
+		return "[]" + t
 	}
 	return modelNameFromRef(schema.Ref)
 }
@@ -540,19 +552,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 		m.addChild(k, c.Ref)
 	}
 
-	modelAddPropertiesFields(m, k, v.Properties)
-
-	for _, s := range v.Required {
-		// in case openAPI json does not define required fields
-		// according to the props. definition
-		if _, ok := m[k].fields[s]; ok {
-			m[k].fields[s].setRequired(true)
-		}
-	}
-}
-
-func modelAddPropertiesFields(m models, k string, properties openapi3.Schemas) {
-	for propertyName, property := range properties {
+	for propertyName, property := range v.Properties {
 		field := field{
 			k:        propertyName,
 			v:        extractStructFromSchemaRef(property),
@@ -563,12 +563,12 @@ func modelAddPropertiesFields(m models, k string, properties openapi3.Schemas) {
 		if field.v == "" {
 			switch property.Value.Type {
 			case openapi3.TypeObject:
-				field.v = k + objNameGoConvention(propertyName)
+				field.v = k + objNameGoConventionExport(propertyName)
 				m.addChild(k, field.v)
 				m.add(field.v, model{})
-				modelAddPropertiesFields(m, field.v, property.Value.Properties)
+				addFromValue(m, field.v, property.Value)
 			case openapi3.TypeArray:
-				m.addChild(k, modelNameFromRef(property.Value.Items.Ref))
+				m.addChild(k, extractStructFromSchemaRef(property))
 			default:
 				field.v = property.Value.Type
 				field.format = property.Value.Format
@@ -576,9 +576,19 @@ func modelAddPropertiesFields(m models, k string, properties openapi3.Schemas) {
 		} else {
 			if property.Value != nil {
 				field.format = property.Value.Format
+			} else {
+				m.addChild(k, field.v)
 			}
 		}
 
 		m.addField(k, field)
+	}
+
+	for _, s := range v.Required {
+		// in case openAPI json does not define required fields
+		// according to the props. definition
+		if _, ok := m[k].fields[s]; ok {
+			m[k].fields[s].setRequired(true)
+		}
 	}
 }

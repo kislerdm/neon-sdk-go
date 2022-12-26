@@ -4,12 +4,12 @@ import (
 	_ "embed"
 	"io/fs"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/stretchr/testify/assert"
 )
 
 //go:embed fixtures/openapi.json
@@ -221,18 +221,18 @@ func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				e := endpointImplementation{
-					Name:                  tt.fields.Name,
-					Method:                tt.fields.Method,
-					Route:                 tt.fields.Route,
-					Description:           tt.fields.Description,
-					RequestBodyStruct:     tt.fields.RequestBodyStruct,
-					ResponseStruct:        tt.fields.ResponseStruct,
-					RequestParametersPath: tt.fields.RequestParametersPath,
-				}
-				if got := e.generateFunctionCode(); got != tt.want {
-					t.Errorf("generateFunctionCode() = %v, want %v", got, tt.want)
-				}
+				assert.Equal(
+					t, tt.want,
+					endpointImplementation{
+						Name:                  tt.fields.Name,
+						Method:                tt.fields.Method,
+						Route:                 tt.fields.Route,
+						Description:           tt.fields.Description,
+						RequestBodyStruct:     tt.fields.RequestBodyStruct,
+						ResponseStruct:        tt.fields.ResponseStruct,
+						RequestParametersPath: tt.fields.RequestParametersPath,
+					}.generateFunctionCode(),
+				)
 			},
 		)
 	}
@@ -328,6 +328,50 @@ var inputSpec = openAPISpec{
 								Value: &openapi3.Schema{
 									Type: openapi3.TypeString,
 									Enum: []interface{}{"init", "ready"},
+								},
+							},
+						},
+					},
+				},
+				"Qux": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"foo"},
+						Properties: openapi3.Schemas{
+							"foo": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type:     openapi3.TypeObject,
+									Required: []string{"foo", "bar", "qux"},
+									Properties: openapi3.Schemas{
+										"foo": {
+											Value: &openapi3.Schema{
+												Type:   openapi3.TypeInteger,
+												Format: "int32",
+											},
+										},
+										"bar": {
+											Value: &openapi3.Schema{
+												Type:     openapi3.TypeObject,
+												Required: []string{"foo"},
+												Properties: openapi3.Schemas{
+													"foo": {
+														Value: &openapi3.Schema{
+															Type: openapi3.TypeArray,
+															Items: &openapi3.SchemaRef{
+																Value: &openapi3.Schema{
+																	Type:   openapi3.TypeString,
+																	Format: "date-time",
+																},
+															},
+														},
+													},
+													"bar": {
+														Ref: "#/components/schemas/Bar",
+													},
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -593,11 +637,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				if gotEndpoints := generateEndpointsImplementationMethods(tt.args.o, nil); !reflect.DeepEqual(
-					gotEndpoints, tt.wantEndpoints,
-				) {
-					t.Errorf("generateEndpointsImplementationMethods() = %v, want %v", gotEndpoints, tt.wantEndpoints)
-				}
+				assert.Equal(t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o, nil))
 			},
 		)
 	}
@@ -632,13 +672,12 @@ func Test_parameterPath_canonicalName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				v := field{
-					k: tt.fields.k,
-					v: tt.fields.v,
-				}
-				if got := v.canonicalName(); got != tt.want {
-					t.Errorf("canonicalName() = %v, want %v", got, tt.want)
-				}
+				assert.Equal(
+					t, tt.want, field{
+						k: tt.fields.k,
+						v: tt.fields.v,
+					}.canonicalName(),
+				)
 			},
 		)
 	}
@@ -713,14 +752,13 @@ func Test_parameterPath_routeElement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				v := field{
-					k:      tt.fields.k,
-					v:      tt.fields.v,
-					format: tt.fields.format,
-				}
-				if got := v.routeElement(); got != tt.want {
-					t.Errorf("routeElement() = %v, want %v", got, tt.want)
-				}
+				assert.Equal(
+					t, tt.want, field{
+						k:      tt.fields.k,
+						v:      tt.fields.v,
+						format: tt.fields.format,
+					}.routeElement(),
+				)
 			},
 		)
 	}
@@ -754,6 +792,7 @@ func Test_generateModels(t *testing.T) {
 							required: true,
 						},
 					},
+					children: map[string]struct{}{"Foo": {}},
 				},
 				"BarResponse": model{
 					fields: map[string]*field{
@@ -764,6 +803,48 @@ func Test_generateModels(t *testing.T) {
 							required: true,
 						},
 					},
+					children: map[string]struct{}{"Bar": {}},
+				},
+				"Qux": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "QuxFoo",
+							required: true,
+						},
+					},
+					children: map[string]struct{}{"QuxFoo": {}},
+				},
+				"QuxFoo": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        openapi3.TypeInteger,
+							format:   "int32",
+							required: true,
+						},
+						"bar": {
+							k:        "bar",
+							v:        "QuxFooBar",
+							required: true,
+						},
+					},
+					children: map[string]struct{}{"QuxFooBar": {}},
+				},
+				"QuxFooBar": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "[]time.Time",
+							format:   "",
+							required: true,
+						},
+						"bar": {
+							k: "bar",
+							v: "Bar",
+						},
+					},
+					children: map[string]struct{}{"Bar": {}},
 				},
 				"Foo": model{
 					fields: map[string]*field{
@@ -786,7 +867,6 @@ func Test_generateModels(t *testing.T) {
 						"type": {
 							k:        "type",
 							v:        "string",
-							format:   "",
 							required: true,
 						},
 					},
@@ -797,9 +877,7 @@ func Test_generateModels(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				if got := generateModels(tt.args.spec, tt.args.i); !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("generateModels() = %v, want %v", got, tt.want)
-				}
+				assert.Equal(t, tt.want, generateModels(tt.args.spec, tt.args.i))
 			},
 		)
 	}
