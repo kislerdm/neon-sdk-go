@@ -78,6 +78,7 @@ func objNameGoConvention(s string) string {
 }
 
 func objNameGoConventionExport(s string) string {
+	s = objNameGoConvention(s)
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 

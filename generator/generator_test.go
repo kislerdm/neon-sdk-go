@@ -89,13 +89,13 @@ func TestRun(t *testing.T) {
 				}
 			},
 		)
-		t.Cleanup(
-			func() {
-				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-					panic(err)
-				}
-			},
-		)
+		//t.Cleanup(
+		//	func() {
+		//		if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+		//			panic(err)
+		//		}
+		//	},
+		//)
 	}
 }
 
@@ -1005,6 +1005,32 @@ BarResponse
 		t.Run(
 			tt.name, func(t *testing.T) {
 				assert.Equalf(t, tt.want, tt.v.generateCode(), "generateCode()")
+			},
+		)
+	}
+}
+
+func Test_objNameGoConventionExport(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "autoscaling_limit_max_cu",
+			args: args{"autoscaling_limit_max_cu"},
+			want: "AutoscalingLimitMaxCu",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				assert.Equalf(
+					t, tt.want, objNameGoConventionExport(tt.args.s), "objNameGoConventionExport(%v)", tt.args.s,
+				)
 			},
 		)
 	}
