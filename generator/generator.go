@@ -194,13 +194,6 @@ func (v field) argType() string {
 	}
 }
 
-func (v field) modelType() string {
-	if v.format == "uuid" {
-		return "string"
-	}
-	return v.argType()
-}
-
 type endpointImplementation struct {
 	Name                        string
 	Method                      string
@@ -515,7 +508,7 @@ func (v models) generateCode() []string {
 				if !field.required {
 					omitEmpty = ",omitempty"
 				}
-				tmp += objNameGoConventionExport(fieldName) + " " + field.modelType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+				tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
 			}
 		}
 		o[i] = tmp + "}"
