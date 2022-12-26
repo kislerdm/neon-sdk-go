@@ -46,12 +46,9 @@ func TestRun(t *testing.T) {
 			wantErr: false,
 			files: map[string]struct{}{
 				"go.mod":         {},
-				"go.sum":         {},
 				"doc.go":         {},
-				"client.go":      {},
+				"sdk.go":         {},
 				"client_test.go": {},
-				"endpoints.go":   {},
-				"types.go":       {},
 			},
 		},
 	}
@@ -99,7 +96,7 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func Test_endpointImplementation_generateFunctionCode(t *testing.T) {
+func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 	type fields struct {
 		Name                  string
 		Method                string
@@ -125,8 +122,7 @@ func Test_endpointImplementation_generateFunctionCode(t *testing.T) {
 				ResponseStruct:        "ProjectsResponse",
 				RequestParametersPath: nil,
 			},
-			want: `// ListProjects Retrieves a list of projects for the Neon account
-func (c *Client) ListProjects() (ProjectsResponse, error) {
+			want: `func (c *client) ListProjects() (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects", "GET", nil, &v); err != nil {
 		return ProjectsResponse{}, err
@@ -145,8 +141,7 @@ func (c *Client) ListProjects() (ProjectsResponse, error) {
 				ResponseStruct:        "ProjectsResponse",
 				RequestParametersPath: []field{{"project_id", "string", "", true, true, false}},
 			},
-			want: `// GetProject Retrieves information about the specified project
-func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
+			want: `func (c *client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectsResponse{}, err
@@ -168,8 +163,7 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 					{"branch_id", "string", "", true, true, false},
 				},
 			},
-			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
-func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
+			want: `func (c *client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
 		return DatabasesResponse{}, err
@@ -188,8 +182,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 				ResponseStruct:        "ApiKeyRevokeResponse",
 				RequestParametersPath: []field{{"key_id", "integer", "int64", true, true, false}},
 			},
-			want: `// RevokeApiKey Revokes the specified API key
-func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
+			want: `func (c *client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return ApiKeyRevokeResponse{}, err
@@ -208,8 +201,7 @@ func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 				ResponseStruct:        "CreatedProject",
 				RequestParametersPath: nil,
 			},
-			want: `// CreateProject Creates a Neon project
-func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
+			want: `func (c *client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
 	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
 		return CreatedProject{}, err
@@ -231,7 +223,7 @@ func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error
 						RequestBodyStruct:     tt.fields.RequestBodyStruct,
 						ResponseStruct:        tt.fields.ResponseStruct,
 						RequestParametersPath: tt.fields.RequestParametersPath,
-					}.generateFunctionCode(),
+					}.generateMethodImplementation(),
 				)
 			},
 		)
@@ -637,7 +629,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equal(t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o, nil))
+				assert.Equal(t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o))
 			},
 		)
 	}
@@ -711,15 +703,6 @@ func Test_parameterPath_routeElement(t *testing.T) {
 				format: "int32",
 			},
 			want: "strconv.FormatInt(int64(quxID), 10)",
-		},
-		{
-			name: "uuid",
-			fields: fields{
-				k:      "qux_id",
-				v:      "string",
-				format: "uuid",
-			},
-			want: "quxID.String()",
 		},
 		{
 			name: "double",
@@ -1004,7 +987,10 @@ BarResponse
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equalf(t, tt.want, tt.v.generateCode(), "generateCode()")
+				got := tt.v.generateCode()
+				for _, el := range tt.want {
+					assert.Contains(t, got, el, "generateCode()")
+				}
 			},
 		)
 	}
@@ -1031,6 +1017,69 @@ func Test_objNameGoConventionExport(t *testing.T) {
 				assert.Equalf(
 					t, tt.want, objNameGoConventionExport(tt.args.s), "objNameGoConventionExport(%v)", tt.args.s,
 				)
+			},
+		)
+	}
+}
+
+func Test_endpointImplementation_generateMethodDefinition(t *testing.T) {
+	type fields struct {
+		Name                        string
+		Method                      string
+		Route                       string
+		Description                 string
+		RequestBodyRequires         bool
+		RequestBodyStruct           string
+		RequestBodyStructExample    interface{}
+		ResponseStruct              string
+		RequestParametersPath       []field
+		ResponsePositivePathExample interface{}
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "CreateProjectBranch",
+			fields: fields{
+				Name:                     "CreateProjectBranch",
+				Method:                   "POST",
+				Route:                    "/projects/{project_id}/branches",
+				Description:              "Creates a branch in the specified project",
+				RequestBodyRequires:      false,
+				RequestBodyStruct:        "BranchCreateRequest",
+				RequestBodyStructExample: nil,
+				ResponseStruct:           "CreatedBranch",
+				RequestParametersPath: []field{
+					{
+						k:        "project_id",
+						v:        "string",
+						required: true,
+						isInPath: true,
+					},
+				},
+			},
+			want: `// CreateProjectBranch Creates a branch in the specified project
+CreateProjectBranch(projectID string, cfg *BranchCreateRequest) (CreatedBranch, error)`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				e := endpointImplementation{
+					Name:                        tt.fields.Name,
+					Method:                      tt.fields.Method,
+					Route:                       tt.fields.Route,
+					Description:                 tt.fields.Description,
+					RequestBodyRequires:         tt.fields.RequestBodyRequires,
+					RequestBodyStruct:           tt.fields.RequestBodyStruct,
+					RequestBodyStructExample:    tt.fields.RequestBodyStructExample,
+					ResponseStruct:              tt.fields.ResponseStruct,
+					RequestParametersPath:       tt.fields.RequestParametersPath,
+					ResponsePositivePathExample: tt.fields.ResponsePositivePathExample,
+				}
+				assert.Equalf(t, tt.want, e.generateMethodDefinition(), "generateMethodDefinition()")
 			},
 		)
 	}

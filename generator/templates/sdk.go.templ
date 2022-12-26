@@ -10,13 +10,59 @@ import (
 	"time"
 )
 
+type errorResp struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// Error API error.
+type Error struct {
+	HTTPCode int
+	errorResp
+}
+
+func (e Error) Error() string {
+	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
+}
+
+func convertErrorResponse(res *http.Response) error {
+	var v errorResp
+	buf, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: "cannot read response bytes",
+			},
+		}
+	}
+	if err := json.Unmarshal(buf, &v); err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: err.Error(),
+			},
+		}
+	}
+	return Error{
+		HTTPCode:  res.StatusCode,
+		errorResp: v,
+	}
+}
+
+// Client defines the Neon SDK client.
+type Client interface {
+{{ range .EndpointsInterfaceMethods }}
+{{.}}
+{{ end }}
+}
+
 // HTTPClient client to handle http requests.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// Options defines the client options.
-type Options struct {
+type options struct {
 	// key API access key.
 	key string
 
@@ -24,9 +70,8 @@ type Options struct {
 	httpClient HTTPClient
 }
 
-// Client defines the SDK client.
-type Client struct {
-	options Options
+type client struct {
+	options options
 
 	baseURL string
 }
@@ -38,14 +83,14 @@ const (
 )
 
 // NewClient initialised the Client to communicate to the Neon Platform.
-func NewClient(apiKey string, optFns ...func(*Options)) (*Client, error) {
+func NewClient(apiKey string, optFns ...func(*options)) (Client, error) {
 	if apiKey == "" {
 		return nil, errors.New(
 			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
 		)
 	}
 
-	o := Options{
+	o := options{
 		key:        apiKey,
 		httpClient: nil,
 	}
@@ -56,21 +101,21 @@ func NewClient(apiKey string, optFns ...func(*Options)) (*Client, error) {
 
 	resolveHTTPClient(&o)
 
-	return &Client{
+	return &client{
 		baseURL: baseURL,
 		options: o,
 	}, nil
 }
 
-func resolveHTTPClient(o *Options) {
+func resolveHTTPClient(o *options) {
 	if o.httpClient == nil {
 		o.httpClient = &http.Client{Timeout: defaultTimeout}
 	}
 }
 
 // WithHTTPClient sets custom http Client.
-func WithHTTPClient(client HTTPClient) func(*Options) {
-	return func(o *Options) {
+func WithHTTPClient(client HTTPClient) func(*options) {
+	return func(o *options) {
 		o.httpClient = client
 	}
 }
@@ -83,7 +128,7 @@ func setHeaders(req *http.Request, token string) {
 	}
 }
 
-func (c *Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
+func (c *client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
 	var body io.Reader
 	var err error
 
@@ -130,42 +175,10 @@ func (c *Client) requestHandler(url string, t string, reqPayload interface{}, re
 	return nil
 }
 
-type errorResp struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
+{{ range .EndpointsImplementation }}
+{{.}}
+{{ end }}
 
-// Error API error.
-type Error struct {
-	HTTPCode int
-	errorResp
-}
-
-func (e Error) Error() string {
-	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
-}
-
-func convertErrorResponse(res *http.Response) error {
-	var v errorResp
-	buf, err := io.ReadAll(res.Body)
-	if err != nil {
-		return Error{
-			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: "cannot read response bytes",
-			},
-		}
-	}
-	if err := json.Unmarshal(buf, &v); err != nil {
-		return Error{
-			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: err.Error(),
-			},
-		}
-	}
-	return Error{
-		HTTPCode:  res.StatusCode,
-		errorResp: v,
-	}
-}
+{{ range .Types }}
+{{.}}
+{{ end }}

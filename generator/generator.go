@@ -45,6 +45,72 @@ func init() {
 	}
 }
 
+// Config generator configurations.
+type Config struct {
+	// OpenAPIReader defines the OpenAPI specs input.
+	OpenAPIReader io.Reader
+
+	// PathOutput defines the path to store generated files.
+	PathOutput string
+}
+
+// Run executes code generation using the OpenAPI spec.
+func Run(cfg Config) error {
+	specBytes, err := io.ReadAll(cfg.OpenAPIReader)
+	if err != nil {
+		return errors.New("cannot read OpenAPI spec: " + err.Error())
+	}
+
+	var spec openAPISpec
+	if err := spec.UnmarshalJSON(specBytes); err != nil {
+		return errors.New("cannot parse OpenAPI spec: " + err.Error())
+	}
+
+	tempInput := extractSpecs(spec)
+
+	var f io.WriteCloser
+
+	for fName, temp := range templateGen {
+		fName = strings.Replace(fName, ".templ", "", -1)
+		if f, err = os.Create(cfg.PathOutput + "/" + fName); err != nil {
+			return err
+		}
+
+		defer func() { _ = f.Close() }()
+
+		var buf bytes.Buffer
+		if err := temp.Execute(&buf, &tempInput); err != nil {
+			return err
+		}
+
+		o := buf.Bytes()
+		if strings.HasSuffix(fName, ".go") {
+			o, err = format.Source(buf.Bytes())
+			if err != nil {
+				return err
+			}
+		}
+
+		if _, err := f.Write(o); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type openAPISpec struct {
+	openapi3.T
+}
+
+type templateInput struct {
+	Info                      string
+	ServerURL                 string
+	EndpointsInterfaceMethods []string
+	EndpointsImplementation   []string
+	Types                     []string
+}
+
 type field struct {
 	k, v, format string
 	required     bool
@@ -96,8 +162,6 @@ func (v field) routeElement() string {
 		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
 	case "date-time", "date":
 		return r + ".Format(time.RFC3339)"
-	case "uuid":
-		return r + ".String()"
 	default:
 		switch v.v {
 		case "integer":
@@ -113,8 +177,6 @@ func (v field) argType() string {
 	switch v.format {
 	case "date-time", "date":
 		return "time.Time"
-	case "uuid":
-		return "uuid.UUID"
 	case "int64", "int32":
 		return v.format
 	case "double":
@@ -132,12 +194,11 @@ func (v field) argType() string {
 	}
 }
 
-func (v field) hasUUIDArg() bool {
-	return v.format == "uuid"
-}
-
-func (v field) hasTimeArg() bool {
-	return v.format == "date" || v.format == "date-time"
+func (v field) modelType() string {
+	if v.format == "uuid" {
+		return "string"
+	}
+	return v.argType()
 }
 
 type endpointImplementation struct {
@@ -171,34 +232,17 @@ func (e endpointImplementation) functionDescription() string {
 	return o
 }
 
-func (e endpointImplementation) generateFunctionCode() string {
-	o := "func (c *Client) " + e.Name
-	if e.Description != "" {
-		o = e.functionDescription() + "\n" + o
-	}
-
-	args := e.inputArgStr()
+func (e endpointImplementation) generateMethodImplementation() string {
+	o := "func (c *client) " + e.generateMethodHeader() + " {\n"
 
 	reqObj := "nil"
-	reqPointer := ""
-
 	if e.RequestBodyStruct != "" {
-		if args != "" {
-			args += ", "
-		}
-		if !e.RequestBodyRequires {
-			reqPointer = "*"
-		}
-		args += "cfg " + reqPointer + e.RequestBodyStruct
 		reqObj = "cfg"
 	}
 
-	o += "(" + args + ") "
 	if e.ResponseStruct == "" {
-		o += `error {
-	return c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, nil)
+		return o + `return c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, nil)
 }`
-		return o
 	}
 
 	returnStatementUnhappyPath := e.ResponseStruct + "{}"
@@ -206,15 +250,20 @@ func (e endpointImplementation) generateFunctionCode() string {
 		returnStatementUnhappyPath = "nil"
 	}
 
-	o += "(" + e.ResponseStruct + `, error) {
-	var v ` + e.ResponseStruct + `
+	return o + "	var v " + e.ResponseStruct + `
 	if err := c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
 		return ` + returnStatementUnhappyPath + `, err
 	}
 	return v, nil
 }`
+}
 
-	return o
+func (e endpointImplementation) generateMethodDefinition() string {
+	o := ""
+	if e.Description != "" {
+		o += e.functionDescription() + "\n"
+	}
+	return o + e.generateMethodHeader()
 }
 
 func (e endpointImplementation) route() string {
@@ -263,6 +312,28 @@ func (e endpointImplementation) inputArgStr() string {
 	return o
 }
 
+func (e endpointImplementation) generateMethodHeader() string {
+	args := e.inputArgStr()
+	reqPointer := ""
+
+	if e.RequestBodyStruct != "" {
+		if args != "" {
+			args += ", "
+		}
+		if !e.RequestBodyRequires {
+			reqPointer = "*"
+		}
+		args += "cfg " + reqPointer + e.RequestBodyStruct
+	}
+
+	resp := "error"
+	if e.ResponseStruct != "" {
+		resp = "(" + e.ResponseStruct + ", error)"
+	}
+
+	return e.Name + "(" + args + ") " + resp
+}
+
 func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 	if schema.Value != nil && schema.Value.Type == "array" {
 		t := modelNameFromRef(schema.Value.Items.Ref)
@@ -283,28 +354,6 @@ type model struct {
 	children map[string]struct{}
 }
 
-type templateInput struct {
-	Info                string
-	ServerURL           string
-	Endpoints           []string
-	EndpointsImportsStr string
-	Types               []string
-	TypesImportsStr     string
-}
-
-// Config generator configurations.
-type Config struct {
-	// OpenAPIReader defines the OpenAPI specs input.
-	OpenAPIReader io.Reader
-
-	// PathOutput defines the path to store generated files.
-	PathOutput string
-}
-
-type openAPISpec struct {
-	openapi3.T
-}
-
 func modelNameFromRef(s string) string {
 	o := strings.Split(s, "/")
 	return o[len(o)-1]
@@ -314,7 +363,7 @@ func implementationNameFromID(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports) (endpoints []endpointImplementation) {
+func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpointImplementation) {
 	httpCodes := []string{"200", "201"}
 	for route, p := range o.Paths {
 		for httpMethod, ops := range p.Operations() {
@@ -334,9 +383,6 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 					continue
 				}
 				e.RequestParametersPath = append(e.RequestParametersPath, p)
-				if dependencies != nil {
-					addDependencies(dependencies, p)
-				}
 			}
 
 			for _, httpCode := range httpCodes {
@@ -369,35 +415,6 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 	return
 }
 
-func addDependencies(dependencies *imports, f field) {
-	if f.hasTimeArg() {
-		dependencies.set("time")
-	}
-	if f.hasUUIDArg() {
-		dependencies.set("github.com/google/uuid")
-	}
-}
-
-type imports map[string]struct{}
-
-func (v imports) set(s string) {
-	v[s] = struct{}{}
-}
-
-func (v imports) generateImportsStr() string {
-	if len(v) == 0 {
-		return ""
-	}
-
-	o := "import (\n"
-	for k := range v {
-		o += `"` + k + `"` + "\n"
-	}
-	o += ")"
-
-	return o
-}
-
 func extractParameters(params openapi3.Parameters) []field {
 	o := make([]field, len(params))
 	for i, p := range params {
@@ -413,66 +430,20 @@ func extractParameters(params openapi3.Parameters) []field {
 	return o
 }
 
-// Run executes code generation using the OpenAPI spec.
-func Run(cfg Config) error {
-	specBytes, err := io.ReadAll(cfg.OpenAPIReader)
-	if err != nil {
-		return errors.New("cannot read OpenAPI spec: " + err.Error())
-	}
-
-	var spec openAPISpec
-	if err := spec.UnmarshalJSON(specBytes); err != nil {
-		return errors.New("cannot parse OpenAPI spec: " + err.Error())
-	}
-
-	tempInput := extractSpecs(spec)
-
-	var f io.WriteCloser
-
-	for fName, temp := range templateGen {
-		fName = strings.Replace(fName, ".templ", "", -1)
-		if f, err = os.Create(cfg.PathOutput + "/" + fName); err != nil {
-			return err
-		}
-
-		defer func() { _ = f.Close() }()
-
-		var buf bytes.Buffer
-		if err := temp.Execute(&buf, &tempInput); err != nil {
-			return err
-		}
-
-		o := buf.Bytes()
-		if strings.HasSuffix(fName, ".go") {
-			o, err = format.Source(buf.Bytes())
-			if err != nil {
-				return err
-			}
-		}
-
-		if _, err := f.Write(o); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func extractSpecs(spec openAPISpec) templateInput {
 	if len(spec.Servers) < 1 {
 		panic("no server spec found")
 	}
 
-	i := imports{}
-
-	endpoints := generateEndpointsImplementationMethods(spec, &i)
+	endpoints := generateEndpointsImplementationMethods(spec)
 	m := generateModels(spec)
 
 	endpointsStr := make([]string, len(endpoints))
-
+	interfaceMethodsStr := make([]string, len(endpoints))
 	models := models{}
 	for i, s := range endpoints {
-		endpointsStr[i] = s.generateFunctionCode()
+		endpointsStr[i] = s.generateMethodImplementation()
+		interfaceMethodsStr[i] = s.generateMethodDefinition()
 
 		if _, ok := m[s.ResponseStruct]; !ok {
 			continue
@@ -491,20 +462,12 @@ func extractSpecs(spec openAPISpec) templateInput {
 		}
 	}
 
-	modelsImports := imports{}
-	for _, m := range models {
-		for _, f := range m.fields {
-			addDependencies(&modelsImports, *f)
-		}
-	}
-
 	return templateInput{
-		Info:                spec.Info.Description,
-		ServerURL:           spec.Servers[0].URL,
-		Endpoints:           endpointsStr,
-		EndpointsImportsStr: i.generateImportsStr(),
-		Types:               models.generateCode(),
-		TypesImportsStr:     modelsImports.generateImportsStr(),
+		Info:                      spec.Info.Description,
+		ServerURL:                 spec.Servers[0].URL,
+		EndpointsInterfaceMethods: interfaceMethodsStr,
+		EndpointsImplementation:   endpointsStr,
+		Types:                     models.generateCode(),
 	}
 }
 
@@ -552,7 +515,7 @@ func (v models) generateCode() []string {
 				if !field.required {
 					omitEmpty = ",omitempty"
 				}
-				tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+				tmp += objNameGoConventionExport(fieldName) + " " + field.modelType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
 			}
 		}
 		o[i] = tmp + "}"
