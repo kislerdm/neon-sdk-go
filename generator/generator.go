@@ -258,8 +258,8 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 }
 
 type model struct {
-	Name   string
-	Fields []field
+	fields   *[]field
+	children *[]string
 }
 
 type templateInput struct {
@@ -267,8 +267,8 @@ type templateInput struct {
 	ServerURL           string
 	Endpoints           []string
 	EndpointsImportsStr string
-	Models              []model
-	ModelsImportsStr    string
+	Types               []string
+	TypesImportsStr     string
 }
 
 // Config generator configurations.
@@ -442,9 +442,21 @@ func extractSpecs(spec openAPISpec) templateInput {
 	modelsImports := imports{}
 
 	endpoints := generateEndpointsImplementationMethods(spec, &i)
+	m := generateModels(spec, &modelsImports)
+
 	endpointsStr := make([]string, len(endpoints))
+	models := models{}
+
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateFunctionCode()
+
+		if _, ok := m[s.ResponseStruct]; !ok {
+			continue
+		}
+		models[s.ResponseStruct] = m[s.ResponseStruct]
+		for _, c := range *m[s.ResponseStruct].children {
+			models[c] = m[c]
+		}
 	}
 
 	return templateInput{
@@ -452,11 +464,48 @@ func extractSpecs(spec openAPISpec) templateInput {
 		ServerURL:           spec.Servers[0].URL,
 		Endpoints:           endpointsStr,
 		EndpointsImportsStr: i.generateImportsStr(),
-		//Models:              generateModels(spec, &modelsImports),
-		ModelsImportsStr: modelsImports.generateImportsStr(),
+		//Types:               models.generateImportsStr(),
+		TypesImportsStr: modelsImports.generateImportsStr(),
 	}
 }
 
-func generateModels(spec openAPISpec, i *imports) []model {
+type models map[string]model
+
+func (v models) add(k string, m model) {
+	if _, ok := v[k]; !ok {
+		v[k] = m
+	}
+}
+
+func (v models) addChild(parent string, child string) {
+	*v[parent].children = append(*v[parent].children, child)
+}
+
+func (v models) generateImportsStr() []string {
 	panic("todo")
+}
+
+func generateModels(spec openAPISpec, i *imports) models {
+	m := models{}
+	for k, v := range spec.Components.Responses {
+		s := v.Value.Content["application/json"].Schema
+		m.add(
+			k, model{
+				fields:   &[]field{},
+				children: &[]string{},
+			},
+		)
+
+		if s.Ref != "" {
+			m.addChild(k, modelNameFromRef(s.Ref))
+		}
+
+		if v := s.Value; v != nil {
+			for _, c := range v.AllOf {
+				m.addChild(k, modelNameFromRef(c.Ref))
+			}
+		}
+
+	}
+	return nil
 }

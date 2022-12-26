@@ -51,7 +51,7 @@ func TestRun(t *testing.T) {
 				"client.go":      {},
 				"client_test.go": {},
 				"endpoints.go":   {},
-				"models.go":      {},
+				"types.go":       {},
 			},
 		},
 	}
@@ -89,13 +89,13 @@ func TestRun(t *testing.T) {
 				}
 			},
 		)
-		//t.Cleanup(
-		//	func() {
-		//		if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-		//			panic(err)
-		//		}
-		//	},
-		//)
+		t.Cleanup(
+			func() {
+				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+					panic(err)
+				}
+			},
+		)
 	}
 }
 
@@ -238,6 +238,275 @@ func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error
 	}
 }
 
+var inputSpec = openAPISpec{
+	T: openapi3.T{
+		OpenAPI: "3.0.3",
+		Components: openapi3.Components{
+			Responses: openapi3.Responses{
+				"FooBarResponse": {
+					Value: &openapi3.Response{
+						Content: openapi3.Content{
+							"application/json": &openapi3.MediaType{
+								Schema: &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										AllOf: openapi3.SchemaRefs{
+											{Ref: "#/components/responses/FooResponse"},
+											{Ref: "#/components/responses/BarResponse"},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"FooResponse": {
+					Value: &openapi3.Response{
+						Content: openapi3.Content{
+							"application/json": &openapi3.MediaType{
+								Schema: &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Type:     openapi3.TypeObject,
+										Required: []string{"foo"},
+										Properties: openapi3.Schemas{
+											"foo": &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Foo",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"BarResponse": {
+					Value: &openapi3.Response{
+						Content: openapi3.Content{
+							"application/json": &openapi3.MediaType{
+								Schema: &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Type:     openapi3.TypeObject,
+										Required: []string{"bar"},
+										Properties: openapi3.Schemas{
+											"bar": &openapi3.SchemaRef{
+												Ref: "#/components/schemas/Bar",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Schemas: openapi3.Schemas{
+				"Foo": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"foo_id", "bar"},
+						Properties: openapi3.Schemas{
+							"foo_id": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type:      openapi3.TypeString,
+									MinLength: 2,
+								},
+							},
+							"bar": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type:   openapi3.TypeInteger,
+									Format: "int64",
+								},
+							},
+						},
+					},
+				},
+				"Bar": &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type:     openapi3.TypeObject,
+						Required: []string{"type"},
+						Properties: openapi3.Schemas{
+							"type": &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: openapi3.TypeString,
+									Enum: []interface{}{"init", "ready"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Info: &openapi3.Info{
+			Title:       "foo",
+			Description: "bar",
+			Version:     "v2",
+		},
+		Paths: openapi3.Paths{
+			"/foo/{bar}/{qux_id}": {
+				Summary:     "/foo endpoint",
+				Description: "/foo endpoint",
+				Connect:     nil,
+				Delete:      nil,
+				Get: &openapi3.Operation{
+					Summary:     "get /foo",
+					Description: "get /foo",
+					OperationID: "fooEndpoint",
+					Parameters: openapi3.Parameters{
+						{
+							Value: &openapi3.Parameter{
+								Name:            "limit",
+								In:              openapi3.ParameterInQuery,
+								Description:     "query limit",
+								AllowEmptyValue: false,
+								Required:        false,
+								Schema: &openapi3.SchemaRef{
+									Ref: "",
+									Value: &openapi3.Schema{
+										Type: "integer",
+									},
+								},
+							},
+						},
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Ref: "",
+							Value: &openapi3.Response{
+								Content: openapi3.Content{
+									"application/json": &openapi3.MediaType{
+										Schema: &openapi3.SchemaRef{
+											Ref: "",
+											Value: &openapi3.Schema{
+												Type: "array",
+												Items: &openapi3.SchemaRef{
+													Ref: "#/components/schemas/Foo",
+												},
+											},
+										},
+										Example: []map[string]interface{}{
+											{
+												"foo_id": "bar",
+												"bar":    1,
+											},
+											{
+												"foo_id": "aff",
+												"bar":    2,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					Deprecated: false,
+				},
+				Parameters: openapi3.Parameters{
+					{
+						Ref: "",
+						Value: &openapi3.Parameter{
+							Name:            "bar",
+							In:              "path",
+							Description:     "bar parameter",
+							AllowEmptyValue: false,
+							Required:        true,
+							Schema: &openapi3.SchemaRef{
+								Ref: "",
+								Value: &openapi3.Schema{
+									Type: "string",
+								},
+							},
+						},
+					},
+					{
+						Ref: "",
+						Value: &openapi3.Parameter{
+							Name:            "qux_id",
+							In:              "path",
+							Description:     "qux parameter",
+							AllowEmptyValue: false,
+							Required:        true,
+							Schema: &openapi3.SchemaRef{
+								Ref: "",
+								Value: &openapi3.Schema{
+									Type:   "integer",
+									Format: "int64",
+								},
+							},
+						},
+					},
+				},
+			},
+			"/foo/bar/{qux_id}/{date_submit}": {
+				Summary:     "/foo/bar endpoint",
+				Description: "/foo/bar endpoint",
+				Connect:     nil,
+				Delete:      nil,
+				Get: &openapi3.Operation{
+					Summary:     "get /foo/bar",
+					Description: "get /foo/bar",
+					OperationID: "fooBarEndpoint",
+					Parameters: openapi3.Parameters{
+						{
+							Value: &openapi3.Parameter{
+								Name:            "date_submit",
+								In:              openapi3.ParameterInPath,
+								Description:     "date parameter",
+								AllowEmptyValue: false,
+								Required:        true,
+								Schema: &openapi3.SchemaRef{
+									Ref: "",
+									Value: &openapi3.Schema{
+										Type:   "string",
+										Format: "date-time",
+									},
+								},
+							},
+						},
+					},
+					Responses: openapi3.Responses{
+						"200": &openapi3.ResponseRef{
+							Value: &openapi3.Response{
+								Content: openapi3.Content{
+									"application/json": &openapi3.MediaType{
+										Schema: &openapi3.SchemaRef{
+											Ref: "#/components/responses/FooBarResponse",
+										},
+										Example: map[string]interface{}{
+											"foo": map[string]interface{}{
+												"foo_id": "bar",
+												"bar":    1,
+											},
+											"bar": "init",
+										},
+									},
+								},
+							},
+						},
+					},
+					Deprecated: false,
+				},
+				Parameters: openapi3.Parameters{
+					{
+						Value: &openapi3.Parameter{
+							Name:            "qux_id",
+							In:              openapi3.ParameterInPath,
+							Description:     "qux parameter",
+							AllowEmptyValue: false,
+							Required:        true,
+							Schema: &openapi3.SchemaRef{
+								Ref: "",
+								Value: &openapi3.Schema{
+									Type:   "integer",
+									Format: "int64",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
 func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	type args struct {
 		o openAPISpec
@@ -250,171 +519,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 		{
 			name: "happy path",
 			args: args{
-				o: openAPISpec{
-					T: openapi3.T{
-						OpenAPI:    "3.0.3",
-						Components: openapi3.Components{},
-						Info: &openapi3.Info{
-							Title:       "foo",
-							Description: "bar",
-							Version:     "v2",
-						},
-						Paths: openapi3.Paths{
-							"/foo/{bar}/{qux_id}": {
-								Summary:     "/foo endpoint",
-								Description: "/foo endpoint",
-								Connect:     nil,
-								Delete:      nil,
-								Get: &openapi3.Operation{
-									Summary:     "get /foo",
-									Description: "get /foo",
-									OperationID: "fooEndpoint",
-									Responses: openapi3.Responses{
-										"200": &openapi3.ResponseRef{
-											Ref: "",
-											Value: &openapi3.Response{
-												Content: openapi3.Content{
-													"application/json": &openapi3.MediaType{
-														Schema: &openapi3.SchemaRef{
-															Ref: "",
-															Value: &openapi3.Schema{
-																Type: "array",
-																Example: []map[string]interface{}{
-																	{
-																		"foo_id": "bar",
-																		"bar":    1,
-																	},
-																	{
-																		"foo_id": "aff",
-																		"bar":    2,
-																	},
-																},
-																Items: &openapi3.SchemaRef{
-																	Ref: "#/components/schemas/FooResponse",
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-									Deprecated: false,
-								},
-								Parameters: openapi3.Parameters{
-									{
-										Ref: "",
-										Value: &openapi3.Parameter{
-											Name:            "bar",
-											In:              "path",
-											Description:     "bar parameter",
-											AllowEmptyValue: false,
-											Required:        true,
-											Schema: &openapi3.SchemaRef{
-												Ref: "",
-												Value: &openapi3.Schema{
-													Type: "string",
-												},
-											},
-										},
-									},
-									{
-										Ref: "",
-										Value: &openapi3.Parameter{
-											Name:            "qux_id",
-											In:              "path",
-											Description:     "qux parameter",
-											AllowEmptyValue: false,
-											Required:        true,
-											Schema: &openapi3.SchemaRef{
-												Ref: "",
-												Value: &openapi3.Schema{
-													Type:   "integer",
-													Format: "int64",
-												},
-											},
-										},
-									},
-								},
-							},
-							"/foo/bar/{qux_id}/{date_submit}": {
-								Summary:     "/foo/bar endpoint",
-								Description: "/foo/bar endpoint",
-								Connect:     nil,
-								Delete:      nil,
-								Get: &openapi3.Operation{
-									Summary:     "get /foo/bar",
-									Description: "get /foo/bar",
-									OperationID: "fooBarEndpoint",
-									Responses: openapi3.Responses{
-										"200": &openapi3.ResponseRef{
-											Ref: "",
-											Value: &openapi3.Response{
-												Content: openapi3.Content{
-													"application/json": &openapi3.MediaType{
-														Schema: &openapi3.SchemaRef{
-															Ref: "#/components/schemas/FooBarResponse",
-														},
-													},
-												},
-											},
-										},
-									},
-									Deprecated: false,
-								},
-								Parameters: openapi3.Parameters{
-									{
-										Value: &openapi3.Parameter{
-											Name:            "qux_id",
-											In:              openapi3.ParameterInPath,
-											Description:     "qux parameter",
-											AllowEmptyValue: false,
-											Required:        true,
-											Schema: &openapi3.SchemaRef{
-												Ref: "",
-												Value: &openapi3.Schema{
-													Type:   "integer",
-													Format: "int64",
-												},
-											},
-										},
-									},
-									{
-										Value: &openapi3.Parameter{
-											Name:            "date_submit",
-											In:              openapi3.ParameterInPath,
-											Description:     "date parameter",
-											AllowEmptyValue: false,
-											Required:        true,
-											Schema: &openapi3.SchemaRef{
-												Ref: "",
-												Value: &openapi3.Schema{
-													Type:   "string",
-													Format: "date-time",
-												},
-											},
-										},
-									},
-									{
-										Value: &openapi3.Parameter{
-											Name:            "limit",
-											In:              openapi3.ParameterInQuery,
-											Description:     "query limit",
-											AllowEmptyValue: false,
-											Required:        false,
-											Schema: &openapi3.SchemaRef{
-												Ref: "",
-												Value: &openapi3.Schema{
-													Type: "integer",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				o: inputSpec,
 			},
 			wantEndpoints: []endpointImplementation{
 				{
@@ -423,7 +528,17 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					Route:             "/foo/{bar}/{qux_id}",
 					Description:       "get /foo",
 					RequestBodyStruct: "",
-					ResponseStruct:    "[]FooResponse",
+					ResponseStruct:    "[]Foo",
+					ResponsePositivePathExample: []map[string]interface{}{
+						{
+							"foo_id": "bar",
+							"bar":    1,
+						},
+						{
+							"foo_id": "aff",
+							"bar":    2,
+						},
+					},
 					RequestParametersPath: []field{
 						{
 							k:        "bar",
@@ -448,6 +563,13 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					Description:       "get /foo/bar",
 					RequestBodyStruct: "",
 					ResponseStruct:    "FooBarResponse",
+					ResponsePositivePathExample: map[string]interface{}{
+						"foo": map[string]interface{}{
+							"foo_id": "bar",
+							"bar":    1,
+						},
+						"bar": "init",
+					},
 					RequestParametersPath: []field{
 						{
 							k:        "qux_id",
@@ -598,6 +720,35 @@ func Test_parameterPath_routeElement(t *testing.T) {
 				}
 				if got := v.routeElement(); got != tt.want {
 					t.Errorf("routeElement() = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_generateModels(t *testing.T) {
+	type args struct {
+		spec openAPISpec
+		i    *imports
+	}
+	tests := []struct {
+		name string
+		args args
+		want models
+	}{
+		{
+			name: "all fields defined",
+			args: args{
+				spec: inputSpec,
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if got := generateModels(tt.args.spec, tt.args.i); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("generateModels() = %v, want %v", got, tt.want)
 				}
 			},
 		)
