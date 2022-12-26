@@ -737,11 +737,61 @@ func Test_generateModels(t *testing.T) {
 		want models
 	}{
 		{
-			name: "all fields defined",
+			name: "five models: three responses, two schemas",
 			args: args{
 				spec: inputSpec,
 			},
-			want: nil,
+			want: models{
+				"FooBarResponse": model{
+					children: map[string]struct{}{"FooResponse": {}, "BarResponse": {}},
+				},
+				"FooResponse": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "Foo",
+							format:   "",
+							required: true,
+						},
+					},
+				},
+				"BarResponse": model{
+					fields: map[string]*field{
+						"bar": {
+							k:        "bar",
+							v:        "Bar",
+							format:   "",
+							required: true,
+						},
+					},
+				},
+				"Foo": model{
+					fields: map[string]*field{
+						"foo_id": {
+							k:        "foo_id",
+							v:        openapi3.TypeString,
+							format:   "",
+							required: true,
+						},
+						"bar": {
+							k:        "bar",
+							v:        openapi3.TypeInteger,
+							format:   "int64",
+							required: true,
+						},
+					},
+				},
+				"Bar": model{
+					fields: map[string]*field{
+						"type": {
+							k:        "type",
+							v:        "string",
+							format:   "",
+							required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {

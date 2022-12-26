@@ -52,13 +52,21 @@ type field struct {
 	isInQuery    bool
 }
 
+func (v *field) setRequired(b bool) {
+	v.required = b
+}
+
 func (v field) canonicalName() string {
+	return objNameGoConvention(v.k)
+}
+
+func objNameGoConvention(s string) string {
 	o := ""
-	for i, s := range strings.Split(v.k, "_") {
+	for i, el := range strings.Split(s, "_") {
 		if i > 0 {
-			s = strings.ToUpper(s[:1]) + s[1:]
+			el = strings.ToUpper(el[:1]) + el[1:]
 		}
-		o += s
+		o += el
 	}
 
 	switch o[len(o)-2:] {
@@ -258,8 +266,8 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 }
 
 type model struct {
-	fields   *[]field
-	children *[]string
+	fields   map[string]*field
+	children map[string]struct{}
 }
 
 type templateInput struct {
@@ -454,8 +462,8 @@ func extractSpecs(spec openAPISpec) templateInput {
 			continue
 		}
 		models[s.ResponseStruct] = m[s.ResponseStruct]
-		for _, c := range *m[s.ResponseStruct].children {
-			models[c] = m[c]
+		for c := range m[s.ResponseStruct].children {
+			models.add(c, m[c])
 		}
 	}
 
@@ -477,8 +485,24 @@ func (v models) add(k string, m model) {
 	}
 }
 
-func (v models) addChild(parent string, child string) {
-	*v[parent].children = append(*v[parent].children, child)
+func (v models) addChild(m string, child string) {
+	if v[m].children == nil {
+		v[m] = model{
+			fields:   v[m].fields,
+			children: map[string]struct{}{},
+		}
+	}
+	v[m].children[modelNameFromRef(child)] = struct{}{}
+}
+
+func (v models) addField(m string, f field) {
+	if v[m].fields == nil {
+		v[m] = model{
+			fields:   map[string]*field{},
+			children: v[m].children,
+		}
+	}
+	v[m].fields[f.k] = &f
 }
 
 func (v models) generateImportsStr() []string {
@@ -487,25 +511,74 @@ func (v models) generateImportsStr() []string {
 
 func generateModels(spec openAPISpec, i *imports) models {
 	m := models{}
-	for k, v := range spec.Components.Responses {
-		s := v.Value.Content["application/json"].Schema
-		m.add(
-			k, model{
-				fields:   &[]field{},
-				children: &[]string{},
-			},
-		)
 
-		if s.Ref != "" {
-			m.addChild(k, modelNameFromRef(s.Ref))
+	for k, v := range spec.Components.Responses {
+		m.add(k, model{})
+		modelsFromSchema(m, k, v.Value.Content["application/json"].Schema)
+	}
+
+	for k, v := range spec.Components.Schemas {
+		m.add(k, model{})
+		modelsFromSchema(m, k, v)
+	}
+
+	return m
+}
+
+func modelsFromSchema(m models, k string, s *openapi3.SchemaRef) {
+	if s.Ref != "" {
+		m.addChild(k, s.Ref)
+	}
+
+	if v := s.Value; v != nil {
+		addFromValue(m, k, v)
+	}
+}
+
+func addFromValue(m models, k string, v *openapi3.Schema) {
+	for _, c := range v.AllOf {
+		m.addChild(k, c.Ref)
+	}
+
+	modelAddPropertiesFields(m, k, v.Properties)
+
+	for _, s := range v.Required {
+		// in case openAPI json does not define required fields
+		// according to the props. definition
+		if _, ok := m[k].fields[s]; ok {
+			m[k].fields[s].setRequired(true)
+		}
+	}
+}
+
+func modelAddPropertiesFields(m models, k string, properties openapi3.Schemas) {
+	for propertyName, property := range properties {
+		field := field{
+			k:        propertyName,
+			v:        extractStructFromSchemaRef(property),
+			format:   "",
+			required: false,
 		}
 
-		if v := s.Value; v != nil {
-			for _, c := range v.AllOf {
-				m.addChild(k, modelNameFromRef(c.Ref))
+		if field.v == "" {
+			switch property.Value.Type {
+			case openapi3.TypeObject:
+				field.v = k + objNameGoConvention(propertyName)
+				m.addChild(k, field.v)
+				m.add(field.v, model{})
+				modelAddPropertiesFields(m, field.v, property.Value.Properties)
+			case openapi3.TypeArray:
+				m.addChild(k, modelNameFromRef(property.Value.Items.Ref))
+			default:
+				field.v = property.Value.Type
+				field.format = property.Value.Format
+			}
+		} else {
+			if property.Value != nil {
+				field.format = property.Value.Format
 			}
 		}
 
+		m.addField(k, field)
 	}
-	return nil
 }
