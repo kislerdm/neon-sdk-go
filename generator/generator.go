@@ -334,12 +334,7 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 				}
 				e.RequestParametersPath = append(e.RequestParametersPath, p)
 				if dependencies != nil {
-					if p.hasTimeArg() {
-						dependencies.set("time")
-					}
-					if p.hasUUIDArg() {
-						dependencies.set("github.com/google/uuid")
-					}
+					addDependencies(dependencies, p)
 				}
 			}
 
@@ -371,6 +366,15 @@ func generateEndpointsImplementationMethods(o openAPISpec, dependencies *imports
 		}
 	}
 	return
+}
+
+func addDependencies(dependencies *imports, f field) {
+	if f.hasTimeArg() {
+		dependencies.set("time")
+	}
+	if f.hasUUIDArg() {
+		dependencies.set("github.com/google/uuid")
+	}
 }
 
 type imports map[string]struct{}
@@ -459,14 +463,13 @@ func extractSpecs(spec openAPISpec) templateInput {
 	}
 
 	i := imports{}
-	modelsImports := imports{}
 
 	endpoints := generateEndpointsImplementationMethods(spec, &i)
-	m := generateModels(spec, &modelsImports)
+	m := generateModels(spec)
 
 	endpointsStr := make([]string, len(endpoints))
-	models := models{}
 
+	models := models{}
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateFunctionCode()
 
@@ -477,6 +480,21 @@ func extractSpecs(spec openAPISpec) templateInput {
 		for c := range m[s.ResponseStruct].children {
 			models.add(c, m[c])
 		}
+
+		if _, ok := m[s.RequestBodyStruct]; !ok {
+			continue
+		}
+		models[s.RequestBodyStruct] = m[s.RequestBodyStruct]
+		for c := range m[s.RequestBodyStruct].children {
+			models.add(c, m[c])
+		}
+	}
+
+	modelsImports := imports{}
+	for _, m := range models {
+		for _, f := range m.fields {
+			addDependencies(&modelsImports, *f)
+		}
 	}
 
 	return templateInput{
@@ -484,8 +502,8 @@ func extractSpecs(spec openAPISpec) templateInput {
 		ServerURL:           spec.Servers[0].URL,
 		Endpoints:           endpointsStr,
 		EndpointsImportsStr: i.generateImportsStr(),
-		//Types:               models.generateImportsStr(),
-		TypesImportsStr: modelsImports.generateImportsStr(),
+		Types:               models.generateCode(),
+		TypesImportsStr:     modelsImports.generateImportsStr(),
 	}
 }
 
@@ -517,11 +535,32 @@ func (v models) addField(m string, f field) {
 	v[m].fields[f.k] = &f
 }
 
-func (v models) generateImportsStr() []string {
-	panic("todo")
+func (v models) generateCode() []string {
+	o := make([]string, len(v))
+	var i uint8
+	for k, v := range v {
+		tmp := "type " + k + " struct {\n"
+
+		if len(v.fields) == 0 {
+			for k := range v.children {
+				tmp += k + "\n"
+			}
+		} else {
+			for fieldName, field := range v.fields {
+				omitEmpty := ""
+				if !field.required {
+					omitEmpty = ",omitempty"
+				}
+				tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+			}
+		}
+		o[i] = tmp + "}"
+		i++
+	}
+	return o
 }
 
-func generateModels(spec openAPISpec, i *imports) models {
+func generateModels(spec openAPISpec) models {
 	m := models{}
 
 	for k, v := range spec.Components.Responses {

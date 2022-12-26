@@ -767,7 +767,6 @@ func Test_parameterPath_routeElement(t *testing.T) {
 func Test_generateModels(t *testing.T) {
 	type args struct {
 		spec openAPISpec
-		i    *imports
 	}
 	tests := []struct {
 		name string
@@ -877,7 +876,135 @@ func Test_generateModels(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equal(t, tt.want, generateModels(tt.args.spec, tt.args.i))
+				assert.Equal(t, tt.want, generateModels(tt.args.spec))
+			},
+		)
+	}
+}
+
+func Test_models_generateCode(t *testing.T) {
+	tests := []struct {
+		name string
+		v    models
+		want []string
+	}{
+		{
+			name: "one type, one field: ref to schemas only",
+			v: models{
+				"FooBarResponse": model{
+					children: map[string]struct{}{"FooResponse": {}, "BarResponse": {}},
+				},
+			},
+			want: []string{
+				`type FooBarResponse struct {
+FooResponse
+BarResponse
+}`,
+			},
+		},
+		{
+			name: "one type, one field: ref type",
+			v: models{
+				"FooResponse": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "Foo",
+							format:   "",
+							required: true,
+						},
+					},
+					children: map[string]struct{}{"Foo": {}},
+				},
+			},
+			want: []string{
+				"type FooResponse struct {\nFoo Foo `json:\"foo\"`\n}",
+			},
+		},
+		{
+			name: "one type, two fields: type required import and ref type",
+			v: models{
+				"QuxFooBar": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "[]time.Time",
+							format:   "",
+							required: true,
+						},
+						"bar": {
+							k: "bar",
+							v: "Bar",
+						},
+					},
+					children: map[string]struct{}{"Bar": {}},
+				},
+			},
+			want: []string{
+				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
+			},
+		},
+		{
+			name: "one type, two fields: type required import and ref type",
+			v: models{
+				"QuxFooBar": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "[]time.Time",
+							format:   "",
+							required: true,
+						},
+						"bar": {
+							k: "bar",
+							v: "Bar",
+						},
+					},
+					children: map[string]struct{}{"Bar": {}},
+				},
+			},
+			want: []string{
+				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
+			},
+		},
+		{
+			name: "two types, two fields: type required import and ref type",
+			v: models{
+				"QuxFooBar": model{
+					fields: map[string]*field{
+						"foo": {
+							k:        "foo",
+							v:        "[]time.Time",
+							format:   "",
+							required: true,
+						},
+						"bar": {
+							k: "bar",
+							v: "Bar",
+						},
+					},
+					children: map[string]struct{}{"Bar": {}},
+				},
+				"Bar": model{
+					fields: map[string]*field{
+						"type": {
+							k:        "type",
+							v:        "string",
+							required: true,
+						},
+					},
+				},
+			},
+			want: []string{
+				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
+				"type Bar struct {\nType string `json:\"type\"`\n}",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				assert.Equalf(t, tt.want, tt.v.generateCode(), "generateCode()")
 			},
 		)
 	}
