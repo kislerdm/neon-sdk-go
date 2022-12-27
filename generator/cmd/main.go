@@ -19,9 +19,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	f, err := os.Open(inputPath)
+	if err != nil {
+		log.Fatalln("cannot open input file " + inputPath)
+	}
+
 	if err := generator.Run(
 		generator.Config{
-			OpenAPIReader: nil,
+			OpenAPIReader: f,
 			PathOutput:    outputDir,
 		},
 	); err != nil {

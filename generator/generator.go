@@ -433,26 +433,26 @@ func extractSpecs(spec openAPISpec) templateInput {
 
 	endpointsStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
-	models := models{}
+	models := m
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
 
-		if _, ok := m[s.ResponseStruct]; !ok {
-			continue
-		}
-		models[s.ResponseStruct] = m[s.ResponseStruct]
-		for c := range m[s.ResponseStruct].children {
-			models.add(c, m[c])
-		}
-
-		if _, ok := m[s.RequestBodyStruct]; !ok {
-			continue
-		}
-		models[s.RequestBodyStruct] = m[s.RequestBodyStruct]
-		for c := range m[s.RequestBodyStruct].children {
-			models.add(c, m[c])
-		}
+		//if _, ok := m[s.ResponseStruct]; !ok {
+		//	continue
+		//}
+		//models[s.ResponseStruct] = m[s.ResponseStruct]
+		//for c := range m[s.ResponseStruct].children {
+		//	models.add(c, m[c])
+		//}
+		//
+		//if _, ok := m[s.RequestBodyStruct]; !ok {
+		//	continue
+		//}
+		//models[s.RequestBodyStruct] = m[s.RequestBodyStruct]
+		//for c := range m[s.RequestBodyStruct].children {
+		//	models.add(c, m[c])
+		//}
 	}
 
 	return templateInput{
