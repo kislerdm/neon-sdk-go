@@ -125,6 +125,7 @@ type templateInput struct {
 
 type field struct {
 	k, v, format string
+	description  string
 	required     bool
 	isInPath     bool
 	isInQuery    bool
@@ -134,8 +135,19 @@ func (v *field) setRequired(b bool) {
 	v.required = b
 }
 
+func (v *field) setDescription(s string) {
+	v.description = s
+}
+
 func (v field) canonicalName() string {
 	return objNameGoConvention(v.k)
+}
+
+func (v field) docString() string {
+	if v.description == "" {
+		return ""
+	}
+	return docString(v.k, v.description)
 }
 
 func objNameGoConvention(s string) string {
@@ -433,11 +445,15 @@ func (m *model) docString() string {
 	if m.description == "" {
 		return ""
 	}
+	return docString(m.name, m.description)
+}
+
+func docString(name string, description string) string {
 	o := ""
-	for i, s := range strings.Split(strings.TrimRight(m.description, "\n"), "\n") {
+	for i, s := range strings.Split(strings.TrimRight(description, "\n"), "\n") {
 		o += "// "
 		if i == 0 {
-			o += m.name + " "
+			o += name + " "
 		}
 		o += s + "\n"
 	}

@@ -167,7 +167,7 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Description:           "Retrieves information about the specified project",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ProjectsResponse",
-				RequestParametersPath: []field{{"project_id", "string", "", true, true, false}},
+				RequestParametersPath: []field{{"project_id", "string", "", "", true, true, false}},
 			},
 			want: `func (c *client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
@@ -187,8 +187,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				RequestBodyStruct: "",
 				ResponseStruct:    "DatabasesResponse",
 				RequestParametersPath: []field{
-					{"project_id", "string", "", true, true, false},
-					{"branch_id", "string", "", true, true, false},
+					{"project_id", "string", "", "", true, true, false},
+					{"branch_id", "string", "", "", true, true, false},
 				},
 			},
 			want: `func (c *client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
@@ -208,7 +208,7 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Description:           "Revokes the specified API key",
 				RequestBodyStruct:     "",
 				ResponseStruct:        "ApiKeyRevokeResponse",
-				RequestParametersPath: []field{{"key_id", "integer", "int64", true, true, false}},
+				RequestParametersPath: []field{{"key_id", "integer", "int64", "", true, true, false}},
 			},
 			want: `func (c *client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
