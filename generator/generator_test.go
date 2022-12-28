@@ -1007,6 +1007,7 @@ func Test_models_generateCode(t *testing.T) {
 			name: "one type, one field: ref to schemas only",
 			v: models{
 				"FooBarResponse": model{
+					name:     "FooBarResponse",
 					children: map[string]struct{}{"FooResponse": {}, "BarResponse": {}},
 				},
 			},
@@ -1021,6 +1022,7 @@ BarResponse
 			name: "one type, one field: ref type",
 			v: models{
 				"FooResponse": model{
+					name: "FooResponse",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -1040,6 +1042,7 @@ BarResponse
 			name: "one type, two fields: type required import and ref type",
 			v: models{
 				"QuxFooBar": model{
+					name: "QuxFooBar",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -1063,12 +1066,29 @@ BarResponse
 			name: "primitive type",
 			v: models{
 				"EndpointPoolerMode": model{
+					name: "EndpointPoolerMode",
 					primitive: fieldType{
 						name: "string",
 					},
 				},
 			},
 			want: []string{"type EndpointPoolerMode string"},
+		},
+		{
+			name: "primitive type with docstring",
+			v: models{
+				"Foo": model{
+					name:        "Foo",
+					description: "foo\nbar\nqux\n",
+					primitive: fieldType{
+						name: "string",
+					},
+				},
+			},
+			want: []string{`// Foo foo
+// bar
+// qux
+type Foo string`},
 		},
 	}
 	for _, tt := range tests {

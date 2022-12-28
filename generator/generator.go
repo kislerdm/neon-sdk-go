@@ -403,12 +403,12 @@ func (m *model) setDescription(s string) {
 func (m model) generateCode() string {
 	k := m.name
 	if m.primitive.name != "" {
-		return "type " + k + " " + m.primitive.argType()
+		return m.docString() + "type " + k + " " + m.primitive.argType()
 	}
 
-	tmp := "type " + k + " struct {"
+	tmp := m.docString() + "type " + k + " struct {"
 
-	if len(m.fields) > 0 || len(m.fields) > 0 {
+	if len(m.fields) > 0 || len(m.children) > 0 {
 		tmp += "\n"
 	}
 
@@ -427,6 +427,21 @@ func (m model) generateCode() string {
 	}
 
 	return tmp + "}"
+}
+
+func (m *model) docString() string {
+	if m.description == "" {
+		return ""
+	}
+	o := ""
+	for i, s := range strings.Split(strings.TrimRight(m.description, "\n"), "\n") {
+		o += "// "
+		if i == 0 {
+			o += m.name + " "
+		}
+		o += s + "\n"
+	}
+	return o
 }
 
 func modelNameFromRef(s string) string {
@@ -559,26 +574,7 @@ func (v models) addField(m string, f field) {
 func (v models) generateCode() []string {
 	o := make([]string, len(v))
 	for i, k := range v.orderedNames() {
-		vv := v[k]
-		if vv.primitive.name != "" {
-			o[i] = "type " + k + " " + vv.primitive.argType()
-		} else {
-			tmp := "type " + k + " struct {\n"
-			if len(vv.fields) == 0 {
-				for k := range vv.children {
-					tmp += k + "\n"
-				}
-			} else {
-				for fieldName, field := range vv.fields {
-					omitEmpty := ""
-					if !field.required {
-						omitEmpty = ",omitempty"
-					}
-					tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
-				}
-			}
-			o[i] = tmp + "}"
-		}
+		o[i] = v[k].generateCode()
 	}
 	return o
 }
