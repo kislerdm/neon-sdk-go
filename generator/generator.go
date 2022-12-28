@@ -342,9 +342,18 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 	return modelNameFromRef(schema.Ref)
 }
 
+type fieldType struct {
+	name, format string
+}
+
 type model struct {
-	fields   map[string]*field
-	children map[string]struct{}
+	fields    map[string]*field
+	children  map[string]struct{}
+	primitive fieldType
+}
+
+func (m *model) setPrimitiveType(t fieldType) {
+	m.primitive = t
 }
 
 func modelNameFromRef(s string) string {
@@ -546,6 +555,16 @@ func modelsFromSchema(m models, k string, s *openapi3.SchemaRef) {
 func addFromValue(m models, k string, v *openapi3.Schema) {
 	for _, c := range v.AllOf {
 		m.addChild(k, c.Ref)
+	}
+
+	if len(v.Properties) == 0 {
+		m[k] = model{
+			primitive: fieldType{
+				name:   v.Type,
+				format: v.Format,
+			},
+		}
+		return
 	}
 
 	for propertyName, property := range v.Properties {

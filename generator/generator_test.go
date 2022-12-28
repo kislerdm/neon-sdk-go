@@ -885,6 +885,29 @@ func Test_generateModels(t *testing.T) {
 			want:                 nil,
 			checkElementWiseOnly: true,
 		},
+		{
+			name: "primitive type",
+			args: args{
+				spec: openAPISpec{
+					T: openapi3.T{
+						OpenAPI: "3.0.3",
+						Components: openapi3.Components{
+							Schemas: openapi3.Schemas{
+								"PgVersion": &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Description: "Major version of the Postgres",
+										Type:        openapi3.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: map[string]model{
+				"PgVersion": {primitive: fieldType{name: openapi3.TypeString}},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
