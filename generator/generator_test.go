@@ -921,8 +921,9 @@ func Test_generateModels(t *testing.T) {
 			},
 			want: map[string]model{
 				"PgVersion": {
-					name:      "PgVersion",
-					primitive: fieldType{name: openapi3.TypeString},
+					name:        "PgVersion",
+					description: "Major version of the Postgres",
+					primitive:   fieldType{name: openapi3.TypeString},
 				},
 			},
 		},
@@ -964,7 +965,8 @@ func Test_generateModels(t *testing.T) {
 			},
 			want: map[string]model{
 				"VercelIntegration": {
-					name: "VercelIntegration",
+					name:        "VercelIntegration",
+					description: "Vercel integration is bound to a Neon branch.\nUser specifies endpoint to expose to each Vercel project.\n",
 					fields: map[string]*field{
 						"details": {
 							k: "details",

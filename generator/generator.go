@@ -396,6 +396,10 @@ func (m *model) setPrimitiveType(t fieldType) {
 	m.primitive = t
 }
 
+func (m *model) setDescription(s string) {
+	m.description = s
+}
+
 func (m model) generateCode() string {
 	k := m.name
 	if m.primitive.name != "" {
@@ -612,6 +616,10 @@ func modelsFromSchema(m models, k string, s *openapi3.SchemaRef) {
 	}
 
 	if v := s.Value; v != nil {
+		tmp := m[k]
+		tmp.setDescription(v.Description)
+		m[k] = tmp
+
 		addFromValue(m, k, v)
 	}
 }
@@ -667,6 +675,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 			name:   v.Type,
 			format: v.Format,
 		})
+		tmp.setDescription(v.Description)
 		m[k] = tmp
 	}
 }
