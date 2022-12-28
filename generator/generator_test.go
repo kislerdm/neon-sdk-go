@@ -890,18 +890,10 @@ func Test_generateModels(t *testing.T) {
 		t.Run(
 			tt.name, func(t *testing.T) {
 				got := generateModels(tt.args.spec)
-
 				if tt.checkElementWiseOnly {
-					var sNames []string
-					for k := range got {
-						sNames = append(sNames, k)
-					}
-					sNamesWant := helperExtractSchemaNames(tt.args.spec)
-					assert.Contains(t, sNamesWant, sNames, "schemas missing")
-					assert.Equal(t, len(sNamesWant), len(sNames))
+					assert.Subset(t, got, helperExtractSchemaNames(tt.args.spec))
 					return
 				}
-
 				assert.Equal(t, tt.want, got)
 			},
 		)
