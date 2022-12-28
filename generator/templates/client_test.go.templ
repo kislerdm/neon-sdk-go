@@ -10,12 +10,12 @@ import (
 func TestNewClient(t *testing.T) {
 	type args struct {
 		key    string
-		optFns []func(*Options)
+		optFns []func(*options)
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *Client
+		want    Client
 		wantErr bool
 	}{
 		{
@@ -24,8 +24,8 @@ func TestNewClient(t *testing.T) {
 				key:    "foo",
 				optFns: nil,
 			},
-			want: &Client{
-				options: Options{
+			want: &client{
+				options: options{
 					key:        "foo",
 					httpClient: &http.Client{Timeout: defaultTimeout},
 				},
@@ -46,12 +46,12 @@ func TestNewClient(t *testing.T) {
 			name: "happy path: custom http client",
 			args: args{
 				key: "bar",
-				optFns: []func(*Options){
+				optFns: []func(*options){
 					WithHTTPClient(&http.Client{Timeout: 1 * time.Minute}),
 				},
 			},
-			want: &Client{
-				options: Options{
+			want: &client{
+				options: options{
 					key:        "bar",
 					httpClient: &http.Client{Timeout: 1 * time.Minute},
 				},

@@ -38,9 +38,16 @@ func helperExtractSchemaNames(spec openAPISpec) (o []string) {
 
 func TestRun(t *testing.T) {
 	createTempDir := func() string {
-		s := "/tmp/" + time.Now().UTC().Format("20060102150405.000")
-		s = strings.ReplaceAll(s, ".", "")
-		if err := os.Mkdir(s, 0774); err != nil {
+		dir := "/tmp"
+		if s := os.Getenv("TEMP_DIR"); s != "" {
+			dir = s
+		}
+		s := dir + "/" +
+			strings.ReplaceAll(
+				time.Now().UTC().Format("20060102150405.000"),
+				".", "",
+			)
+		if err := os.MkdirAll(s, 0774); err != nil {
 			panic(err)
 		}
 		return s
@@ -908,6 +915,59 @@ func Test_generateModels(t *testing.T) {
 				"PgVersion": {primitive: fieldType{name: openapi3.TypeString}},
 			},
 		},
+		{
+			name: "array of references",
+			args: args{
+				spec: openAPISpec{
+					T: openapi3.T{
+						OpenAPI: "3.0.3",
+						Components: openapi3.Components{
+							Schemas: openapi3.Schemas{
+								"VercelIntegration": &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Description: "Vercel integration is bound to a Neon branch.\nUser specifies endpoint to expose to each Vercel project.\n",
+										Type:        openapi3.TypeObject,
+										Properties: openapi3.Schemas{
+											"details": {
+												Value: &openapi3.Schema{
+													Type: openapi3.TypeArray,
+													Items: &openapi3.SchemaRef{
+														Value: &openapi3.Schema{
+															AllOf: openapi3.SchemaRefs{
+																{Ref: "#/components/schemas/VercelIntegrationDetailsResponse"},
+																{Ref: "#/components/schemas/ProjectResponse"},
+																{Ref: "#/components/schemas/BranchResponse"},
+																{Ref: "#/components/schemas/EndpointResponse"},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: map[string]model{
+				"VercelIntegration": {
+					fields: map[string]*field{
+						"details": {
+							k: "details",
+							v: `[]struct {
+VercelIntegrationDetailsResponse
+ProjectResponse
+BranchResponse
+EndpointResponse
+}`,
+							format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -1009,37 +1069,15 @@ BarResponse
 			},
 		},
 		{
-			name: "two types, two fields: type required import and ref type",
+			name: "primitive type",
 			v: models{
-				"QuxFooBar": model{
-					fields: map[string]*field{
-						"foo": {
-							k:        "foo",
-							v:        "[]time.Time",
-							format:   "",
-							required: true,
-						},
-						"bar": {
-							k: "bar",
-							v: "Bar",
-						},
-					},
-					children: map[string]struct{}{"Bar": {}},
-				},
-				"Bar": model{
-					fields: map[string]*field{
-						"type": {
-							k:        "type",
-							v:        "string",
-							required: true,
-						},
+				"EndpointPoolerMode": model{
+					primitive: fieldType{
+						name: "string",
 					},
 				},
 			},
-			want: []string{
-				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
-				"type Bar struct {\nType string `json:\"type\"`\n}",
-			},
+			want: []string{"type EndpointPoolerMode string"},
 		},
 	}
 	for _, tt := range tests {
@@ -1067,6 +1105,11 @@ func Test_objNameGoConventionExport(t *testing.T) {
 			name: "autoscaling_limit_max_cu",
 			args: args{"autoscaling_limit_max_cu"},
 			want: "AutoscalingLimitMaxCu",
+		},
+		{
+			name: "QUERY PLAN",
+			args: args{"QUERY PLAN"},
+			want: "QueryPlan",
 		},
 	}
 	for _, tt := range tests {
@@ -1140,5 +1183,74 @@ CreateProjectBranch(projectID string, cfg *BranchCreateRequest) (CreatedBranch, 
 				assert.Equalf(t, tt.want, e.generateMethodDefinition(), "generateMethodDefinition()")
 			},
 		)
+	}
+}
+
+func Test_extractStructFromSchemaRef(t *testing.T) {
+	type args struct {
+		schema *openapi3.SchemaRef
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "reference case",
+			args: args{
+				schema: &openapi3.SchemaRef{Ref: "#/components/schemas/ExplainData"},
+			},
+			want: "ExplainData",
+		},
+		{
+			name: "array of arrays",
+			args: args{
+				schema: &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type: openapi3.TypeArray,
+						Items: &openapi3.SchemaRef{
+							Value: &openapi3.Schema{
+								Type: openapi3.TypeArray,
+								Items: &openapi3.SchemaRef{
+									Value: &openapi3.Schema{Type: openapi3.TypeString},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: "[][]string",
+		},
+		{
+			name: "array of arrays of arrays",
+			args: args{
+				schema: &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						Type: openapi3.TypeArray,
+						Items: &openapi3.SchemaRef{
+							Value: &openapi3.Schema{
+								Type: openapi3.TypeArray,
+								Items: &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Type: openapi3.TypeArray,
+										Items: &openapi3.SchemaRef{
+											Value: &openapi3.Schema{
+												Type: openapi3.TypeString,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: "[][][]string",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, extractStructFromSchemaRef(tt.args.schema), "extractStructFromSchemaRef(%v)", tt.args.schema)
+		})
 	}
 }

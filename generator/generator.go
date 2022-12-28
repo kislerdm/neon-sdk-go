@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -96,6 +97,17 @@ func Run(cfg Config) error {
 		}
 	}
 
+	return testGeneratedCode(cfg.PathOutput)
+}
+
+func testGeneratedCode(p string) error {
+	if p, err := os.StartProcess("go test .", nil, &os.ProcAttr{Dir: p}); nil == err {
+		if s, err := p.Wait(); nil == err {
+			if s.ExitCode() != 0 {
+				return errors.New("generated code failed validation")
+			}
+		}
+	}
 	return nil
 }
 
@@ -128,6 +140,10 @@ func (v field) canonicalName() string {
 
 func objNameGoConvention(s string) string {
 	o := ""
+
+	s = replaceSpecialChars(s)
+	s = strings.ToLower(s)
+
 	for i, el := range strings.Split(s, "_") {
 		if i > 0 {
 			el = strings.ToUpper(el[:1]) + el[1:]
@@ -141,6 +157,14 @@ func objNameGoConvention(s string) string {
 	default:
 		return o
 	}
+}
+
+func replaceSpecialChars(o string) string {
+	return strings.NewReplacer(
+		"-", "_",
+		".", "_",
+		" ", "_",
+	).Replace(o)
 }
 
 func objNameGoConventionExport(s string) string {
@@ -336,6 +360,17 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 				v:      schema.Value.Items.Value.Type,
 				format: schema.Value.Items.Value.Format,
 			}.argType()
+
+			switch t {
+			case "":
+				t = "struct {\n"
+				for _, c := range schema.Value.Items.Value.AllOf {
+					t += modelNameFromRef(c.Ref) + "\n"
+				}
+				t += "}"
+			case openapi3.TypeArray:
+				t = extractStructFromSchemaRef(schema.Value.Items)
+			}
 		}
 		return "[]" + t
 	}
@@ -344,6 +379,10 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 
 type fieldType struct {
 	name, format string
+}
+
+func (v fieldType) argType() string {
+	return field{v: v.name, format: v.format}.argType()
 }
 
 type model struct {
@@ -503,26 +542,39 @@ func (v models) addField(m string, f field) {
 
 func (v models) generateCode() []string {
 	o := make([]string, len(v))
-	var i uint8
-	for k, v := range v {
-		tmp := "type " + k + " struct {\n"
-
-		if len(v.fields) == 0 {
-			for k := range v.children {
-				tmp += k + "\n"
-			}
+	for i, k := range v.orderedNames() {
+		vv := v[k]
+		if vv.primitive.name != "" {
+			o[i] = "type " + k + " " + vv.primitive.argType()
 		} else {
-			for fieldName, field := range v.fields {
-				omitEmpty := ""
-				if !field.required {
-					omitEmpty = ",omitempty"
+			tmp := "type " + k + " struct {\n"
+			if len(vv.fields) == 0 {
+				for k := range vv.children {
+					tmp += k + "\n"
 				}
-				tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+			} else {
+				for fieldName, field := range vv.fields {
+					omitEmpty := ""
+					if !field.required {
+						omitEmpty = ",omitempty"
+					}
+					tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+				}
 			}
+			o[i] = tmp + "}"
 		}
-		o[i] = tmp + "}"
+	}
+	return o
+}
+
+func (v models) orderedNames() []string {
+	o := make([]string, len(v))
+	var i uint8
+	for k := range v {
+		o[i] = k
 		i++
 	}
+	sort.Strings(o)
 	return o
 }
 
@@ -553,57 +605,56 @@ func modelsFromSchema(m models, k string, s *openapi3.SchemaRef) {
 }
 
 func addFromValue(m models, k string, v *openapi3.Schema) {
-	for _, c := range v.AllOf {
-		m.addChild(k, c.Ref)
-	}
-
-	if len(v.Properties) == 0 {
-		m[k] = model{
-			primitive: fieldType{
-				name:   v.Type,
-				format: v.Format,
-			},
+	switch v.Type {
+	case "":
+		for _, c := range v.AllOf {
+			m.addChild(k, c.Ref)
 		}
-		return
-	}
-
-	for propertyName, property := range v.Properties {
-		field := field{
-			k:        propertyName,
-			v:        extractStructFromSchemaRef(property),
-			format:   "",
-			required: false,
-		}
-
-		if field.v == "" {
-			switch property.Value.Type {
-			case openapi3.TypeObject:
-				field.v = k + objNameGoConventionExport(propertyName)
-				m.addChild(k, field.v)
-				m.add(field.v, model{})
-				addFromValue(m, field.v, property.Value)
-			case openapi3.TypeArray:
-				m.addChild(k, extractStructFromSchemaRef(property))
-			default:
-				field.v = property.Value.Type
-				field.format = property.Value.Format
+	case openapi3.TypeObject:
+		for propertyName, property := range v.Properties {
+			field := field{
+				k:        propertyName,
+				v:        extractStructFromSchemaRef(property),
+				format:   "",
+				required: false,
 			}
-		} else {
-			if property.Value != nil {
-				field.format = property.Value.Format
+
+			if field.v == "" {
+				switch property.Value.Type {
+				case openapi3.TypeObject:
+					field.v = k + objNameGoConventionExport(propertyName)
+					m.addChild(k, field.v)
+					m.add(field.v, model{})
+					modelsFromSchema(m, field.v, property)
+				case openapi3.TypeArray:
+					m.addChild(k, extractStructFromSchemaRef(property))
+				default:
+					field.v = property.Value.Type
+					field.format = property.Value.Format
+				}
 			} else {
-				m.addChild(k, field.v)
+				if property.Value != nil {
+					field.format = property.Value.Format
+				} else {
+					m.addChild(k, field.v)
+				}
+			}
+
+			m.addField(k, field)
+		}
+		for _, s := range v.Required {
+			// in case openAPI json does not define required fields
+			// according to the props. definition
+			if _, ok := m[k].fields[s]; ok {
+				m[k].fields[s].setRequired(true)
 			}
 		}
-
-		m.addField(k, field)
-	}
-
-	for _, s := range v.Required {
-		// in case openAPI json does not define required fields
-		// according to the props. definition
-		if _, ok := m[k].fields[s]; ok {
-			m[k].fields[s].setRequired(true)
-		}
+	default:
+		tmp := m[k]
+		tmp.setPrimitiveType(fieldType{
+			name:   v.Type,
+			format: v.Format,
+		})
+		m[k] = tmp
 	}
 }
