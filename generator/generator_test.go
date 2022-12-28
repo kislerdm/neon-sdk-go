@@ -792,9 +792,11 @@ func Test_generateModels(t *testing.T) {
 			},
 			want: models{
 				"FooBarResponse": model{
+					name:     "FooBarResponse",
 					children: map[string]struct{}{"FooResponse": {}, "BarResponse": {}},
 				},
 				"FooResponse": model{
+					name: "FooResponse",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -806,6 +808,7 @@ func Test_generateModels(t *testing.T) {
 					children: map[string]struct{}{"Foo": {}},
 				},
 				"BarResponse": model{
+					name: "BarResponse",
 					fields: map[string]*field{
 						"bar": {
 							k:        "bar",
@@ -817,6 +820,7 @@ func Test_generateModels(t *testing.T) {
 					children: map[string]struct{}{"Bar": {}},
 				},
 				"Qux": model{
+					name: "Qux",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -827,6 +831,7 @@ func Test_generateModels(t *testing.T) {
 					children: map[string]struct{}{"QuxFoo": {}},
 				},
 				"QuxFoo": model{
+					name: "QuxFoo",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -843,6 +848,7 @@ func Test_generateModels(t *testing.T) {
 					children: map[string]struct{}{"QuxFooBar": {}},
 				},
 				"QuxFooBar": model{
+					name: "QuxFooBar",
 					fields: map[string]*field{
 						"foo": {
 							k:        "foo",
@@ -858,6 +864,7 @@ func Test_generateModels(t *testing.T) {
 					children: map[string]struct{}{"Bar": {}},
 				},
 				"Foo": model{
+					name: "Foo",
 					fields: map[string]*field{
 						"foo_id": {
 							k:        "foo_id",
@@ -874,6 +881,7 @@ func Test_generateModels(t *testing.T) {
 					},
 				},
 				"Bar": model{
+					name: "Bar",
 					fields: map[string]*field{
 						"type": {
 							k:        "type",
@@ -912,7 +920,10 @@ func Test_generateModels(t *testing.T) {
 				},
 			},
 			want: map[string]model{
-				"PgVersion": {primitive: fieldType{name: openapi3.TypeString}},
+				"PgVersion": {
+					name:      "PgVersion",
+					primitive: fieldType{name: openapi3.TypeString},
+				},
 			},
 		},
 		{
@@ -953,6 +964,7 @@ func Test_generateModels(t *testing.T) {
 			},
 			want: map[string]model{
 				"VercelIntegration": {
+					name: "VercelIntegration",
 					fields: map[string]*field{
 						"details": {
 							k: "details",
@@ -1020,29 +1032,6 @@ BarResponse
 			},
 			want: []string{
 				"type FooResponse struct {\nFoo Foo `json:\"foo\"`\n}",
-			},
-		},
-		{
-			name: "one type, two fields: type required import and ref type",
-			v: models{
-				"QuxFooBar": model{
-					fields: map[string]*field{
-						"foo": {
-							k:        "foo",
-							v:        "[]time.Time",
-							format:   "",
-							required: true,
-						},
-						"bar": {
-							k: "bar",
-							v: "Bar",
-						},
-					},
-					children: map[string]struct{}{"Bar": {}},
-				},
-			},
-			want: []string{
-				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
 			},
 		},
 		{

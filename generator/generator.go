@@ -386,13 +386,43 @@ func (v fieldType) argType() string {
 }
 
 type model struct {
-	fields    map[string]*field
-	children  map[string]struct{}
-	primitive fieldType
+	fields            map[string]*field
+	children          map[string]struct{}
+	primitive         fieldType
+	name, description string
 }
 
 func (m *model) setPrimitiveType(t fieldType) {
 	m.primitive = t
+}
+
+func (m model) generateCode() string {
+	k := m.name
+	if m.primitive.name != "" {
+		return "type " + k + " " + m.primitive.argType()
+	}
+
+	tmp := "type " + k + " struct {"
+
+	if len(m.fields) > 0 || len(m.fields) > 0 {
+		tmp += "\n"
+	}
+
+	for fieldName, field := range m.fields {
+		omitEmpty := ""
+		if !field.required {
+			omitEmpty = ",omitempty"
+		}
+		tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+	}
+
+	if len(m.fields) == 0 {
+		for k := range m.children {
+			tmp += k + "\n"
+		}
+	}
+
+	return tmp + "}"
 }
 
 func modelNameFromRef(s string) string {
@@ -485,22 +515,6 @@ func extractSpecs(spec openAPISpec) templateInput {
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
-
-		//if _, ok := m[s.ResponseStruct]; !ok {
-		//	continue
-		//}
-		//models[s.ResponseStruct] = m[s.ResponseStruct]
-		//for c := range m[s.ResponseStruct].children {
-		//	models.add(c, m[c])
-		//}
-		//
-		//if _, ok := m[s.RequestBodyStruct]; !ok {
-		//	continue
-		//}
-		//models[s.RequestBodyStruct] = m[s.RequestBodyStruct]
-		//for c := range m[s.RequestBodyStruct].children {
-		//	models.add(c, m[c])
-		//}
 	}
 
 	return templateInput{
@@ -514,28 +528,26 @@ func extractSpecs(spec openAPISpec) templateInput {
 
 type models map[string]model
 
-func (v models) add(k string, m model) {
+func (v models) add(k string) {
 	if _, ok := v[k]; !ok {
-		v[k] = m
+		v[k] = model{name: k}
 	}
 }
 
 func (v models) addChild(m string, child string) {
 	if v[m].children == nil {
-		v[m] = model{
-			fields:   v[m].fields,
-			children: map[string]struct{}{},
-		}
+		tmp := v[m]
+		tmp.children = map[string]struct{}{}
+		v[m] = tmp
 	}
 	v[m].children[modelNameFromRef(child)] = struct{}{}
 }
 
 func (v models) addField(m string, f field) {
 	if v[m].fields == nil {
-		v[m] = model{
-			fields:   map[string]*field{},
-			children: v[m].children,
-		}
+		tmp := v[m]
+		tmp.fields = map[string]*field{}
+		v[m] = tmp
 	}
 	v[m].fields[f.k] = &f
 }
@@ -582,12 +594,12 @@ func generateModels(spec openAPISpec) models {
 	m := models{}
 
 	for k, v := range spec.Components.Responses {
-		m.add(k, model{})
+		m.add(k)
 		modelsFromSchema(m, k, v.Value.Content["application/json"].Schema)
 	}
 
 	for k, v := range spec.Components.Schemas {
-		m.add(k, model{})
+		m.add(k)
 		modelsFromSchema(m, k, v)
 	}
 
@@ -624,7 +636,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 				case openapi3.TypeObject:
 					field.v = k + objNameGoConventionExport(propertyName)
 					m.addChild(k, field.v)
-					m.add(field.v, model{})
+					m.add(field.v)
 					modelsFromSchema(m, field.v, property)
 				case openapi3.TypeArray:
 					m.addChild(k, extractStructFromSchemaRef(property))
