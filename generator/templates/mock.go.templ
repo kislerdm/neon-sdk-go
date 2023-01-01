@@ -1,0 +1,99 @@
+package sdk
+
+import (
+	"io"
+	"net/http"
+	"strings"
+)
+
+// NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
+func NewMockHTTPClient() HTTPClient {
+	return mockHTTPClient{
+		map[string]map[string]string{
+			"": {
+				"GET": "",
+			},
+		},
+	}
+}
+
+// mockHTTPClient defines http client to mock the SDK client.
+type mockHTTPClient struct {
+	// endpoints denotes response mock split by
+	// - the object notifier from the request path:
+	// 		/projects - for projects
+	// 		/project/branches - for branches
+	// 		/project/branches/endpoints - for endpoints
+	// - request REST method
+	endpoints map[string]map[string]string
+}
+
+func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	if r := authErrorResp(req); r != nil {
+		return r, nil
+	}
+
+	p := parsePath(strings.TrimPrefix(req.URL.RawPath, baseURL))
+
+	endpoint, ok := m.endpoints[p.path]
+	if !ok {
+		o := Error{HTTPCode: http.StatusBadRequest}
+		o.errorResp.Message = "unknown endpoint"
+		return o.httpResp(), nil
+	}
+
+	respObjStr, ok := endpoint[req.Method]
+	if !ok {
+		o := Error{HTTPCode: http.StatusMethodNotAllowed}
+		o.errorResp.Message = "method not allowed"
+		return o.httpResp(), nil
+	}
+
+	if p.objNotFound {
+		o := Error{HTTPCode: http.StatusNotFound}
+		o.errorResp.Message = "object not found"
+		return o.httpResp(), nil
+	}
+
+	return &http.Response{
+		Status:        "OK",
+		StatusCode:    http.StatusOK,
+		Body:          io.NopCloser(strings.NewReader(respObjStr)),
+		ContentLength: int64(len(respObjStr)),
+		Request:       req,
+	}, nil
+}
+
+type objPath struct {
+	path        string
+	objNotFound bool
+}
+
+func parsePath(s string) objPath {
+	s = strings.TrimPrefix(s, "/")
+	o := ""
+	var notFoundReq bool
+	for i, el := range strings.Split(s, "/") {
+		if i%2 == 0 && len(el) > 0 {
+			o += "/" + el
+			continue
+		}
+		if el == "notFound" || el == "notExist" || el == "notExists" || el == "missing" {
+			notFoundReq = true
+		}
+	}
+	return objPath{
+		path:        o,
+		objNotFound: notFoundReq,
+	}
+}
+
+func authErrorResp(req *http.Request) *http.Response {
+	token := req.Header.Get("Authorization")
+	if token == "" || token == "Bearer invalidApiKey" {
+		o := Error{HTTPCode: http.StatusForbidden}
+		o.Message = "authorization failed"
+		return o.httpResp()
+	}
+	return nil
+}

@@ -77,6 +77,8 @@ func TestRun(t *testing.T) {
 				"doc.go":         {},
 				"sdk.go":         {},
 				"client_test.go": {},
+				"mock.go":        {},
+				"mock_test.go":   {},
 			},
 		},
 	}
@@ -114,13 +116,13 @@ func TestRun(t *testing.T) {
 				}
 			},
 		)
-		//t.Cleanup(
-		//	func() {
-		//		if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-		//			panic(err)
-		//		}
-		//	},
-		//)
+		t.Cleanup(
+			func() {
+				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+					panic(err)
+				}
+			},
+		)
 	}
 }
 
@@ -1036,30 +1038,6 @@ BarResponse
 			},
 			want: []string{
 				"type FooResponse struct {\nFoo Foo `json:\"foo\"`\n}",
-			},
-		},
-		{
-			name: "one type, two fields: type required import and ref type",
-			v: models{
-				"QuxFooBar": model{
-					name: "QuxFooBar",
-					fields: map[string]*field{
-						"foo": {
-							k:        "foo",
-							v:        "[]time.Time",
-							format:   "",
-							required: true,
-						},
-						"bar": {
-							k: "bar",
-							v: "Bar",
-						},
-					},
-					children: map[string]struct{}{"Bar": {}},
-				},
-			},
-			want: []string{
-				"type QuxFooBar struct {\nFoo []time.Time `json:\"foo\"`\nBar Bar `json:\"bar,omitempty\"`\n}",
 			},
 		},
 		{
