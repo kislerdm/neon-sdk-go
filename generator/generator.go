@@ -452,7 +452,7 @@ func docString(name string, description string) string {
 	o := ""
 	for i, s := range strings.Split(strings.TrimRight(description, "\n"), "\n") {
 		o += "// "
-		if i == 0 {
+		if i == 0 && name != strings.Split(s, " ")[0] {
 			o += name + " "
 		}
 		o += s + "\n"
