@@ -25,6 +25,16 @@ func (e Error) Error() string {
 	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
 }
 
+func (e Error) httpResp() *http.Response {
+	o, _ := json.Marshal(e.errorResp)
+	return &http.Response{
+		Status:        e.Code,
+		StatusCode:    e.HTTPCode,
+		Body:          io.NopCloser(bytes.NewReader(o)),
+		ContentLength: int64(len(o)),
+	}
+}
+
 func convertErrorResponse(res *http.Response) error {
 	var v errorResp
 	buf, err := io.ReadAll(res.Body)
@@ -77,8 +87,7 @@ type client struct {
 }
 
 const (
-	baseURL = "https://console.neon.tech{{.ServerURL}}"
-
+	baseURL        = "https://console.neon.tech{{.ServerURL}}"
 	defaultTimeout = 2 * time.Minute
 )
 
