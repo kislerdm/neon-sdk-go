@@ -3,20 +3,34 @@ package sdk
 import (
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
+// Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
+// - 401 is returned when the string `invalidApiKey` is used as the API key;
+// - 404 is returned if either of the following:
+//		- the string value `notFound` is used as the string argument, e.g. projectID
+//		- a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
 	return mockHTTPClient{
-		map[string]map[string]string{ {{ range $path, $o := .EndpointsResponseExample }}
+		map[string]map[string]mockResponse{ {{ range $path, $o := .EndpointsResponseExample }}
 			    "{{ $path }}": { {{ range $method, $resp := $o }}
-			        "{{ $method }}": `{{ $resp }}`,
+			        "{{ $method }}": mockResponse{
+			                Content: `{{ $resp.Content }}`,
+			                Code: {{ $resp.Code }},
+			            },
 			        {{- end }}
 			    },
 			{{ end -}}
 		},
 	}
+}
+
+type mockResponse struct {
+	Content string
+	Code    int
 }
 
 // mockHTTPClient defines http client to mock the SDK client.
@@ -27,7 +41,7 @@ type mockHTTPClient struct {
 	// 		/project/branches - for branches
 	// 		/project/branches/endpoints - for endpoints
 	// - request REST method
-	endpoints map[string]map[string]string
+	endpoints map[string]map[string]mockResponse
 }
 
 func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
@@ -44,7 +58,7 @@ func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return o.httpResp(), nil
 	}
 
-	respObjStr, ok := endpoint[req.Method]
+	resp, ok := endpoint[req.Method]
 	if !ok {
 		o := Error{HTTPCode: http.StatusMethodNotAllowed}
 		o.errorResp.Message = "method not allowed"
@@ -59,9 +73,9 @@ func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 	return &http.Response{
 		Status:        "OK",
-		StatusCode:    http.StatusOK,
-		Body:          io.NopCloser(strings.NewReader(respObjStr)),
-		ContentLength: int64(len(respObjStr)),
+		StatusCode:    resp.Code,
+		Body:          io.NopCloser(strings.NewReader(resp.Content)),
+		ContentLength: int64(len(resp.Content)),
 		Request:       req,
 	}, nil
 }

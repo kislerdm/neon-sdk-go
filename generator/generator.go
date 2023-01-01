@@ -122,7 +122,7 @@ type templateInput struct {
 	EndpointsInterfaceMethods []string
 	EndpointsImplementation   []string
 	Types                     []string
-	EndpointsResponseExample  map[string]map[string]string
+	EndpointsResponseExample  map[string]map[string]mockResponse
 }
 
 type field struct {
@@ -240,16 +240,17 @@ func (v field) argType() string {
 }
 
 type endpointImplementation struct {
-	Name                        string
-	Method                      string
-	Route                       string
-	Description                 string
-	RequestBodyRequires         bool
-	RequestBodyStruct           string
-	RequestBodyStructExample    interface{}
-	ResponseStruct              string
-	RequestParametersPath       []field
-	ResponsePositivePathExample interface{}
+	Name                           string
+	Method                         string
+	Route                          string
+	Description                    string
+	RequestBodyRequires            bool
+	RequestBodyStruct              string
+	RequestBodyStructExample       interface{}
+	ResponseStruct                 string
+	RequestParametersPath          []field
+	ResponsePositivePathExample    interface{}
+	ResponsePositivePathStatusCode string
 }
 
 func (e endpointImplementation) functionDescription() string {
@@ -372,12 +373,20 @@ func (e endpointImplementation) generateMethodHeader() string {
 	return e.Name + "(" + args + ") " + resp
 }
 
-func (e endpointImplementation) generateMockResponse() string {
+type mockResponse struct {
+	Code    string
+	Content string
+}
+
+func (e endpointImplementation) generateMockResponse() mockResponse {
 	o, err := json.Marshal(e.ResponsePositivePathExample)
 	if err != nil {
 		panic(err)
 	}
-	return string(o)
+	return mockResponse{
+		Code:    e.ResponsePositivePathStatusCode,
+		Content: string(o),
+	}
 }
 
 func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
@@ -520,6 +529,7 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpoint
 							e.ResponsePositivePathExample = vv.Example
 						}
 					}
+					e.ResponsePositivePathStatusCode = httpCode
 					break
 				}
 			}
@@ -579,16 +589,14 @@ func extractSpecs(spec openAPISpec) templateInput {
 	endpointsStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
 	models := m
-	mockResponses := map[string]map[string]string{
-		"": {"GET": ""},
-	}
+	mockResponses := map[string]map[string]mockResponse{}
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
 
 		r := parsePath(s.Route)
 		if _, ok := mockResponses[r]; !ok {
-			mockResponses[r] = map[string]string{}
+			mockResponses[r] = map[string]mockResponse{}
 		}
 		mockResponses[r][s.Method] = s.generateMockResponse()
 	}
