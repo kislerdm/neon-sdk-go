@@ -147,7 +147,7 @@ func (v field) docString() string {
 	if v.description == "" {
 		return ""
 	}
-	return docString(v.k, v.description)
+	return docString(objNameGoConventionExport(v.k), v.description)
 }
 
 func objNameGoConvention(s string) string {
@@ -164,8 +164,15 @@ func objNameGoConvention(s string) string {
 	}
 
 	switch o[len(o)-2:] {
-	case "id", "Id", "iD":
+	case "id", "Id":
 		return o[:len(o)-2] + "ID"
+	}
+
+	switch o[len(o)-3:] {
+	case "url", "Url":
+		return o[:len(o)-3] + "URL"
+	case "uri", "Uri":
+		return o[:len(o)-3] + "URI"
 	default:
 		return o
 	}
@@ -425,6 +432,8 @@ func (m model) generateCode() string {
 	}
 
 	for fieldName, field := range m.fields {
+		tmp += field.docString()
+
 		omitEmpty := ""
 		if !field.required {
 			omitEmpty = ",omitempty"
@@ -663,10 +672,12 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 				default:
 					field.v = property.Value.Type
 					field.format = property.Value.Format
+					field.description = property.Value.Description
 				}
 			} else {
 				if property.Value != nil {
 					field.format = property.Value.Format
+					field.description = property.Value.Description
 				} else {
 					m.addChild(k, field.v)
 				}
