@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"errors"
 	"go/format"
 	"io"
@@ -121,6 +122,7 @@ type templateInput struct {
 	EndpointsInterfaceMethods []string
 	EndpointsImplementation   []string
 	Types                     []string
+	EndpointsResponseExample  map[string]map[string]string
 }
 
 type field struct {
@@ -370,6 +372,14 @@ func (e endpointImplementation) generateMethodHeader() string {
 	return e.Name + "(" + args + ") " + resp
 }
 
+func (e endpointImplementation) generateMockResponse() string {
+	o, err := json.Marshal(e.ResponsePositivePathExample)
+	if err != nil {
+		panic(err)
+	}
+	return string(o)
+}
+
 func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 	if schema.Value != nil && schema.Value.Type == "array" {
 		t := modelNameFromRef(schema.Value.Items.Ref)
@@ -545,6 +555,19 @@ func extractParameters(params openapi3.Parameters) []field {
 	return o
 }
 
+func parsePath(s string) string {
+	s = strings.TrimPrefix(s, "/")
+	o := ""
+	for i, el := range strings.Split(s, "/") {
+		if i%2 == 0 && len(el) > 0 {
+			o += "/" + el
+			continue
+		}
+	}
+	return o
+
+}
+
 func extractSpecs(spec openAPISpec) templateInput {
 	if len(spec.Servers) < 1 {
 		panic("no server spec found")
@@ -556,9 +579,18 @@ func extractSpecs(spec openAPISpec) templateInput {
 	endpointsStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
 	models := m
+	mockResponses := map[string]map[string]string{
+		"": {"GET": ""},
+	}
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
+
+		r := parsePath(s.Route)
+		if _, ok := mockResponses[r]; !ok {
+			mockResponses[r] = map[string]string{}
+		}
+		mockResponses[r][s.Method] = s.generateMockResponse()
 	}
 
 	return templateInput{
@@ -566,6 +598,7 @@ func extractSpecs(spec openAPISpec) templateInput {
 		ServerURL:                 spec.Servers[0].URL,
 		EndpointsInterfaceMethods: interfaceMethodsStr,
 		EndpointsImplementation:   endpointsStr,
+		EndpointsResponseExample:  mockResponses,
 		Types:                     models.generateCode(),
 	}
 }

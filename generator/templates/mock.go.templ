@@ -9,10 +9,12 @@ import (
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
 func NewMockHTTPClient() HTTPClient {
 	return mockHTTPClient{
-		map[string]map[string]string{
-			"": {
-				"GET": "",
-			},
+		map[string]map[string]string{ {{ range $path, $o := .EndpointsResponseExample }}
+			    "{{ $path }}": { {{ range $method, $resp := $o }}
+			        "{{ $method }}": `{{ $resp }}`,
+			        {{- end }}
+			    },
+			{{ end -}}
 		},
 	}
 }
