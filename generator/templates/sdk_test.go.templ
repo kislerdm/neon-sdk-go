@@ -437,3 +437,45 @@ func TestError_Error(t *testing.T) {
 		)
 	}
 }
+
+func TestError_httpResp(t *testing.T) {
+	type fields struct {
+		HTTPCode  int
+		errorResp errorResp
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *http.Response
+	}{
+		{
+			name: "",
+			fields: fields{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Code:    "foo",
+					Message: "object not found",
+				},
+			},
+			want: &http.Response{
+				Status:        "foo",
+				StatusCode:    http.StatusNotFound,
+				Body:          io.NopCloser(bytes.NewReader([]byte(`{"code":"foo","message":"object not found"}`))),
+				ContentLength: int64(len(`{"code":"foo","message":"object not found"}`)),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				e := Error{
+					HTTPCode:  tt.fields.HTTPCode,
+					errorResp: tt.fields.errorResp,
+				}
+				if got := e.httpResp(); !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("httpResp() = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
