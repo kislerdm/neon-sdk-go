@@ -412,7 +412,7 @@ func (e endpointImplementation) generateMockResponse() mockResponse {
 }
 
 func (e endpointImplementation) generateMethodImplementationTest() string {
-	o := `func Test_client_` + objNameGoConventionExport(e.Name) + `(t *testing.T) {
+	o := `func Test_client_` + e.Name + `(t *testing.T) {
 	deserializeResp := func(s string) ` + e.ResponseStruct + ` {
 		var v ` + e.ResponseStruct + `
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
@@ -434,16 +434,23 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 			o += fmt.Sprintf("%s %v\n", prf, v.argType())
 			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, v.generateDummy())
 
-			fnInputArgs += ""
-
+			if i > 0 {
+				fnInputArgs += ", "
+			}
+			fnInputArgs += "tt.args." + v.canonicalName()
 		}
+
 		if e.RequestBodyStruct != "" {
 			o += "\t\tcfg " + e.RequestBodyStruct + "\n"
-			testInpt += "\t\t\t\tcfg: " + e.RequestBodyStruct + `{},
-`
+			testInpt += "\t\t\t\tcfg: " + e.RequestBodyStruct + `{},`
+
+			if fnInputArgs != "" {
+				fnInputArgs += ", "
+			}
+			fnInputArgs += "tt.args.cfg"
 		}
 
-		testInpt += "\t\t\t},"
+		testInpt += "\n\t\t\t},"
 		o += "\t}\n"
 	}
 

@@ -1332,21 +1332,21 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 		return v
 	}
 	tests := []struct {
-		name    string
-		apiKey  string
-		want    ProjectsResponse
+		name string
+		apiKey string
+		want ProjectsResponse
 		wantErr bool
 	}{
 		{
-			name:    "happy path",
-			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
-			apiKey:  "foo",
+			name: "happy path",
+			apiKey: "foo",
+			want: deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
 			wantErr: false,
 		},
 		{
-			name:    "unhappy path",
-			apiKey:  "invalidApiKey",
-			want:    ProjectsResponse{},
+			name: "unhappy path",
+			apiKey: "invalidApiKey",
+			want: ProjectsResponse{},
 			wantErr: true,
 		},
 	}
@@ -1357,7 +1357,6 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 				if err != nil {
 					panic(err)
 				}
-
 				got, err := c.ListProjects()
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
@@ -1372,9 +1371,9 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 }`,
 		},
 		{
-			name: "updateProject",
+			name: "UpdateProject",
 			fields: fields{
-				Name:                "updateProject",
+				Name:                "UpdateProject",
 				Method:              "PATCH",
 				Route:               "/projects/{project_id}",
 				Description:         "Updates the specified project",
