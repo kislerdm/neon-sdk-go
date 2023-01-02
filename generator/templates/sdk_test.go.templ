@@ -479,3 +479,44 @@ func TestError_httpResp(t *testing.T) {
 		)
 	}
 }
+
+func Test_client_ListProjects(t *testing.T) {
+	deserializeResp := func(s string) ProjectsResponse {
+		var v ProjectsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+
+	tests := []struct {
+		name    string
+		want    ProjectsResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient("", WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+
+				got, err := c.ListProjects()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjects() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}

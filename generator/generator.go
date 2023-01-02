@@ -565,19 +565,6 @@ func extractParameters(params openapi3.Parameters) []field {
 	return o
 }
 
-func parsePath(s string) string {
-	s = strings.TrimPrefix(s, "/")
-	o := ""
-	for i, el := range strings.Split(s, "/") {
-		if i%2 == 0 && len(el) > 0 {
-			o += "/" + el
-			continue
-		}
-	}
-	return o
-
-}
-
 func extractSpecs(spec openAPISpec) templateInput {
 	if len(spec.Servers) < 1 {
 		panic("no server spec found")
@@ -594,11 +581,10 @@ func extractSpecs(spec openAPISpec) templateInput {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
 
-		r := parsePath(s.Route)
-		if _, ok := mockResponses[r]; !ok {
-			mockResponses[r] = map[string]mockResponse{}
+		if _, ok := mockResponses[s.Route]; !ok {
+			mockResponses[s.Route] = map[string]mockResponse{}
 		}
-		mockResponses[r][s.Method] = s.generateMockResponse()
+		mockResponses[s.Route][s.Method] = s.generateMockResponse()
 	}
 
 	return templateInput{
@@ -735,10 +721,12 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 		}
 	default:
 		tmp := m[k]
-		tmp.setPrimitiveType(fieldType{
-			name:   v.Type,
-			format: v.Format,
-		})
+		tmp.setPrimitiveType(
+			fieldType{
+				name:   v.Type,
+				format: v.Format,
+			},
+		)
 		tmp.setDescription(v.Description)
 		m[k] = tmp
 	}

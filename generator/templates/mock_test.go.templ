@@ -28,27 +28,27 @@ func Test_newObjectPath(t *testing.T) {
 		{
 			name: "project",
 			args: args{"/projects/fooBar"},
-			want: objPath{"/projects", false},
+			want: objPath{"/projects/{project_id}", false},
 		},
 		{
 			name: "project's branches",
 			args: args{"/projects/fooBar/branches"},
-			want: objPath{"/projects/branches", false},
+			want: objPath{"/projects/{project_id}/branches", false},
 		},
 		{
 			name: "project's branch",
 			args: args{"/projects/fooBar/branches/qux"},
-			want: objPath{"/projects/branches", false},
+			want: objPath{"/projects/{project_id}/branches/{branch_id}", false},
 		},
 		{
 			name: "project branch's endpoints",
 			args: args{"/projects/fooBar/branches/qux/endpoints"},
-			want: objPath{"/projects/branches/endpoints", false},
+			want: objPath{"/projects/{project_id}/branches/{branch_id}/endpoints", false},
 		},
 		{
 			name: "project not found",
 			args: args{"/projects/notFound/branches/qux/endpoints"},
-			want: objPath{"/projects/branches/endpoints", true},
+			want: objPath{"/projects/{project_id}/branches/{branch_id}/endpoints", true},
 		},
 	}
 	for _, tt := range tests {
