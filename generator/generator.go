@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"sort"
 	"strings"
 	"text/template"
@@ -102,12 +103,13 @@ func Run(cfg Config) error {
 }
 
 func testGeneratedCode(p string) error {
-	if p, err := os.StartProcess("go test .", nil, &os.ProcAttr{Dir: p}); nil == err {
-		if s, err := p.Wait(); nil == err {
-			if s.ExitCode() != 0 {
-				return errors.New("generated code failed validation")
-			}
-		}
+	cmd := exec.Command("go", "test", ".")
+	cmd.Dir = p
+	if err := cmd.Start(); err != nil {
+		panic(err)
+	}
+	if err := cmd.Wait(); err != nil {
+		return errors.New("failed test")
 	}
 	return nil
 }
