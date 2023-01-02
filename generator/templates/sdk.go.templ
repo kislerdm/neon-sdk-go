@@ -38,6 +38,7 @@ func (e Error) httpResp() *http.Response {
 func convertErrorResponse(res *http.Response) error {
 	var v errorResp
 	buf, err := io.ReadAll(res.Body)
+	defer func() { _ = res.Body.Close() }()
 	if err != nil {
 		return Error{
 			HTTPCode: res.StatusCode,
