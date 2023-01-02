@@ -61,8 +61,7 @@ func convertErrorResponse(res *http.Response) error {
 }
 
 // Client defines the Neon SDK client.
-type Client interface {
-{{ range .EndpointsInterfaceMethods }}
+type Client interface { {{ range .EndpointsInterfaceMethods }}
 {{.}}
 {{ end }}
 }
@@ -93,12 +92,6 @@ const (
 
 // NewClient initialised the Client to communicate to the Neon Platform.
 func NewClient(apiKey string, optFns ...func(*options)) (Client, error) {
-	if apiKey == "" {
-		return nil, errors.New(
-			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
-		)
-	}
-
 	o := options{
 		key:        apiKey,
 		httpClient: nil,
@@ -109,6 +102,12 @@ func NewClient(apiKey string, optFns ...func(*options)) (Client, error) {
 	}
 
 	resolveHTTPClient(&o)
+
+	if _, ok := (o.httpClient).(mockHTTPClient); !ok && apiKey == "" {
+        return nil, errors.New(
+            "authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
+        )
+    }
 
 	return &client{
 		baseURL: baseURL,

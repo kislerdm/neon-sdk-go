@@ -7,6 +7,17 @@ import (
 	"strings"
 )
 
+var endpointResponseExamples = map[string]map[string]mockResponse{ {{ range $path, $o := .EndpointsResponseExample }}
+        "{{ $path }}": { {{ range $method, $resp := $o }}
+            "{{ $method }}": mockResponse{
+                    Content: `{{ $resp.Content }}`,
+                    Code: {{ $resp.Code }},
+                },
+            {{- end }}
+        },
+    {{ end -}}
+}
+
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
 // Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
 // - 401 is returned when the string `invalidApiKey` is used as the API key;
@@ -14,18 +25,7 @@ import (
 //		- the string value `notFound` is used as the string argument, e.g. projectID
 //		- a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
-	return mockHTTPClient{
-		map[string]map[string]mockResponse{ {{ range $path, $o := .EndpointsResponseExample }}
-			    "{{ $path }}": { {{ range $method, $resp := $o }}
-			        "{{ $method }}": mockResponse{
-			                Content: `{{ $resp.Content }}`,
-			                Code: {{ $resp.Code }},
-			            },
-			        {{- end }}
-			    },
-			{{ end -}}
-		},
-	}
+	return mockHTTPClient{endpoints: endpointResponseExamples}
 }
 
 type mockResponse struct {

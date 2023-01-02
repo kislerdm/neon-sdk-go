@@ -59,6 +59,23 @@ func TestNewClient(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+            name: "mock http client",
+            args: args{
+                key: "",
+                optFns: []func(*options){
+                    WithHTTPClient(NewMockHTTPClient()),
+                },
+            },
+            want: &client{
+                options: options{
+                    key:        "",
+                    httpClient: mockHTTPClient{endpoints: endpointResponseExamples},
+                },
+                baseURL: baseURL,
+            },
+            wantErr: false,
+        },
 	}
 
 	for _, tt := range tests {
