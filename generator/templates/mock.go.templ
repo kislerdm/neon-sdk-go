@@ -3,6 +3,7 @@ package sdk
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -25,7 +26,11 @@ var endpointResponseExamples = map[string]map[string]mockResponse{ {{ range $pat
 //		- the string value `notFound` is used as the string argument, e.g. projectID
 //		- a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
-	return mockHTTPClient{endpoints: endpointResponseExamples}
+	u, _ := url.Parse(baseURL)
+    return mockHTTPClient{
+        endpoints: endpointResponseExamples,
+        routePrefix: u.Path,
+    }
 }
 
 type mockResponse struct {
@@ -42,6 +47,8 @@ type mockHTTPClient struct {
 	// 		/project/branches/endpoints - for endpoints
 	// - request REST method
 	endpoints map[string]map[string]mockResponse
+
+	routePrefix string
 }
 
 func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
@@ -49,7 +56,7 @@ func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 		return r, nil
 	}
 
-	p := parsePath(strings.TrimPrefix(req.URL.RawPath, baseURL))
+	p := parsePath(strings.TrimPrefix(req.URL.Path, m.routePrefix))
 
 	endpoint, ok := m.endpoints[p.path]
 	if !ok {
