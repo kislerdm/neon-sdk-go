@@ -581,7 +581,233 @@ func extractSpecs(spec openAPISpec) templateInput {
 	endpointsStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
 	models := m
-	mockResponses := map[string]map[string]mockResponse{}
+
+	mockResponses := map[string]map[string]mockResponse{
+		// hardcode based on the api spec because of complexity
+		"/projects": {
+			"POST": {
+				Code: "201",
+				Content: `{
+  "project": {
+    "maintenance_starts_at": "2023-01-02T20:03:02.273Z",
+    "id": "string",
+    "platform_id": "string",
+    "region_id": "string",
+    "name": "string",
+    "provisioner": "k8s-pod",
+    "default_endpoint_settings": {
+      "pg_settings": {
+        "additionalProp1": "string",
+        "additionalProp2": "string",
+        "additionalProp3": "string"
+      }
+    },
+    "pg_version": 0,
+    "created_at": "2023-01-02T20:03:02.273Z",
+    "updated_at": "2023-01-02T20:03:02.273Z",
+    "proxy_host": "string"
+  },
+  "connection_uris": [
+    {
+      "connection_uri": "string"
+    }
+  ],
+  "roles": [
+    {
+      "branch_id": "string",
+      "name": "string",
+      "password": "string",
+      "protected": true,
+      "created_at": "2023-01-02T20:03:02.273Z",
+      "updated_at": "2023-01-02T20:03:02.273Z"
+    }
+  ],
+  "databases": [
+    {
+      "id": 0,
+      "branch_id": "string",
+      "name": "string",
+      "owner_name": "string",
+      "created_at": "2023-01-02T20:03:02.273Z",
+      "updated_at": "2023-01-02T20:03:02.273Z"
+    }
+  ],
+  "operations": [
+      {
+        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "create_branch",
+        "status": "running",
+        "failures_count": 0,
+        "created_at": "2022-11-08T23:33:16Z",
+        "updated_at": "2022-11-08T23:33:20Z"
+      },
+      {
+        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "start_compute",
+        "status": "finished",
+        "failures_count": 0,
+        "created_at": "2022-11-15T20:02:00Z",
+        "updated_at": "2022-11-15T20:02:02Z"
+      }
+  ],
+  "branch": {
+    "id": "br-wispy-meadow-118737",
+    "project_id": "spring-example-302709",
+    "parent_id": "br-aged-salad-637688",
+    "parent_lsn": "0/1DE2850",
+    "name": "dev2",
+    "current_state": "ready",
+    "created_at": "2022-11-30T19:09:48Z",
+    "updated_at": "2022-12-01T19:53:05Z"
+  },
+  "endpoints": [
+    {
+      "host": "string",
+      "id": "string",
+      "project_id": "string",
+      "branch_id": "string",
+      "autoscaling_limit_min_cu": 0,
+      "autoscaling_limit_max_cu": 0,
+      "region_id": "string",
+      "type": "read_only",
+      "current_state": "init",
+      "pending_state": "init",
+      "settings": {
+        "pg_settings": {
+          "additionalProp1": "string",
+          "additionalProp2": "string",
+          "additionalProp3": "string"
+        }
+      },
+      "pooler_enabled": true,
+      "pooler_mode": "transaction",
+      "disabled": true,
+      "passwordless_access": true,
+      "last_active": "2023-01-02T20:03:02.273Z",
+      "created_at": "2023-01-02T20:03:02.273Z",
+      "updated_at": "2023-01-02T20:03:02.273Z",
+      "proxy_host": "string"
+    }
+  ]
+}`,
+			},
+		},
+		"/projects/{project_id}/branches": {
+			"POST": {
+				Code: "201",
+				Content: `{
+  "branch": {
+    "id": "br-wispy-meadow-118737",
+    "project_id": "spring-example-302709",
+    "parent_id": "br-aged-salad-637688",
+    "parent_lsn": "0/1DE2850",
+    "name": "dev2",
+    "current_state": "ready",
+    "created_at": "2022-11-30T19:09:48Z",
+    "updated_at": "2022-12-01T19:53:05Z"
+  },
+  "endpoints": [
+    {
+      "host": "string",
+      "id": "string",
+      "project_id": "string",
+      "branch_id": "string",
+      "autoscaling_limit_min_cu": 0,
+      "autoscaling_limit_max_cu": 0,
+      "region_id": "string",
+      "type": "read_only",
+      "current_state": "init",
+      "pending_state": "init",
+      "settings": {
+        "pg_settings": {
+          "additionalProp1": "string",
+          "additionalProp2": "string",
+          "additionalProp3": "string"
+        }
+      },
+      "pooler_enabled": true,
+      "pooler_mode": "transaction",
+      "disabled": true,
+      "passwordless_access": true,
+      "last_active": "2023-01-02T20:09:50.004Z",
+      "created_at": "2023-01-02T20:09:50.004Z",
+      "updated_at": "2023-01-02T20:09:50.004Z",
+      "proxy_host": "string"
+    }
+  ],
+  "operations": [
+    [
+      {
+        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "create_branch",
+        "status": "running",
+        "failures_count": 0,
+        "created_at": "2022-11-08T23:33:16Z",
+        "updated_at": "2022-11-08T23:33:20Z"
+      },
+      {
+        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "start_compute",
+        "status": "finished",
+        "failures_count": 0,
+        "created_at": "2022-11-15T20:02:00Z",
+        "updated_at": "2022-11-15T20:02:02Z"
+      }
+    ]
+  ]
+}`,
+			},
+		},
+		"/projects/{project_id}/operations": {
+			"GET": {
+				Code: "200",
+				Content: `{
+  "operations": [
+    [
+      {
+        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "create_branch",
+        "status": "running",
+        "failures_count": 0,
+        "created_at": "2022-11-08T23:33:16Z",
+        "updated_at": "2022-11-08T23:33:20Z"
+      },
+      {
+        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+        "project_id": "spring-example-302709",
+        "branch_id": "br-wispy-meadow-118737",
+        "endpoint_id": "ep-silent-smoke-806639",
+        "action": "start_compute",
+        "status": "finished",
+        "failures_count": 0,
+        "created_at": "2022-11-15T20:02:00Z",
+        "updated_at": "2022-11-15T20:02:02Z"
+      }
+    ]
+  ],
+  "pagination": {
+    "cursor": "string"
+  }
+}`,
+			},
+		},
+	}
+
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
@@ -589,7 +815,9 @@ func extractSpecs(spec openAPISpec) templateInput {
 		if _, ok := mockResponses[s.Route]; !ok {
 			mockResponses[s.Route] = map[string]mockResponse{}
 		}
-		mockResponses[s.Route][s.Method] = s.generateMockResponse()
+		if _, ok := mockResponses[s.Route][s.Method]; !ok {
+			mockResponses[s.Route][s.Method] = s.generateMockResponse()
+		}
 	}
 
 	return templateInput{
