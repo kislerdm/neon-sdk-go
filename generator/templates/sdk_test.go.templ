@@ -1,0 +1,319 @@
+package sdk
+
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestNewClient(t *testing.T) {
+	type args struct {
+		key    string
+		optFns []func(*options)
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Client
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				key:    "foo",
+				optFns: nil,
+			},
+			want: &client{
+				options: options{
+					key:        "foo",
+					httpClient: &http.Client{Timeout: defaultTimeout},
+				},
+				baseURL: baseURL,
+			},
+			wantErr: false,
+		},
+		{
+			name: "unhappy path: missing api key",
+			args: args{
+				key:    "",
+				optFns: nil,
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "happy path: custom http client",
+			args: args{
+				key: "bar",
+				optFns: []func(*options){
+					WithHTTPClient(&http.Client{Timeout: 1 * time.Minute}),
+				},
+			},
+			want: &client{
+				options: options{
+					key:        "bar",
+					httpClient: &http.Client{Timeout: 1 * time.Minute},
+				},
+				baseURL: baseURL,
+			},
+			wantErr: false,
+		},
+		{
+			name: "mock http client",
+			args: args{
+				key: "",
+				optFns: []func(*options){
+					WithHTTPClient(NewMockHTTPClient()),
+				},
+			},
+			want: &client{
+				options: options{
+					key:        "",
+					httpClient: mockHTTPClient{endpoints: endpointResponseExamples},
+				},
+				baseURL: baseURL,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				got, err := NewClient(tt.args.key, tt.args.optFns...)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("NewClient() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+type mockPayload struct {
+	Foo string `json:"foo"`
+}
+
+type mockHttp struct {
+	reqHeaders http.Header
+	respBody   mockPayload
+	err        Error
+}
+
+func (m *mockHttp) Do(req *http.Request) (*http.Response, error) {
+	m.reqHeaders = req.Header
+
+	if m.err.HTTPCode > 299 {
+		o, _ := json.Marshal(m.err.errorResp)
+		return &http.Response{
+			StatusCode: m.err.HTTPCode,
+			Request:    req,
+			Body:       io.NopCloser(bytes.NewReader(o)),
+		}, nil
+	}
+
+	var (
+		err error
+		r   []byte
+	)
+	if req.Body != nil {
+		buf, err := io.ReadAll(req.Body)
+		defer func() { _ = req.Body.Close() }()
+		if err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(buf, &m.respBody); err != nil {
+			return nil, err
+		}
+		m.respBody.Foo = "resp:" + strings.TrimPrefix(m.respBody.Foo, "req:")
+	}
+
+	if m.respBody.Foo != "" {
+		r, err = json.Marshal(m.respBody)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &http.Response{
+		StatusCode:    m.err.HTTPCode,
+		Body:          io.NopCloser(bytes.NewReader(r)),
+		ContentLength: int64(len(r)),
+		Request:       req,
+	}, nil
+}
+
+func Test_client_requestHandler(t *testing.T) {
+	type fields struct {
+		options options
+		baseURL string
+	}
+	type args struct {
+		url             string
+		t               string
+		reqPayload      interface{}
+		responsePayload interface{}
+	}
+
+	var respPayload mockPayload
+
+	tests := []struct {
+		name               string
+		fields             fields
+		args               args
+		wantRequestHeaders http.Header
+		wantResp           mockPayload
+		wantErr            error
+	}{
+		{
+			name: "happy path: post w payload",
+			fields: fields{
+				options: options{
+					key: "foo",
+					httpClient: &mockHttp{
+						err: Error{HTTPCode: http.StatusOK},
+					},
+				},
+				baseURL: "",
+			},
+			args: args{
+				url:             "",
+				t:               "POST",
+				reqPayload:      mockPayload{Foo: "req:bar"},
+				responsePayload: &respPayload,
+			},
+			wantRequestHeaders: http.Header{
+				"Accept":        []string{"application/json"},
+				"Content-Type":  []string{"application/json"},
+				"Authorization": []string{"Bearer foo"},
+			},
+			wantResp: mockPayload{Foo: "resp:bar"},
+			wantErr:  nil,
+		},
+		{
+			name: "happy path: get w/o payload",
+			fields: fields{
+				options: options{
+					key: "bar",
+					httpClient: &mockHttp{
+						err:      Error{HTTPCode: http.StatusOK},
+						respBody: mockPayload{Foo: "resp:"},
+					},
+				},
+				baseURL: "",
+			},
+			args: args{
+				url:             "",
+				t:               "GET",
+				responsePayload: &respPayload,
+			},
+			wantRequestHeaders: http.Header{
+				"Accept":        []string{"application/json"},
+				"Content-Type":  []string{"application/json"},
+				"Authorization": []string{"Bearer bar"},
+			},
+			wantResp: mockPayload{Foo: "resp:"},
+			wantErr:  nil,
+		},
+		{
+			name: "unhappy path: get w/o payload",
+			fields: fields{
+				options: options{
+					key: "bar",
+					httpClient: &mockHttp{
+						err: Error{
+							HTTPCode: http.StatusNotFound,
+							errorResp: errorResp{
+								Code:    "foo",
+								Message: "bar",
+							},
+						},
+					},
+				},
+				baseURL: "",
+			},
+			args: args{
+				url:             "",
+				t:               "GET",
+				responsePayload: &respPayload,
+			},
+			wantRequestHeaders: http.Header{
+				"Accept":        []string{"application/json"},
+				"Content-Type":  []string{"application/json"},
+				"Authorization": []string{"Bearer bar"},
+			},
+			wantResp: mockPayload{},
+			wantErr: Error{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Code:    "foo",
+					Message: "bar",
+				},
+			},
+		},
+		{
+			name: "unhappy path: https://github.com/neondatabase/neon/issues/2159",
+			fields: fields{
+				options: options{
+					key: "bar",
+					httpClient: &mockHttp{
+						err: Error{HTTPCode: http.StatusOK},
+					},
+				},
+				baseURL: "",
+			},
+			args: args{
+				url:             "",
+				t:               "GET",
+				responsePayload: &respPayload,
+			},
+			wantRequestHeaders: http.Header{
+				"Accept":        []string{"application/json"},
+				"Content-Type":  []string{"application/json"},
+				"Authorization": []string{"Bearer bar"},
+			},
+			wantResp: mockPayload{},
+			wantErr: Error{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Code:    "",
+					Message: "object not found",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c := &client{
+					options: tt.fields.options,
+					baseURL: tt.fields.baseURL,
+				}
+				respPayload = mockPayload{}
+
+				if err := c.requestHandler(
+					tt.args.url, tt.args.t, tt.args.reqPayload, tt.args.responsePayload,
+				); err != tt.wantErr {
+					t.Errorf("requestHandler() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				if !reflect.DeepEqual(tt.wantRequestHeaders, (tt.fields.options.httpClient).(*mockHttp).reqHeaders) {
+					t.Errorf("missing expected request headers")
+				}
+
+				if !reflect.DeepEqual(tt.wantResp, respPayload) {
+					t.Errorf("response payload does not match expectations")
+				}
+
+			},
+		)
+	}
+}

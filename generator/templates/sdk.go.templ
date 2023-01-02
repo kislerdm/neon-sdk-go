@@ -174,6 +174,7 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 
 	if responsePayload != nil {
 		buf, err := io.ReadAll(res.Body)
+	    defer func() { _ = res.Body.Close() }()
 		if err != nil {
 			return err
 		}

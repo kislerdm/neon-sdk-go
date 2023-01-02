@@ -73,12 +73,12 @@ func TestRun(t *testing.T) {
 			},
 			wantErr: false,
 			files: map[string]struct{}{
-				"go.mod":         {},
-				"doc.go":         {},
-				"sdk.go":         {},
-				"client_test.go": {},
-				"mock.go":        {},
-				"mock_test.go":   {},
+				"go.mod":       {},
+				"doc.go":       {},
+				"sdk.go":       {},
+				"sdk_test.go":  {},
+				"mock.go":      {},
+				"mock_test.go": {},
 			},
 		},
 	}
@@ -1063,10 +1063,12 @@ BarResponse
 					},
 				},
 			},
-			want: []string{`// Foo foo
+			want: []string{
+				`// Foo foo
 // bar
 // qux
-type Foo string`},
+type Foo string`,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -1253,8 +1255,13 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, extractStructFromSchemaRef(tt.args.schema), "extractStructFromSchemaRef(%v)", tt.args.schema)
-		})
+		t.Run(
+			tt.name, func(t *testing.T) {
+				assert.Equalf(
+					t, tt.want, extractStructFromSchemaRef(tt.args.schema), "extractStructFromSchemaRef(%v)",
+					tt.args.schema,
+				)
+			},
+		)
 	}
 }
