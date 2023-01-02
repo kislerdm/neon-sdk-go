@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"go/format"
 	"io"
 	"io/fs"
@@ -13,6 +14,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -119,12 +121,13 @@ type openAPISpec struct {
 }
 
 type templateInput struct {
-	Info                      string
-	ServerURL                 string
-	EndpointsInterfaceMethods []string
-	EndpointsImplementation   []string
-	Types                     []string
-	EndpointsResponseExample  map[string]map[string]mockResponse
+	Info                        string
+	ServerURL                   string
+	EndpointsInterfaceMethods   []string
+	EndpointsImplementation     []string
+	EndpointsImplementationTest []string
+	Types                       []string
+	EndpointsResponseExample    map[string]map[string]mockResponse
 }
 
 type field struct {
@@ -238,6 +241,23 @@ func (v field) argType() string {
 			return "bool"
 		}
 		return v.v
+	}
+}
+
+func (v field) generateDummy() interface{} {
+	switch v.format {
+	case "date-time", "date":
+		return time.Now()
+	case "int64", "int32", "double", "float":
+		return 1
+	default:
+		switch v.v {
+		case "integer":
+			return 1
+		case "boolean":
+			return true
+		}
+		return "\"foo\""
 	}
 }
 
@@ -389,6 +409,84 @@ func (e endpointImplementation) generateMockResponse() mockResponse {
 		Code:    e.ResponsePositivePathStatusCode,
 		Content: string(o),
 	}
+}
+
+func (e endpointImplementation) generateMethodImplementationTest() string {
+	o := `func Test_client_` + objNameGoConventionExport(e.Name) + `(t *testing.T) {
+	deserializeResp := func(s string) ` + e.ResponseStruct + ` {
+		var v ` + e.ResponseStruct + `
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+`
+
+	argsInpt := ""
+	testInpt := ""
+	fnInputArgs := ""
+	if len(e.RequestParametersPath) > 0 || e.RequestBodyStruct != "" {
+		argsInpt = "\n\t\targs args"
+		testInpt = "\n\t\t\targs: args{\n"
+		o += "\ttype args struct {\n"
+		for i, v := range e.RequestParametersPath {
+			prf := "\t\t" + v.canonicalName()
+			o += fmt.Sprintf("%s %v\n", prf, v.argType())
+			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, v.generateDummy())
+
+			fnInputArgs += ""
+
+		}
+		if e.RequestBodyStruct != "" {
+			o += "\t\tcfg " + e.RequestBodyStruct + "\n"
+			testInpt += "\t\t\t\tcfg: " + e.RequestBodyStruct + `{},
+`
+		}
+
+		testInpt += "\t\t\t},"
+		o += "\t}\n"
+	}
+
+	o += `	tests := []struct {
+		name string` + argsInpt + `
+		apiKey string
+		want ` + e.ResponseStruct + `
+		wantErr bool
+	}{
+		{
+			name: "happy path",` + testInpt + `
+			apiKey: "foo",
+			want: deserializeResp(endpointResponseExamples["` + e.Route + `"]["` + e.Method + `"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",` + testInpt + `
+			apiKey: "invalidApiKey",
+			want: ` + e.ResponseStruct + `{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(tt.apiKey, WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.` + e.Name + "(" + fnInputArgs + `)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("` + e.Name + `() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("` + e.Name + `() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}`
+
+	return o
 }
 
 func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
@@ -579,6 +677,7 @@ func extractSpecs(spec openAPISpec) templateInput {
 	m := generateModels(spec)
 
 	endpointsStr := make([]string, len(endpoints))
+	endpointsTestStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
 	models := m
 
@@ -811,6 +910,7 @@ func extractSpecs(spec openAPISpec) templateInput {
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
 		interfaceMethodsStr[i] = s.generateMethodDefinition()
+		endpointsTestStr[i] = s.generateMethodImplementationTest()
 
 		if _, ok := mockResponses[s.Route]; !ok {
 			mockResponses[s.Route] = map[string]mockResponse{}
@@ -821,12 +921,13 @@ func extractSpecs(spec openAPISpec) templateInput {
 	}
 
 	return templateInput{
-		Info:                      spec.Info.Description,
-		ServerURL:                 spec.Servers[0].URL,
-		EndpointsInterfaceMethods: interfaceMethodsStr,
-		EndpointsImplementation:   endpointsStr,
-		EndpointsResponseExample:  mockResponses,
-		Types:                     models.generateCode(),
+		Info:                        spec.Info.Description,
+		ServerURL:                   spec.Servers[0].URL,
+		EndpointsInterfaceMethods:   interfaceMethodsStr,
+		EndpointsImplementation:     endpointsStr,
+		EndpointsImplementationTest: endpointsTestStr,
+		EndpointsResponseExample:    mockResponses,
+		Types:                       models.generateCode(),
 	}
 }
 

@@ -463,6 +463,10 @@ func TestError_httpResp(t *testing.T) {
 	}
 }
 
+{{ range .EndpointsImplementationTest }}
+{{.}}
+{{ end }}
+
 func Test_client_ListProjects(t *testing.T) {
 	deserializeResp := func(s string) ProjectsResponse {
 		var v ProjectsResponse
@@ -471,7 +475,6 @@ func Test_client_ListProjects(t *testing.T) {
 		}
 		return v
 	}
-
 	tests := []struct {
 		name    string
 		apiKey  string
@@ -520,7 +523,6 @@ func Test_client_CreateProject(t *testing.T) {
 		}
 		return v
 	}
-
 	type args struct {
 		cfg ProjectCreateRequest
 	}

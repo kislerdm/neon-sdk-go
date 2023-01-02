@@ -1267,3 +1267,226 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 		)
 	}
 }
+
+func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) {
+	type fields struct {
+		Name                           string
+		Method                         string
+		Route                          string
+		Description                    string
+		RequestBodyRequires            bool
+		RequestBodyStruct              string
+		RequestBodyStructExample       interface{}
+		ResponseStruct                 string
+		RequestParametersPath          []field
+		ResponsePositivePathExample    interface{}
+		ResponsePositivePathStatusCode string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "listProjects",
+			fields: fields{
+				Name:           "ListProjects",
+				Method:         "GET",
+				Route:          "/projects",
+				Description:    "Retrieves a list of projects for the Neon account",
+				ResponseStruct: "ProjectsResponse",
+				ResponsePositivePathExample: map[string]interface{}{
+					"projects": []map[string]interface{}{
+						{
+							"id":          "shiny-wind-028834",
+							"platform_id": "aws",
+							"region_id":   "aws-us-east-2",
+							"name":        "shiny-wind-028834",
+							"pg_version":  15,
+							"locked":      false,
+							"created_at":  "2022-11-23T17:42:25Z",
+							"updated_at":  "2022-11-23T17:42:25Z",
+							"proxy_host":  "us-east-2.aws.neon.tech",
+						},
+						{
+							"id":          "winter-boat-259881",
+							"platform_id": "aws",
+							"region_id":   "aws-us-east-2",
+							"name":        "winter-boat-259881",
+							"pg_version":  15,
+							"locked":      false,
+							"created_at":  "2022-11-23T17:52:25Z",
+							"updated_at":  "2022-11-23T17:52:25Z",
+							"proxy_host":  "us-east-2.aws.neon.tech",
+						},
+					},
+				},
+				ResponsePositivePathStatusCode: "200",
+			},
+			want: `func Test_client_ListProjects(t *testing.T) {
+	deserializeResp := func(s string) ProjectsResponse {
+		var v ProjectsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	tests := []struct {
+		name    string
+		apiKey  string
+		want    ProjectsResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
+			apiKey:  "foo",
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			want:    ProjectsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(tt.apiKey, WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+
+				got, err := c.ListProjects()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjects() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}`,
+		},
+		{
+			name: "updateProject",
+			fields: fields{
+				Name:                "updateProject",
+				Method:              "PATCH",
+				Route:               "/projects/{project_id}",
+				Description:         "Updates the specified project",
+				RequestBodyRequires: true,
+				RequestBodyStruct:   "ProjectUpdateRequest",
+				RequestBodyStructExample: map[string]interface{}{
+					"project": map[string]interface{}{"name": "foo"},
+				},
+				ResponseStruct: "ProjectOperations",
+				RequestParametersPath: []field{
+					{
+						k:           "project_id",
+						v:           "string",
+						description: "The Neon project ID",
+						required:    true,
+					},
+				},
+				ResponsePositivePathExample: map[string]interface{}{
+					"project": map[string]interface{}{
+						"id":          "shiny-wind-028834",
+						"platform_id": "aws",
+						"region_id":   "aws-us-east-2",
+						"name":        "myproject",
+						"provisioner": "k8s-pod",
+						"pg_version":  15,
+						"locked":      false,
+						"created_at":  "2022-11-23T17:42:25Z",
+						"updated_at":  "2022-12-04T02:39:25Z",
+						"proxy_host":  "us-east-2.aws.neon.tech",
+					},
+				},
+				ResponsePositivePathStatusCode: "200",
+			},
+			want: `func Test_client_UpdateProject(t *testing.T) {
+	deserializeResp := func(s string) ProjectOperations {
+		var v ProjectOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		cfg ProjectUpdateRequest
+	}
+	tests := []struct {
+		name string
+		args args
+		apiKey string
+		want ProjectOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				cfg: ProjectUpdateRequest{},
+			},
+			apiKey: "foo",
+			want: deserializeResp(endpointResponseExamples["/projects/{project_id}"]["PATCH"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				cfg: ProjectUpdateRequest{},
+			},
+			apiKey: "invalidApiKey",
+			want: ProjectOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(tt.apiKey, WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.UpdateProject(tt.args.projectID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("UpdateProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("UpdateProject() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				e := endpointImplementation{
+					Name:                           tt.fields.Name,
+					Method:                         tt.fields.Method,
+					Route:                          tt.fields.Route,
+					Description:                    tt.fields.Description,
+					RequestBodyRequires:            tt.fields.RequestBodyRequires,
+					RequestBodyStruct:              tt.fields.RequestBodyStruct,
+					RequestBodyStructExample:       tt.fields.RequestBodyStructExample,
+					ResponseStruct:                 tt.fields.ResponseStruct,
+					RequestParametersPath:          tt.fields.RequestParametersPath,
+					ResponsePositivePathExample:    tt.fields.ResponsePositivePathExample,
+					ResponsePositivePathStatusCode: tt.fields.ResponsePositivePathStatusCode,
+				}
+				assert.Equalf(t, tt.want, e.generateMethodImplementationTest(), "generateMethodImplementationTest()")
+			},
+		)
+	}
+}
