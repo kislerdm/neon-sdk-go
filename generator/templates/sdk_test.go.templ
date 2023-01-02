@@ -390,3 +390,50 @@ func Test_convertErrorResponse(t *testing.T) {
 		)
 	}
 }
+
+func TestError_Error(t *testing.T) {
+	type fields struct {
+		HTTPCode  int
+		errorResp errorResp
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "404",
+			fields: fields{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Message: "object not found",
+				},
+			},
+			want: "[HTTP Code: 404][Error Code: ] object not found",
+		},
+		{
+			name: "406",
+			fields: fields{
+				HTTPCode: http.StatusNotAcceptable,
+				errorResp: errorResp{
+					Code:    "foo",
+					Message: "bar",
+				},
+			},
+			want: "[HTTP Code: 406][Error Code: foo] bar",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				e := Error{
+					HTTPCode:  tt.fields.HTTPCode,
+					errorResp: tt.fields.errorResp,
+				}
+				if got := e.Error(); got != tt.want {
+					t.Errorf("Error() = %s, want %s", got, tt.want)
+				}
+			},
+		)
+	}
+}
