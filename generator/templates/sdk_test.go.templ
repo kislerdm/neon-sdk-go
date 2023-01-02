@@ -3,6 +3,7 @@ package sdk
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -313,6 +314,78 @@ func Test_client_requestHandler(t *testing.T) {
 					t.Errorf("response payload does not match expectations")
 				}
 
+			},
+		)
+	}
+}
+
+type faultyReader struct{}
+
+func (f faultyReader) Read(p []byte) (n int, err error) {
+	return 1, errors.New("foo")
+}
+
+func Test_convertErrorResponse(t *testing.T) {
+	type args struct {
+		res *http.Response
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "happy path: not found",
+			args: args{
+				res: &http.Response{
+					StatusCode: http.StatusNotFound,
+					Body:       io.NopCloser(strings.NewReader(`{"code":"","message":"not found"}`)),
+				},
+			},
+			wantErr: Error{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Message: "not found",
+				},
+			},
+		},
+		{
+			name: "unhappy path: faulty body content",
+			args: args{
+				res: &http.Response{
+					StatusCode: http.StatusNotFound,
+					Body:       io.NopCloser(faultyReader{}),
+				},
+			},
+			wantErr: Error{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Message: "cannot read response bytes",
+				},
+			},
+		},
+		{
+			name: "unhappy path: faulty json",
+			args: args{
+				res: &http.Response{
+					StatusCode: http.StatusNotFound,
+					Body:       io.NopCloser(strings.NewReader(`{`)),
+				},
+			},
+			wantErr: Error{
+				HTTPCode: http.StatusNotFound,
+				errorResp: errorResp{
+					Message: "unexpected end of JSON input",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				if err := convertErrorResponse(tt.args.res); !reflect.DeepEqual(tt.wantErr, err) {
+					t.Errorf("convertErrorResponse() error = %v, wantErr %v", err, tt.wantErr)
+				}
 			},
 		)
 	}
