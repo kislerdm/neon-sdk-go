@@ -605,6 +605,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 							"bar":    2,
 						},
 					},
+					ResponsePositivePathStatusCode: "200",
 					RequestParametersPath: []field{
 						{
 							k:        "bar",
@@ -636,6 +637,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 						},
 						"bar": "init",
 					},
+					ResponsePositivePathStatusCode: "200",
 					RequestParametersPath: []field{
 						{
 							k:        "qux_id",

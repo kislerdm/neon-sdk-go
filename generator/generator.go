@@ -529,6 +529,9 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpoint
 						if vv, ok := v.Value.Content["application/json"]; ok {
 							e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
 							e.ResponsePositivePathExample = vv.Example
+							if e.ResponsePositivePathExample == nil && vv.Schema.Value != nil {
+								e.ResponsePositivePathExample = vv.Schema.Value.Example
+							}
 						}
 					}
 					e.ResponsePositivePathStatusCode = httpCode
