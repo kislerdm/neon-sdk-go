@@ -2,6 +2,18 @@
 
 [![logo](fig/logo.png)](https://neon.tech)
 
+- [How to use](#how-to-use)
+    + [Prerequisites](#prerequisites)
+    + [Installation](#installation)
+    + [Code Snippets](#code-snippets)
+        - [Authentication with the Neon Platform](#authentication-with-the-neon-platform)
+            * [Variadic Function](#variadic-function)
+            * [Environment Variables Evaluation](#environment-variables-evaluation)
+        - [Mock](#mock)
+- [Development](#development)
+    + [API V2](#api-v2)
+- [Contribution](#contribution)
+
 The SDK to manage [Neon Platform](https://neon.tech) programmatically.
 
 > Neon is a fully managed serverless PostgreSQL with a generous free tier. Neon separates storage and compute and offers
@@ -10,9 +22,128 @@ The SDK to manage [Neon Platform](https://neon.tech) programmatically.
 
 Find more about Neon [here](https://neon.tech/docs/introduction/about/).
 
-## The SDK
+## How to use
 
-The SDK codebase is generated using the [OpenAPI](https://spec.openapis.org/) specification used for
+### Prerequisites
+
+- [go ~> 1.17](https://go.dev/dl/)
+- [API Key](https://neon.tech/docs/manage/api-keys/)
+
+### Installation
+
+Add the SDK as a module dependency:
+
+```commandline
+go get github.com/kislerdm/neon-sdk-go
+```
+
+Run to specify the release version:
+
+```commandline
+go get github.com/kislerdm/neon-sdk-go@{{.Ver}}
+```
+
+Where `{{.Ver}}` is the release version.
+
+### Code Snippets
+
+#### Authentication
+
+Authentication with the Neon Platform is implemented
+using [variadic functions](https://gobyexample.com/variadic-functions) and environment variables evaluation in the
+following order:
+
+1. Variadic function client's argument;
+2. Environment variable `NEON_API_KEY`.
+
+Note that if the API key is provided as the variadic function argument, key from the environment variable `NEON_API_KEY`
+will be ignored.
+
+##### Variadic Function
+
+```go
+package main
+
+import (
+	"log"
+
+	neon "github.com/kislerdm/neon-sdk-go"
+)
+
+func main() {
+	client, err := neon.NewClient(neon.WithAPIKey("{{.NeonApiKey}}"))
+	if err != nil {
+		panic(err)
+	}
+
+	v, err := client.ListProjects()
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("%d projects found", len(v.Projects))
+}
+```
+
+##### Environment Variables Evaluation
+
+**_Requirement_**: a valid Neon [API key](https://neon.tech/docs/manage/api-keys/) must be exported as the environment variable `NEON_API_KEY`.
+
+```go
+package main
+
+import (
+	"log"
+
+	neon "github.com/kislerdm/neon-sdk-go"
+)
+
+func main() {
+	client, err := neon.NewClient()
+	if err != nil {
+		panic(err)
+	}
+
+	v, err := client.ListProjects()
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("%d projects found", len(v.Projects))
+}
+```
+
+#### Mock
+
+The SDK provides the http client's mock for unit tests. An example snippet is shown below.
+
+```go
+package main
+
+import (
+	"log"
+
+	neon "github.com/kislerdm/neon-sdk-go"
+)
+
+func main() {
+	client, err := neon.NewClient(neon.WithHTTPClient(neon.NewMockHTTPClient()))
+	if err != nil {
+		panic(err)
+	}
+
+	v, err := client.ListProjects()
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("%d projects found", len(v.Projects))
+}
+```
+
+## Development
+
+The SDK codebase is generated using the [OpenAPI](https://spec.openapis.org/) from
 the [API reference page](https://neon.tech/api-reference/v2/). The generator application codebase can be
 found [here](generator).
 
