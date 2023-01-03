@@ -111,12 +111,10 @@ func extractSpecs(spec openAPISpec) templateInput {
 	endpoints := generateEndpointsImplementationMethods(spec)
 	m := generateModels(spec)
 
-	// filter models
-
 	endpointsStr := make([]string, len(endpoints))
 	endpointsTestStr := make([]string, len(endpoints))
 	interfaceMethodsStr := make([]string, len(endpoints))
-	models := m
+	models := models{}
 
 	mockResponses := map[string]map[string]mockResponse{
 		// hardcode based on the api spec because of complexity
@@ -455,6 +453,9 @@ func extractSpecs(spec openAPISpec) templateInput {
 		if _, ok := mockResponses[s.Route][s.Method]; !ok {
 			mockResponses[s.Route][s.Method] = s.generateMockResponse()
 		}
+
+		filterModels(m, models, s.ResponseStruct)
+		filterModels(m, models, s.RequestBodyStruct)
 	}
 
 	return templateInput{
@@ -465,6 +466,25 @@ func extractSpecs(spec openAPISpec) templateInput {
 		EndpointsImplementationTest: endpointsTestStr,
 		EndpointsResponseExample:    mockResponses,
 		Types:                       models.generateCode(),
+	}
+}
+
+func filterModels(modelsSource models, output models, name string) {
+	name = strings.NewReplacer("[", "", "]", "").Replace(name)
+
+	v, ok := modelsSource[name]
+	if !ok {
+		return
+	}
+
+	output[v.name] = v
+
+	for child := range v.children {
+		filterModels(modelsSource, output, child)
+	}
+
+	for _, field := range v.fields {
+		filterModels(modelsSource, output, field.v)
 	}
 }
 
