@@ -2,11 +2,15 @@
 
 [![logo](fig/logo.png)](https://neon.tech)
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/kislerdm/neon-sdk-go)](https://goreportcard.com/report/github.com/kislerdm/neon-sdk-go)
+[![codecov](https://codecov.io/gh/kislerdm/neon-sdk-go/branch/master/graph/badge.svg?token=F6SF7VX3G3)](https://codecov.io/gh/kislerdm/neon-sdk-go)
+[![Licenses Check](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkislerdm%2Fneon-sdk-go.svg?type=small)](https://app.fossa.com/reports/fcbd29f3-1d63-4437-9946-cb320a567c42)
+
 - [How to use](#how-to-use)
     + [Prerequisites](#prerequisites)
     + [Installation](#installation)
     + [Code Snippets](#code-snippets)
-        - [Authentication with the Neon Platform](#authentication-with-the-neon-platform)
+        - [Authentication with the Neon Platform](#authentication)
             * [Variadic Function](#variadic-function)
             * [Environment Variables Evaluation](#environment-variables-evaluation)
         - [Mock](#mock)
@@ -153,4 +157,6 @@ The SDK supports V2 only because V1 has been deprecated.
 
 ## Contribution
 
-The SDK is distributed under the [MIT license](LICENSE). Please feel free to open an issue ticket, or PR to contribute.
+The SDK is distributed under the [MIT license](LICENSE), find full list of dependencies' licenses [here](https://app.fossa.com/reports/fcbd29f3-1d63-4437-9946-cb320a567c42). 
+
+Please feel free to open an issue ticket, or PR to contribute.
