@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -92,9 +93,9 @@ const (
 )
 
 // NewClient initialised the Client to communicate to the Neon Platform.
-func NewClient(apiKey string, optFns ...func(*options)) (Client, error) {
+func NewClient(optFns ...func(*options)) (Client, error) {
 	o := options{
-		key:        apiKey,
+		key:        "",
 		httpClient: nil,
 	}
 
@@ -103,17 +104,28 @@ func NewClient(apiKey string, optFns ...func(*options)) (Client, error) {
 	}
 
 	resolveHTTPClient(&o)
-
-	if _, ok := (o.httpClient).(mockHTTPClient); !ok && apiKey == "" {
-        return nil, errors.New(
-            "authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
-        )
-    }
+	if err := resolveApiKey(&o); err != nil {
+		return nil, err
+	}
 
 	return &client{
 		baseURL: baseURL,
 		options: o,
 	}, nil
+}
+
+func resolveApiKey(o *options) error {
+	if o.key == "" {
+		o.key = os.Getenv("NEON_API_KEY")
+	}
+
+	if _, ok := (o.httpClient).(mockHTTPClient); !ok && o.key == "" {
+		return errors.New(
+			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
+		)
+	}
+
+	return nil
 }
 
 func resolveHTTPClient(o *options) {
@@ -126,6 +138,13 @@ func resolveHTTPClient(o *options) {
 func WithHTTPClient(client HTTPClient) func(*options) {
 	return func(o *options) {
 		o.httpClient = client
+	}
+}
+
+// WithAPIKey sets the Neon API key.
+func WithAPIKey(key string) func(*options) {
+	return func(o *options) {
+		o.key = key
 	}
 }
 

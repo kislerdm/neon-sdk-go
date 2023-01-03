@@ -116,13 +116,13 @@ func TestRun(t *testing.T) {
 				}
 			},
 		)
-		//t.Cleanup(
-		//	func() {
-		//		if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-		//			panic(err)
-		//		}
-		//	},
-		//)
+		t.Cleanup(
+			func() {
+				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+					panic(err)
+				}
+			},
+		)
 	}
 }
 

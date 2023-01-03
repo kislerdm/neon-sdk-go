@@ -738,7 +738,7 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(tt.apiKey, WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
 				if err != nil {
 					panic(err)
 				}
