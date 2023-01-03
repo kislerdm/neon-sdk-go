@@ -100,8 +100,372 @@ func Run(cfg Config) error {
 			return err
 		}
 	}
-
 	return testGeneratedCode(cfg.PathOutput)
+}
+
+func extractSpecs(spec openAPISpec) templateInput {
+	if len(spec.Servers) < 1 {
+		panic("no server spec found")
+	}
+
+	endpoints := generateEndpointsImplementationMethods(spec)
+	m := generateModels(spec)
+
+	// filter models
+
+	endpointsStr := make([]string, len(endpoints))
+	endpointsTestStr := make([]string, len(endpoints))
+	interfaceMethodsStr := make([]string, len(endpoints))
+	models := m
+
+	mockResponses := map[string]map[string]mockResponse{
+		// hardcode based on the api spec because of complexity
+		"/projects": {
+			"POST": {
+				Code: "201",
+				Content: `{
+		 "project": {
+		   "maintenance_starts_at": "2023-01-02T20:03:02.273Z",
+		   "id": "string",
+		   "platform_id": "string",
+		   "region_id": "string",
+		   "name": "string",
+		   "provisioner": "k8s-pod",
+		   "default_endpoint_settings": {
+		     "pg_settings": {
+		       "additionalProp1": "string",
+		       "additionalProp2": "string",
+		       "additionalProp3": "string"
+		     }
+		   },
+		   "pg_version": 0,
+		   "created_at": "2023-01-02T20:03:02.273Z",
+		   "updated_at": "2023-01-02T20:03:02.273Z",
+		   "proxy_host": "string"
+		 },
+		 "connection_uris": [
+		   {
+		     "connection_uri": "string"
+		   }
+		 ],
+		 "roles": [
+		   {
+		     "branch_id": "string",
+		     "name": "string",
+		     "password": "string",
+		     "protected": true,
+		     "created_at": "2023-01-02T20:03:02.273Z",
+		     "updated_at": "2023-01-02T20:03:02.273Z"
+		   }
+		 ],
+		 "databases": [
+		   {
+		     "id": 0,
+		     "branch_id": "string",
+		     "name": "string",
+		     "owner_name": "string",
+		     "created_at": "2023-01-02T20:03:02.273Z",
+		     "updated_at": "2023-01-02T20:03:02.273Z"
+		   }
+		 ],
+		 "operations": [
+		     {
+		       "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "create_branch",
+		       "status": "running",
+		       "failures_count": 0,
+		       "created_at": "2022-11-08T23:33:16Z",
+		       "updated_at": "2022-11-08T23:33:20Z"
+		     },
+		     {
+		       "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "start_compute",
+		       "status": "finished",
+		       "failures_count": 0,
+		       "created_at": "2022-11-15T20:02:00Z",
+		       "updated_at": "2022-11-15T20:02:02Z"
+		     }
+		 ],
+		 "branch": {
+		   "id": "br-wispy-meadow-118737",
+		   "project_id": "spring-example-302709",
+		   "parent_id": "br-aged-salad-637688",
+		   "parent_lsn": "0/1DE2850",
+		   "name": "dev2",
+		   "current_state": "ready",
+		   "created_at": "2022-11-30T19:09:48Z",
+		   "updated_at": "2022-12-01T19:53:05Z"
+		 },
+		 "endpoints": [
+		   {
+		     "host": "string",
+		     "id": "string",
+		     "project_id": "string",
+		     "branch_id": "string",
+		     "autoscaling_limit_min_cu": 0,
+		     "autoscaling_limit_max_cu": 0,
+		     "region_id": "string",
+		     "type": "read_only",
+		     "current_state": "init",
+		     "pending_state": "init",
+		     "settings": {
+		       "pg_settings": {
+		         "additionalProp1": "string",
+		         "additionalProp2": "string",
+		         "additionalProp3": "string"
+		       }
+		     },
+		     "pooler_enabled": true,
+		     "pooler_mode": "transaction",
+		     "disabled": true,
+		     "passwordless_access": true,
+		     "last_active": "2023-01-02T20:03:02.273Z",
+		     "created_at": "2023-01-02T20:03:02.273Z",
+		     "updated_at": "2023-01-02T20:03:02.273Z",
+		     "proxy_host": "string"
+		   }
+		 ]
+		}`,
+			},
+		},
+		"/projects/{project_id}/branches": {
+			"POST": {
+				Code: "201",
+				Content: `{
+		 "branch": {
+		   "id": "br-wispy-meadow-118737",
+		   "project_id": "spring-example-302709",
+		   "parent_id": "br-aged-salad-637688",
+		   "parent_lsn": "0/1DE2850",
+		   "name": "dev2",
+		   "current_state": "ready",
+		   "created_at": "2022-11-30T19:09:48Z",
+		   "updated_at": "2022-12-01T19:53:05Z"
+		 },
+		 "endpoints": [
+		   {
+		     "host": "string",
+		     "id": "string",
+		     "project_id": "string",
+		     "branch_id": "string",
+		     "autoscaling_limit_min_cu": 0,
+		     "autoscaling_limit_max_cu": 0,
+		     "region_id": "string",
+		     "type": "read_only",
+		     "current_state": "init",
+		     "pending_state": "init",
+		     "settings": {
+		       "pg_settings": {
+		         "additionalProp1": "string",
+		         "additionalProp2": "string",
+		         "additionalProp3": "string"
+		       }
+		     },
+		     "pooler_enabled": true,
+		     "pooler_mode": "transaction",
+		     "disabled": true,
+		     "passwordless_access": true,
+		     "last_active": "2023-01-02T20:09:50.004Z",
+		     "created_at": "2023-01-02T20:09:50.004Z",
+		     "updated_at": "2023-01-02T20:09:50.004Z",
+		     "proxy_host": "string"
+		   }
+		 ],
+		 "operations": [
+		     {
+		       "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "create_branch",
+		       "status": "running",
+		       "failures_count": 0,
+		       "created_at": "2022-11-08T23:33:16Z",
+		       "updated_at": "2022-11-08T23:33:20Z"
+		     },
+		     {
+		       "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "start_compute",
+		       "status": "finished",
+		       "failures_count": 0,
+		       "created_at": "2022-11-15T20:02:00Z",
+		       "updated_at": "2022-11-15T20:02:02Z"
+		     }
+		 ]
+		}`,
+			},
+		},
+		"/projects/{project_id}/operations": {
+			"GET": {
+				Code: "200",
+				Content: `{
+		 "operations": [
+		     {
+		       "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "create_branch",
+		       "status": "running",
+		       "failures_count": 0,
+		       "created_at": "2022-11-08T23:33:16Z",
+		       "updated_at": "2022-11-08T23:33:20Z"
+		     },
+		     {
+		       "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
+		       "project_id": "spring-example-302709",
+		       "branch_id": "br-wispy-meadow-118737",
+		       "endpoint_id": "ep-silent-smoke-806639",
+		       "action": "start_compute",
+		       "status": "finished",
+		       "failures_count": 0,
+		       "created_at": "2022-11-15T20:02:00Z",
+		       "updated_at": "2022-11-15T20:02:02Z"
+		     }
+		 ],
+		 "pagination": {
+		   "cursor": "string"
+		 }
+		}`,
+			},
+		},
+		"/projects/{project_id}/branches/{branch_id}/databases": {
+			"GET": {
+				Code: "200",
+				Content: `{
+		"databases": [
+			{
+				"id": 834686,
+				"branch_id": "br-aged-salad-637688",
+				"name": "main",
+				"owner_name": "casey",
+				"created_at": "2022-11-30T18:25:15Z",
+				"updated_at": "2022-11-30T18:25:15Z"
+			},
+			{
+				"id": 834686,
+				"branch_id": "br-aged-salad-637688",
+				"name": "mydb",
+				"owner_name": "casey",
+				"created_at": "2022-10-30T17:14:13Z",
+				"updated_at": "2022-10-30T17:14:13Z"
+			}
+		]}`,
+			},
+		},
+		"/projects/{project_id}/endpoints": {
+			"POST": {
+				Code: "201",
+				Content: `{
+		 "endpoint": {
+		   "autoscaling_limit_max_cu": 1,
+		   "autoscaling_limit_min_cu": 1,
+		   "branch_id": "br-proud-paper-090813",
+		   "created_at": "2022-12-03T15:37:07Z",
+		   "current_state": "init",
+		   "disabled": false,
+		   "host": "ep-shrill-thunder-454069.us-east-2.aws.neon.tech",
+		   "id": "ep-shrill-thunder-454069",
+		   "passwordless_access": true,
+		   "pending_state": "active",
+		   "pooler_enabled": false,
+		   "pooler_mode": "transaction",
+		   "project_id": "bitter-meadow-966132",
+		   "proxy_host": "us-east-2.aws.neon.tech",
+		   "region_id": "aws-us-east-2",
+		   "settings": {
+		     "pg_settings": {}
+		   },
+		   "type": "read_write",
+		   "updated_at": "2022-12-03T15:37:07Z"
+		 },
+		 "operations": [{
+		   "action": "start_compute",
+		   "branch_id": "br-proud-paper-090813",
+		   "created_at": "2022-12-03T15:37:07Z",
+		   "endpoint_id": "ep-shrill-thunder-454069",
+		   "failures_count": 0,
+		   "id": "874f8bfe-f51d-4c61-85af-a29bea73e0e2",
+		   "project_id": "bitter-meadow-966132",
+		   "status": "running",
+		   "updated_at": "2022-12-03T15:37:07Z"
+		 }]
+		}`,
+			},
+		},
+		"/projects/{project_id}/endpoints/{endpoint_id}": {
+			"DELETE": {
+				Code:    "200",
+				Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"fd11748e-3c68-458f-b9e3-66d409e3eef0","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			},
+			"PATCH": {
+				Code:    "200",
+				Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"fd11748e-3c68-458f-b9e3-66d409e3eef0","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			},
+		},
+		"/projects/{project_id}/endpoints/{endpoint_id}/start": {
+			"POST": {
+				Code:    "200",
+				Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"start_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"e061087e-3c99-4856-b9c8-6b7751a253af","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			},
+		},
+		"/projects/{project_id}/endpoints/{endpoint_id}/suspend": {
+			"POST": {
+				Code:    "200",
+				Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"e061087e-3c99-4856-b9c8-6b7751a253af","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			},
+		},
+		"/projects/{project_id}/branches/{branch_id}/endpoints": {
+			"GET": {
+				Code:    "200",
+				Content: `{"endpoints":[{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-aged-salad-637688","created_at":"2022-11-23T17:42:25Z","current_state":"idle","disabled":false,"host":"ep-little-smoke-851426.us-east-2.aws.neon.tech","id":"ep-little-smoke-851426","last_active":"2022-11-23T17:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-11-30T18:25:21Z"}]}`,
+			},
+		},
+		"/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password": {
+			"POST": {
+				Code:    "200",
+				Content: `{"operations":[{"action":"apply_config","branch_id":"br-noisy-sunset-458773","created_at":"2022-12-03T12:58:18Z","endpoint_id":"ep-small-pine-767857","failures_count":0,"id":"6bef07a0-ebca-40cd-9100-7324036cfff2","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-03T12:58:18Z"},{"action":"suspend_compute","branch_id":"br-noisy-sunset-458773","created_at":"2022-12-03T12:58:18Z","endpoint_id":"ep-small-pine-767857","failures_count":0,"id":"16b5bfca-4697-4194-a338-d2cdc9aca2af","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-03T12:58:18Z"}],"role":{"branch_id":"br-noisy-sunset-458773","created_at":"2022-12-03T12:39:39Z","name":"sally","password":"ClfD0aVuK3eK","protected":false,"updated_at":"2022-12-03T12:58:18Z"}}`,
+			},
+		},
+		"/projects/{project_id}/branches/{branch_id}/roles": {
+			"POST": {
+				Code:    "201",
+				Content: `{"operations":[{"action":"apply_config","branch_id":"br-noisy-sunset-458773","created_at":"2022-12-03T11:58:29Z","endpoint_id":"ep-small-pine-767857","failures_count":0,"id":"2c2be371-d5ac-4db5-8b68-79f05e8bc287","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-03T11:58:29Z"}],"role":{"branch_id":"br-noisy-sunset-458773","created_at":"2022-12-03T11:58:29Z","name":"sally","password":"Onf1AjayKwe0","protected":false,"updated_at":"2022-12-03T11:58:29Z"}}`,
+			},
+		},
+	}
+
+	for i, s := range endpoints {
+		endpointsStr[i] = s.generateMethodImplementation()
+		interfaceMethodsStr[i] = s.generateMethodDefinition()
+		endpointsTestStr[i] = s.generateMethodImplementationTest()
+
+		if _, ok := mockResponses[s.Route]; !ok {
+			mockResponses[s.Route] = map[string]mockResponse{}
+		}
+		if _, ok := mockResponses[s.Route][s.Method]; !ok {
+			mockResponses[s.Route][s.Method] = s.generateMockResponse()
+		}
+	}
+
+	return templateInput{
+		Info:                        spec.Info.Description,
+		ServerURL:                   spec.Servers[0].URL,
+		EndpointsInterfaceMethods:   interfaceMethodsStr,
+		EndpointsImplementation:     endpointsStr,
+		EndpointsImplementationTest: endpointsTestStr,
+		EndpointsResponseExample:    mockResponses,
+		Types:                       models.generateCode(),
+	}
 }
 
 func testGeneratedCode(p string) error {
@@ -128,137 +492,6 @@ type templateInput struct {
 	EndpointsImplementationTest []string
 	Types                       []string
 	EndpointsResponseExample    map[string]map[string]mockResponse
-}
-
-type field struct {
-	k, v, format string
-	description  string
-	required     bool
-	isInPath     bool
-	isInQuery    bool
-}
-
-func (v *field) setRequired(b bool) {
-	v.required = b
-}
-
-func (v *field) setDescription(s string) {
-	v.description = s
-}
-
-func (v field) canonicalName() string {
-	return objNameGoConvention(v.k)
-}
-
-func (v field) docString() string {
-	if v.description == "" {
-		return ""
-	}
-	return docString(objNameGoConventionExport(v.k), v.description)
-}
-
-func objNameGoConvention(s string) string {
-	o := ""
-
-	s = replaceSpecialChars(s)
-	s = strings.ToLower(s)
-
-	for i, el := range strings.Split(s, "_") {
-		if i > 0 {
-			el = strings.ToUpper(el[:1]) + el[1:]
-		}
-		o += el
-	}
-
-	switch o[len(o)-2:] {
-	case "id", "Id":
-		return o[:len(o)-2] + "ID"
-	}
-
-	switch o[len(o)-3:] {
-	case "url", "Url":
-		return o[:len(o)-3] + "URL"
-	case "uri", "Uri":
-		return o[:len(o)-3] + "URI"
-	default:
-		return o
-	}
-}
-
-func replaceSpecialChars(o string) string {
-	return strings.NewReplacer(
-		"-", "_",
-		".", "_",
-		" ", "_",
-	).Replace(o)
-}
-
-func objNameGoConventionExport(s string) string {
-	s = objNameGoConvention(s)
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-func (v field) routeElement() string {
-	r := v.canonicalName()
-
-	switch v.format {
-	case "int64":
-		return "strconv.FormatInt(" + r + ", 10)"
-	case "int32":
-		return "strconv.FormatInt(int64(" + r + "), 10)"
-	case "double":
-		return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
-	case "float":
-		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
-	case "date-time", "date":
-		return r + ".Format(time.RFC3339)"
-	default:
-		switch v.v {
-		case "integer":
-			return "strconv.FormatInt(int64(" + r + "), 10)"
-		case "boolean":
-			return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
-		}
-		return r
-	}
-}
-
-func (v field) argType() string {
-	switch v.format {
-	case "date-time", "date":
-		return "time.Time"
-	case "int64", "int32":
-		return v.format
-	case "double":
-		return "float64"
-	case "float":
-		return "float32"
-	default:
-		switch v.v {
-		case "integer":
-			return "int"
-		case "boolean":
-			return "bool"
-		}
-		return v.v
-	}
-}
-
-func (v field) generateDummy() interface{} {
-	switch v.format {
-	case "date-time", "date":
-		return time.Now()
-	case "int64", "int32", "double", "float":
-		return 1
-	default:
-		switch v.v {
-		case "integer":
-			return 1
-		case "boolean":
-			return true
-		}
-		return "\"foo\""
-	}
 }
 
 type endpointImplementation struct {
@@ -422,9 +655,9 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	}
 `
 
-	argsInpt := ""
-	testInpt := ""
-	fnInputArgs := ""
+	var (
+		argsInpt, testInpt, fnInputArgs, pointerCfg, pointerTypeCfg string
+	)
 	if len(e.RequestParametersPath) > 0 || e.RequestBodyStruct != "" {
 		argsInpt = "\n\t\targs args"
 		testInpt = "\n\t\t\targs: args{\n"
@@ -441,8 +674,12 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 		}
 
 		if e.RequestBodyStruct != "" {
-			o += "\t\tcfg " + e.RequestBodyStruct + "\n"
-			testInpt += "\t\t\t\tcfg: " + e.RequestBodyStruct + `{},`
+			if !e.RequestBodyRequires {
+				pointerCfg = "&"
+				pointerTypeCfg = "*"
+			}
+			o += "\t\tcfg " + pointerTypeCfg + e.RequestBodyStruct + "\n"
+			testInpt += "\t\t\t\tcfg: " + pointerCfg + e.RequestBodyStruct + `{},`
 
 			if fnInputArgs != "" {
 				fnInputArgs += ", "
@@ -452,6 +689,11 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 
 		testInpt += "\n\t\t\t},"
 		o += "\t}\n"
+	}
+
+	wantUnhappyPath := e.ResponseStruct + "{}"
+	if e.ResponseStruct[:2] == "[]" {
+		wantUnhappyPath = "nil"
 	}
 
 	o += `	tests := []struct {
@@ -469,7 +711,7 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 		{
 			name: "unhappy path",` + testInpt + `
 			apiKey: "invalidApiKey",
-			want: ` + e.ResponseStruct + `{},
+			want: ` + wantUnhappyPath + `,
 			wantErr: true,
 		},
 	}
@@ -528,6 +770,141 @@ type fieldType struct {
 
 func (v fieldType) argType() string {
 	return field{v: v.name, format: v.format}.argType()
+}
+
+type field struct {
+	k, v, format string
+	description  string
+	required     bool
+	isInPath     bool
+	isInQuery    bool
+}
+
+func (v *field) setRequired(b bool) {
+	v.required = b
+}
+
+func (v *field) setDescription(s string) {
+	v.description = s
+}
+
+func (v field) canonicalName() string {
+	return objNameGoConvention(v.k)
+}
+
+func (v field) docString() string {
+	if v.description == "" {
+		return ""
+	}
+	return docString(objNameGoConventionExport(v.k), v.description)
+}
+
+func objNameGoConvention(s string) string {
+	o := ""
+
+	s = replaceSpecialChars(s)
+	s = strings.ToLower(s)
+
+	for i, el := range strings.Split(s, "_") {
+		if i > 0 {
+			el = strings.ToUpper(el[:1]) + el[1:]
+		}
+		o += el
+	}
+
+	switch o[len(o)-2:] {
+	case "id", "Id":
+		return o[:len(o)-2] + "ID"
+	}
+
+	switch o[len(o)-3:] {
+	case "url", "Url":
+		return o[:len(o)-3] + "URL"
+	case "uri", "Uri":
+		return o[:len(o)-3] + "URI"
+	default:
+		return o
+	}
+}
+
+func replaceSpecialChars(o string) string {
+	return strings.NewReplacer(
+		"-", "_",
+		".", "_",
+		" ", "_",
+	).Replace(o)
+}
+
+func objNameGoConventionExport(s string) string {
+	s = objNameGoConvention(s)
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+func (v field) routeElement() string {
+	r := v.canonicalName()
+
+	switch v.format {
+	case "int64":
+		return "strconv.FormatInt(" + r + ", 10)"
+	case "int32":
+		return "strconv.FormatInt(int64(" + r + "), 10)"
+	case "double":
+		return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
+	case "float":
+		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
+	case "date-time", "date":
+		return r + ".Format(time.RFC3339)"
+	default:
+		switch v.v {
+		case "integer":
+			return "strconv.FormatInt(int64(" + r + "), 10)"
+		case "boolean":
+			return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
+		}
+		return r
+	}
+}
+
+func (v field) argType() string {
+	switch v.format {
+	case "date-time", "date":
+		return "time.Time"
+	case "int64", "int32":
+		return v.format
+	case "double":
+		return "float64"
+	case "float":
+		return "float32"
+	default:
+		switch v.v {
+		case "integer":
+			return "int"
+		case "boolean":
+			return "bool"
+		}
+		return v.v
+	}
+}
+
+func (v field) generateDummy() interface{} {
+	if v.v[:2] == "[]" {
+		return []interface{}{field{v: v.v[2:], format: v.format}.generateDummy()}
+	}
+
+	switch v.format {
+	case "date-time", "date":
+		return time.Time{}
+	case "int64", "int32", "double", "float":
+		return 1
+	default:
+		switch v.v {
+		case "integer":
+			return 1
+		case "boolean":
+			return true
+		}
+		return "\"foo\""
+	}
 }
 
 type model struct {
@@ -673,269 +1050,6 @@ func extractParameters(params openapi3.Parameters) []field {
 		}
 	}
 	return o
-}
-
-func extractSpecs(spec openAPISpec) templateInput {
-	if len(spec.Servers) < 1 {
-		panic("no server spec found")
-	}
-
-	endpoints := generateEndpointsImplementationMethods(spec)
-	m := generateModels(spec)
-
-	endpointsStr := make([]string, len(endpoints))
-	endpointsTestStr := make([]string, len(endpoints))
-	interfaceMethodsStr := make([]string, len(endpoints))
-	models := m
-
-	mockResponses := map[string]map[string]mockResponse{
-		// hardcode based on the api spec because of complexity
-		"/projects": {
-			"POST": {
-				Code: "201",
-				Content: `{
-  "project": {
-    "maintenance_starts_at": "2023-01-02T20:03:02.273Z",
-    "id": "string",
-    "platform_id": "string",
-    "region_id": "string",
-    "name": "string",
-    "provisioner": "k8s-pod",
-    "default_endpoint_settings": {
-      "pg_settings": {
-        "additionalProp1": "string",
-        "additionalProp2": "string",
-        "additionalProp3": "string"
-      }
-    },
-    "pg_version": 0,
-    "created_at": "2023-01-02T20:03:02.273Z",
-    "updated_at": "2023-01-02T20:03:02.273Z",
-    "proxy_host": "string"
-  },
-  "connection_uris": [
-    {
-      "connection_uri": "string"
-    }
-  ],
-  "roles": [
-    {
-      "branch_id": "string",
-      "name": "string",
-      "password": "string",
-      "protected": true,
-      "created_at": "2023-01-02T20:03:02.273Z",
-      "updated_at": "2023-01-02T20:03:02.273Z"
-    }
-  ],
-  "databases": [
-    {
-      "id": 0,
-      "branch_id": "string",
-      "name": "string",
-      "owner_name": "string",
-      "created_at": "2023-01-02T20:03:02.273Z",
-      "updated_at": "2023-01-02T20:03:02.273Z"
-    }
-  ],
-  "operations": [
-      {
-        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "create_branch",
-        "status": "running",
-        "failures_count": 0,
-        "created_at": "2022-11-08T23:33:16Z",
-        "updated_at": "2022-11-08T23:33:20Z"
-      },
-      {
-        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "start_compute",
-        "status": "finished",
-        "failures_count": 0,
-        "created_at": "2022-11-15T20:02:00Z",
-        "updated_at": "2022-11-15T20:02:02Z"
-      }
-  ],
-  "branch": {
-    "id": "br-wispy-meadow-118737",
-    "project_id": "spring-example-302709",
-    "parent_id": "br-aged-salad-637688",
-    "parent_lsn": "0/1DE2850",
-    "name": "dev2",
-    "current_state": "ready",
-    "created_at": "2022-11-30T19:09:48Z",
-    "updated_at": "2022-12-01T19:53:05Z"
-  },
-  "endpoints": [
-    {
-      "host": "string",
-      "id": "string",
-      "project_id": "string",
-      "branch_id": "string",
-      "autoscaling_limit_min_cu": 0,
-      "autoscaling_limit_max_cu": 0,
-      "region_id": "string",
-      "type": "read_only",
-      "current_state": "init",
-      "pending_state": "init",
-      "settings": {
-        "pg_settings": {
-          "additionalProp1": "string",
-          "additionalProp2": "string",
-          "additionalProp3": "string"
-        }
-      },
-      "pooler_enabled": true,
-      "pooler_mode": "transaction",
-      "disabled": true,
-      "passwordless_access": true,
-      "last_active": "2023-01-02T20:03:02.273Z",
-      "created_at": "2023-01-02T20:03:02.273Z",
-      "updated_at": "2023-01-02T20:03:02.273Z",
-      "proxy_host": "string"
-    }
-  ]
-}`,
-			},
-		},
-		"/projects/{project_id}/branches": {
-			"POST": {
-				Code: "201",
-				Content: `{
-  "branch": {
-    "id": "br-wispy-meadow-118737",
-    "project_id": "spring-example-302709",
-    "parent_id": "br-aged-salad-637688",
-    "parent_lsn": "0/1DE2850",
-    "name": "dev2",
-    "current_state": "ready",
-    "created_at": "2022-11-30T19:09:48Z",
-    "updated_at": "2022-12-01T19:53:05Z"
-  },
-  "endpoints": [
-    {
-      "host": "string",
-      "id": "string",
-      "project_id": "string",
-      "branch_id": "string",
-      "autoscaling_limit_min_cu": 0,
-      "autoscaling_limit_max_cu": 0,
-      "region_id": "string",
-      "type": "read_only",
-      "current_state": "init",
-      "pending_state": "init",
-      "settings": {
-        "pg_settings": {
-          "additionalProp1": "string",
-          "additionalProp2": "string",
-          "additionalProp3": "string"
-        }
-      },
-      "pooler_enabled": true,
-      "pooler_mode": "transaction",
-      "disabled": true,
-      "passwordless_access": true,
-      "last_active": "2023-01-02T20:09:50.004Z",
-      "created_at": "2023-01-02T20:09:50.004Z",
-      "updated_at": "2023-01-02T20:09:50.004Z",
-      "proxy_host": "string"
-    }
-  ],
-  "operations": [
-    [
-      {
-        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "create_branch",
-        "status": "running",
-        "failures_count": 0,
-        "created_at": "2022-11-08T23:33:16Z",
-        "updated_at": "2022-11-08T23:33:20Z"
-      },
-      {
-        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "start_compute",
-        "status": "finished",
-        "failures_count": 0,
-        "created_at": "2022-11-15T20:02:00Z",
-        "updated_at": "2022-11-15T20:02:02Z"
-      }
-    ]
-  ]
-}`,
-			},
-		},
-		"/projects/{project_id}/operations": {
-			"GET": {
-				Code: "200",
-				Content: `{
-  "operations": [
-    [
-      {
-        "id": "a07f8772-1877-4da9-a939-3a3ae62d1d8d",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "create_branch",
-        "status": "running",
-        "failures_count": 0,
-        "created_at": "2022-11-08T23:33:16Z",
-        "updated_at": "2022-11-08T23:33:20Z"
-      },
-      {
-        "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
-        "project_id": "spring-example-302709",
-        "branch_id": "br-wispy-meadow-118737",
-        "endpoint_id": "ep-silent-smoke-806639",
-        "action": "start_compute",
-        "status": "finished",
-        "failures_count": 0,
-        "created_at": "2022-11-15T20:02:00Z",
-        "updated_at": "2022-11-15T20:02:02Z"
-      }
-    ]
-  ],
-  "pagination": {
-    "cursor": "string"
-  }
-}`,
-			},
-		},
-	}
-
-	for i, s := range endpoints {
-		endpointsStr[i] = s.generateMethodImplementation()
-		interfaceMethodsStr[i] = s.generateMethodDefinition()
-		endpointsTestStr[i] = s.generateMethodImplementationTest()
-
-		if _, ok := mockResponses[s.Route]; !ok {
-			mockResponses[s.Route] = map[string]mockResponse{}
-		}
-		if _, ok := mockResponses[s.Route][s.Method]; !ok {
-			mockResponses[s.Route][s.Method] = s.generateMockResponse()
-		}
-	}
-
-	return templateInput{
-		Info:                        spec.Info.Description,
-		ServerURL:                   spec.Servers[0].URL,
-		EndpointsInterfaceMethods:   interfaceMethodsStr,
-		EndpointsImplementation:     endpointsStr,
-		EndpointsImplementationTest: endpointsTestStr,
-		EndpointsResponseExample:    mockResponses,
-		Types:                       models.generateCode(),
-	}
 }
 
 type models map[string]model
