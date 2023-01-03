@@ -2,11 +2,14 @@
 
 [![logo](fig/logo.png)](https://neon.tech)
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/kislerdm/neon-sdk-go)](https://goreportcard.com/report/github.com/kislerdm/neon-sdk-go)
+[![codecov](https://codecov.io/gh/kislerdm/neon-sdk-go/branch/master/graph/badge.svg?token=F6SF7VX3G3)](https://codecov.io/gh/kislerdm/neon-sdk-go)
+
 - [How to use](#how-to-use)
     + [Prerequisites](#prerequisites)
     + [Installation](#installation)
     + [Code Snippets](#code-snippets)
-        - [Authentication with the Neon Platform](#authentication-with-the-neon-platform)
+        - [Authentication with the Neon Platform](#authentication)
             * [Variadic Function](#variadic-function)
             * [Environment Variables Evaluation](#environment-variables-evaluation)
         - [Mock](#mock)
