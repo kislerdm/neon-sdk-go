@@ -1,6 +1,7 @@
 # Go SDK for Neon Postgres SaaS Platform
 
 [![logo](fig/logo.png)](https://neon.tech)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkislerdm%2Fneon-sdk-go.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkislerdm%2Fneon-sdk-go?ref=badge_shield)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/kislerdm/neon-sdk-go)](https://goreportcard.com/report/github.com/kislerdm/neon-sdk-go)
 [![codecov](https://codecov.io/gh/kislerdm/neon-sdk-go/branch/master/graph/badge.svg?token=F6SF7VX3G3)](https://codecov.io/gh/kislerdm/neon-sdk-go)
@@ -157,3 +158,7 @@ The SDK supports V2 only because V1 has been deprecated.
 ## Contribution
 
 The SDK is distributed under the [MIT license](LICENSE). Please feel free to open an issue ticket, or PR to contribute.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fkislerdm%2Fneon-sdk-go.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fkislerdm%2Fneon-sdk-go?ref=badge_large)
