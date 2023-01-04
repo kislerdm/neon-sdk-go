@@ -22,14 +22,14 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/api_keys/{key_id}": {
 		"DELETE": mockResponse{
-			Content: `{"id":165435,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"Development environment key","revoked":true}`,
+			Content: `{"id":165435,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"mykey","revoked":true}`,
 			Code:    200,
 		},
 	},
 
 	"/projects": {
 		"GET": mockResponse{
-			Content: `{"projects":[{"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"shiny-wind-028834","pg_version":15,"platform_id":"aws","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:42:25Z"},{"created_at":"2022-11-23T17:52:25Z","id":"winter-boat-259881","locked":false,"name":"winter-boat-259881","pg_version":15,"platform_id":"aws","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:52:25Z"}]}`,
+			Content: `{"projects":[{"branch_logical_size_limit":0,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"shiny-wind-028834","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:42:25Z"},{"branch_logical_size_limit":0,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","id":"winter-boat-259881","locked":false,"name":"winter-boat-259881","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:52:25Z"}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -148,22 +148,22 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}": {
 		"DELETE": mockResponse{
-			Content: `{"project":{"created_at":"2022-11-30T18:41:29Z","id":"bold-cloud-468218","locked":false,"name":"bold-cloud-468218","pg_version":15,"platform_id":"aws","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-30T18:41:29Z"}}`,
+			Content: `{"project":{"branch_logical_size_limit":0,"cpu_used_sec":23004200,"created_at":"2022-11-30T18:41:29Z","id":"bold-cloud-468218","locked":false,"name":"bold-cloud-468218","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-30T18:41:29Z"}}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"project":{"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"shiny-wind-028834","pg_version":15,"platform_id":"aws","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:42:25Z"}}`,
+			Content: `{"project":{"branch_logical_size_limit":0,"cpu_used_sec":10,"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"shiny-wind-028834","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-11-23T17:42:25Z"}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"project":{"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"myproject","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-12-04T02:39:25Z"}}`,
+			Content: `{"operations":[],"project":{"branch_logical_size_limit":0,"cpu_used_sec":213230,"created_at":"2022-11-23T17:42:25Z","id":"shiny-wind-028834","locked":false,"name":"myproject","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","updated_at":"2022-12-04T02:39:25Z"}}`,
 			Code:    200,
 		},
 	},
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"branches":[{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"},{"created_at":"2022-11-30T19:09:48Z","current_state":"ready","id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","project_id":"shiny-wind-028834","updated_at":"2022-11-30T19:09:49Z"},{"created_at":"2022-11-30T17:36:57Z","current_state":"ready","id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","project_id":"shiny-wind-028834","updated_at":"2022-11-30T17:36:57Z"}]}`,
+			Content: `{"branches":[{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"logical_size_limit":3072,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"},{"created_at":"2022-11-30T19:09:48Z","current_state":"ready","id":"br-sweet-breeze-497520","logical_size":28,"logical_size_limit":3072,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","project_id":"shiny-wind-028834","updated_at":"2022-11-30T19:09:49Z"},{"created_at":"2022-11-30T17:36:57Z","current_state":"ready","id":"br-raspy-hill-832856","logical_size":21,"logical_size_limit":3072,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","project_id":"shiny-wind-028834","updated_at":"2022-11-30T17:36:57Z"}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -238,11 +238,11 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
-			Content: `{"branch":{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-01T19:53:05Z"}]}`,
+			Content: `{"branch":{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"logical_size_limit":3072,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-01T19:53:05Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"branch":{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"}}`,
+			Content: `{"branch":{"created_at":"2022-11-23T17:42:25Z","current_state":"ready","id":"br-aged-salad-637688","logical_size":28,"logical_size_limit":3072,"name":"main","physical_size":38,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z"}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
