@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -88,8 +87,7 @@ func TestNewClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				_ = os.Unsetenv("NEON_API_KEY")
-				_ = os.Setenv("NEON_API_KEY", tt.envVar)
+				t.Setenv("NEON_API_KEY", tt.envVar)
 
 				got, err := NewClient(tt.args.optFns...)
 				if (err != nil) != tt.wantErr {
@@ -100,11 +98,6 @@ func TestNewClient(t *testing.T) {
 					t.Errorf("NewClient() got = %v, want %v", got, tt.want)
 				}
 
-				t.Cleanup(
-					func() {
-						_ = os.Unsetenv("NEON_API_KEY")
-					},
-				)
 			},
 		)
 	}
@@ -2441,7 +2434,9 @@ func Test_client_UpdateProjectBranchDatabase(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.UpdateProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName, tt.args.cfg)
+				got, err := c.UpdateProjectBranchDatabase(
+					tt.args.projectID, tt.args.branchID, tt.args.databaseName, tt.args.cfg,
+				)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("UpdateProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
 					return

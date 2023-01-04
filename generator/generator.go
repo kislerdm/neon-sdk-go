@@ -948,10 +948,14 @@ func (m model) generateCode() string {
 		return m.docString() + "type " + k + " " + m.primitive.argType()
 	}
 
-	tmp := m.docString() + "type " + k + " struct {"
+	tmp := m.docString() + "type " + k
+
+	if len(m.fields) == 0 && len(m.children) == 0 {
+		return tmp + " map[string]interface{}"
+	}
 
 	if len(m.fields) > 0 || len(m.children) > 0 {
-		tmp += "\n"
+		tmp += " struct {\n"
 	}
 
 	for fieldName, field := range m.fields {

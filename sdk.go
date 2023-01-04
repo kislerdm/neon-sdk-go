@@ -75,7 +75,9 @@ type Client interface {
 	// You can obtain a `project_id` by listing the projects for your Neon account.
 	// You can obtain the `branch_id` by listing the project's branches.
 	// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-	CreateProjectBranchDatabase(projectID string, branchID string, cfg DatabaseCreateRequest) (DatabaseOperations, error)
+	CreateProjectBranchDatabase(projectID string, branchID string, cfg DatabaseCreateRequest) (
+		DatabaseOperations, error,
+	)
 
 	// ListProjectBranchDatabases Retrieves a list of databases for the specified branch.
 	// A branch can have multiple databases.
@@ -316,7 +318,9 @@ type Client interface {
 	// You can obtain a `project_id` by listing the projects for your Neon account.
 	// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
 	// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-	UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error)
+	UpdateProjectBranchDatabase(
+		projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest,
+	) (DatabaseOperations, error)
 }
 
 // HTTPClient client to handle http requests.
@@ -457,15 +461,21 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 
 func (c *client) ListProjectBranchEndpoints(projectID string, branchID string) (EndpointsResponse, error) {
 	var v EndpointsResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/endpoints", "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/endpoints", "GET", nil, &v,
+	); err != nil {
 		return EndpointsResponse{}, err
 	}
 	return v, nil
 }
 
-func (c *client) CreateProjectBranchDatabase(projectID string, branchID string, cfg DatabaseCreateRequest) (DatabaseOperations, error) {
+func (c *client) CreateProjectBranchDatabase(
+	projectID string, branchID string, cfg DatabaseCreateRequest,
+) (DatabaseOperations, error) {
 	var v DatabaseOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "POST", cfg, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "POST", cfg, &v,
+	); err != nil {
 		return DatabaseOperations{}, err
 	}
 	return v, nil
@@ -473,7 +483,9 @@ func (c *client) CreateProjectBranchDatabase(projectID string, branchID string, 
 
 func (c *client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v,
+	); err != nil {
 		return DatabasesResponse{}, err
 	}
 	return v, nil
@@ -481,7 +493,9 @@ func (c *client) ListProjectBranchDatabases(projectID string, branchID string) (
 
 func (c *client) DeleteProjectBranchRole(projectID string, branchID string, roleName string) (RoleOperations, error) {
 	var v RoleOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "DELETE", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "DELETE", nil, &v,
+	); err != nil {
 		return RoleOperations{}, err
 	}
 	return v, nil
@@ -489,7 +503,9 @@ func (c *client) DeleteProjectBranchRole(projectID string, branchID string, role
 
 func (c *client) GetProjectBranchRole(projectID string, branchID string, roleName string) (RoleResponse, error) {
 	var v RoleResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "GET", nil, &v,
+	); err != nil {
 		return RoleResponse{}, err
 	}
 	return v, nil
@@ -511,7 +527,9 @@ func (c *client) GetProjectBranch(projectID string, branchID string) (BranchResp
 	return v, nil
 }
 
-func (c *client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
+func (c *client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (
+	BranchOperations, error,
+) {
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "PATCH", cfg, &v); err != nil {
 		return BranchOperations{}, err
@@ -521,15 +539,21 @@ func (c *client) UpdateProjectBranch(projectID string, branchID string, cfg Bran
 
 func (c *client) ListProjectBranchRoles(projectID string, branchID string) (RolesResponse, error) {
 	var v RolesResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "GET", nil, &v,
+	); err != nil {
 		return RolesResponse{}, err
 	}
 	return v, nil
 }
 
-func (c *client) CreateProjectBranchRole(projectID string, branchID string, cfg RoleCreateRequest) (RoleOperations, error) {
+func (c *client) CreateProjectBranchRole(projectID string, branchID string, cfg RoleCreateRequest) (
+	RoleOperations, error,
+) {
 	var v RoleOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "POST", cfg, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "POST", cfg, &v,
+	); err != nil {
 		return RoleOperations{}, err
 	}
 	return v, nil
@@ -569,7 +593,9 @@ func (c *client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, er
 
 func (c *client) GetProjectOperation(projectID string, operationID string) (OperationResponse, error) {
 	var v OperationResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/operations/"+operationID, "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/operations/"+operationID, "GET", nil, &v,
+	); err != nil {
 		return OperationResponse{}, err
 	}
 	return v, nil
@@ -609,7 +635,9 @@ func (c *client) ListProjectOperations(projectID string) (ListOperations, error)
 
 func (c *client) SuspendProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/suspend", "POST", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/suspend", "POST", nil, &v,
+	); err != nil {
 		return EndpointOperations{}, err
 	}
 	return v, nil
@@ -641,15 +669,21 @@ func (c *client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest)
 
 func (c *client) StartProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/start", "POST", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/start", "POST", nil, &v,
+	); err != nil {
 		return EndpointOperations{}, err
 	}
 	return v, nil
 }
 
-func (c *client) ResetProjectBranchRolePassword(projectID string, branchID string, roleName string) (RoleOperations, error) {
+func (c *client) ResetProjectBranchRolePassword(projectID string, branchID string, roleName string) (
+	RoleOperations, error,
+) {
 	var v RoleOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName+"/reset_password", "POST", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName+"/reset_password", "POST", nil, &v,
+	); err != nil {
 		return RoleOperations{}, err
 	}
 	return v, nil
@@ -663,9 +697,13 @@ func (c *client) GetProjectEndpoint(projectID string, endpointID string) (Endpoi
 	return v, nil
 }
 
-func (c *client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
+func (c *client) UpdateProjectEndpoint(
+	projectID string, endpointID string, cfg EndpointUpdateRequest,
+) (EndpointOperations, error) {
 	var v EndpointOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v,
+	); err != nil {
 		return EndpointOperations{}, err
 	}
 	return v, nil
@@ -673,7 +711,9 @@ func (c *client) UpdateProjectEndpoint(projectID string, endpointID string, cfg 
 
 func (c *client) DeleteProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "DELETE", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "DELETE", nil, &v,
+	); err != nil {
 		return EndpointOperations{}, err
 	}
 	return v, nil
@@ -695,25 +735,37 @@ func (c *client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error)
 	return v, nil
 }
 
-func (c *client) DeleteProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseOperations, error) {
+func (c *client) DeleteProjectBranchDatabase(
+	projectID string, branchID string, databaseName string,
+) (DatabaseOperations, error) {
 	var v DatabaseOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "DELETE", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "DELETE", nil, &v,
+	); err != nil {
 		return DatabaseOperations{}, err
 	}
 	return v, nil
 }
 
-func (c *client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseResponse, error) {
+func (c *client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (
+	DatabaseResponse, error,
+) {
 	var v DatabaseResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v,
+	); err != nil {
 		return DatabaseResponse{}, err
 	}
 	return v, nil
 }
 
-func (c *client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
+func (c *client) UpdateProjectBranchDatabase(
+	projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest,
+) (DatabaseOperations, error) {
 	var v DatabaseOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
+	if err := c.requestHandler(
+		c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v,
+	); err != nil {
 		return DatabaseOperations{}, err
 	}
 	return v, nil
@@ -1003,7 +1055,7 @@ type PaginationResponse struct {
 }
 
 // PgSettingsData is a raw representation of Postgres settings
-type PgSettingsData struct{}
+type PgSettingsData map[string]interface{}
 
 // PgVersion Major version of the Postgres
 type PgVersion int
