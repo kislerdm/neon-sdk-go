@@ -3,7 +3,7 @@ module github.com/kislerdm/neon-sdk-go/generator
 go 1.17
 
 require (
-	github.com/getkin/kin-openapi v0.111.0
+	github.com/getkin/kin-openapi v0.112.0
 	github.com/stretchr/testify v1.8.1
 )
 
