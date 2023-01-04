@@ -1,8 +1,10 @@
 /* The package to communicate to the Neon Postgres SaaS Platform.
 
-The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/cloud/about/).
+The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/manage/overview/).
 
-If you are logged in to Neon, you can run Neon API requests from this page using the **Try it out** feature. Your requests are authenticated automatically. Otherwise, you must authenticate by specifying an API key. You can view and manage API keys in the Neon Console. See [Using API Keys](https://neon.tech/docs/get-started-with-neon/using-api-keys/) for information about generating and using Neon API keys.
+You can run Neon API requests from this API reference using the **Try it out** feature that is provided for each method. If you are logged in to Neon, your requests are authenticated automatically. If you are not logged in, click **Authorize** to enter an API key.
+
+You can create and manage API keys in the Neon Console. See [Manage API keys](https://neon.tech/docs/manage/api-keys/) for instructions.
 
 */
 
