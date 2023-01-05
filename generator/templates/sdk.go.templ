@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -161,12 +162,14 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 	var err error
 
 	if reqPayload != nil {
-		b, err := json.Marshal(reqPayload)
-		if err != nil {
-			return err
-		}
-		body = bytes.NewReader(b)
-	}
+        if v := reflect.ValueOf(reqPayload); v.Kind() == reflect.Struct || !v.IsNil() {
+            b, err := json.Marshal(reqPayload)
+            if err != nil {
+                return err
+            }
+            body = bytes.NewReader(b)
+        }
+    }
 
 	req, _ := http.NewRequest(t, url, body)
 	setHeaders(req, c.options.key)

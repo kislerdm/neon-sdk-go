@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -416,11 +417,13 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 	var err error
 
 	if reqPayload != nil {
-		b, err := json.Marshal(reqPayload)
-		if err != nil {
-			return err
+		if v := reflect.ValueOf(reqPayload); v.Kind() == reflect.Struct || !v.IsNil() {
+			b, err := json.Marshal(reqPayload)
+			if err != nil {
+				return err
+			}
+			body = bytes.NewReader(b)
 		}
-		body = bytes.NewReader(b)
 	}
 
 	req, _ := http.NewRequest(t, url, body)
@@ -819,10 +822,10 @@ type BranchCreateRequest struct {
 }
 
 type BranchCreateRequestBranch struct {
-	ParentTimestamp time.Time `json:"parent_timestamp,omitempty"`
-	ParentID        string    `json:"parent_id,omitempty"`
-	Name            string    `json:"name,omitempty"`
-	ParentLsn       string    `json:"parent_lsn,omitempty"`
+	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
+	ParentID        string     `json:"parent_id,omitempty"`
+	Name            string     `json:"name,omitempty"`
+	ParentLsn       string     `json:"parent_lsn,omitempty"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
@@ -938,7 +941,7 @@ type Endpoint struct {
 	Type         EndpointType        `json:"type"`
 	UpdatedAt    time.Time           `json:"updated_at"`
 	// LastActive Timestamp of the last detected activity of the endpoint.
-	LastActive            time.Time     `json:"last_active,omitempty"`
+	LastActive            *time.Time    `json:"last_active,omitempty"`
 	AutoscalingLimitMaxCu int32         `json:"autoscaling_limit_max_cu"`
 	CurrentState          EndpointState `json:"current_state"`
 	AutoscalingLimitMinCu int32         `json:"autoscaling_limit_min_cu"`

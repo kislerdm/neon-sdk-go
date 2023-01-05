@@ -12,7 +12,7 @@ help: ## Prints help message.
 tests: ## Run tests.
 	@ cd $(DIR) && \
  		go mod tidy && \
-  		go test -timeout 3m --tags=unittest -v -coverprofile=.coverage.out ./... -coverpkg=./... && \
+  		go test -timeout 3m --tags=unittest -v -coverprofile=.coverage.out . -coverpkg=. && \
 		go tool cover -func .coverage.out && rm .coverage.out
 
 build: ## Compiles the binary.

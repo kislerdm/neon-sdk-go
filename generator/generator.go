@@ -676,7 +676,7 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 `
 
 	var (
-		argsInpt, testInpt, fnInputArgs, pointerCfg, pointerTypeCfg string
+		argsInpt, testInpt, fnInputArgs, pointerTypeCfg string
 	)
 	if len(e.RequestParametersPath) > 0 || e.RequestBodyStruct != "" {
 		argsInpt = "\n\t\targs args"
@@ -694,12 +694,13 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 		}
 
 		if e.RequestBodyStruct != "" {
+			cfgInpt := e.RequestBodyStruct + "{}"
 			if !e.RequestBodyRequires {
-				pointerCfg = "&"
 				pointerTypeCfg = "*"
+				cfgInpt = "nil"
 			}
 			o += "\t\tcfg " + pointerTypeCfg + e.RequestBodyStruct + "\n"
-			testInpt += "\t\t\t\tcfg: " + pointerCfg + e.RequestBodyStruct + `{},`
+			testInpt += "\t\t\t\tcfg: " + cfgInpt + ","
 
 			if fnInputArgs != "" {
 				fnInputArgs += ", "
@@ -885,9 +886,16 @@ func (v field) routeElement() string {
 	}
 }
 
-func (v field) argType() string {
+func (v field) argType(withPointer ...bool) string {
+	var f bool
+	if len(withPointer) > 0 {
+		f = withPointer[0]
+	}
 	switch v.format {
 	case "date-time", "date":
+		if f {
+			return "*time.Time"
+		}
 		return "time.Time"
 	case "int64", "int32":
 		return v.format
@@ -962,10 +970,14 @@ func (m model) generateCode() string {
 		tmp += field.docString()
 
 		omitEmpty := ""
+		var pointerFlag bool
 		if !field.required {
 			omitEmpty = ",omitempty"
+			if strings.Contains(strings.ToLower(k), "request") {
+				pointerFlag = true
+			}
 		}
-		tmp += objNameGoConventionExport(fieldName) + " " + field.argType() + " `json:\"" + field.k + omitEmpty + "\"`\n"
+		tmp += objNameGoConventionExport(fieldName) + " " + field.argType(pointerFlag) + " `json:\"" + field.k + omitEmpty + "\"`\n"
 	}
 
 	if len(m.fields) == 0 {
