@@ -1808,7 +1808,7 @@ func Test_client_CreateProjectBranch(t *testing.T) {
 			name: "happy path",
 			args: args{
 				projectID: "foo",
-				cfg:       &BranchCreateRequest{},
+				cfg:       nil,
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches"]["POST"].Content),
@@ -1818,7 +1818,7 @@ func Test_client_CreateProjectBranch(t *testing.T) {
 			name: "unhappy path",
 			args: args{
 				projectID: "foo",
-				cfg:       &BranchCreateRequest{},
+				cfg:       nil,
 			},
 			apiKey:  "invalidApiKey",
 			want:    CreatedBranch{},
