@@ -941,7 +941,7 @@ type Endpoint struct {
 	Type         EndpointType        `json:"type"`
 	UpdatedAt    time.Time           `json:"updated_at"`
 	// LastActive Timestamp of the last detected activity of the endpoint.
-	LastActive            *time.Time    `json:"last_active,omitempty"`
+	LastActive            time.Time     `json:"last_active,omitempty"`
 	AutoscalingLimitMaxCu int32         `json:"autoscaling_limit_max_cu"`
 	CurrentState          EndpointState `json:"current_state"`
 	AutoscalingLimitMinCu int32         `json:"autoscaling_limit_min_cu"`
