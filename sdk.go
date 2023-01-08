@@ -961,12 +961,12 @@ type EndpointCreateRequestEndpoint struct {
 	Type          EndpointType `json:"type"`
 	PoolerEnabled bool         `json:"pooler_enabled,omitempty"`
 	// PasswordlessAccess NOT IMPLEMENTED YET
-	PasswordlessAccess    bool                 `json:"passwordless_access,omitempty"`
-	AutoscalingLimitMinCu int32                `json:"autoscaling_limit_min_cu,omitempty"`
-	AutoscalingLimitMaxCu int32                `json:"autoscaling_limit_max_cu,omitempty"`
-	PoolerMode            EndpointPoolerMode   `json:"pooler_mode,omitempty"`
-	BranchID              string               `json:"branch_id"`
-	Settings              EndpointSettingsData `json:"settings,omitempty"`
+	PasswordlessAccess    bool                  `json:"passwordless_access,omitempty"`
+	AutoscalingLimitMinCu int32                 `json:"autoscaling_limit_min_cu,omitempty"`
+	AutoscalingLimitMaxCu int32                 `json:"autoscaling_limit_max_cu,omitempty"`
+	PoolerMode            EndpointPoolerMode    `json:"pooler_mode,omitempty"`
+	BranchID              string                `json:"branch_id"`
+	Settings              *EndpointSettingsData `json:"settings,omitempty"`
 	// Disabled Restrict any connections to this endpoint.
 	Disabled bool `json:"disabled,omitempty"`
 }
@@ -998,9 +998,9 @@ type EndpointUpdateRequest struct {
 }
 
 type EndpointUpdateRequestEndpoint struct {
-	Settings      EndpointSettingsData `json:"settings,omitempty"`
-	PoolerEnabled bool                 `json:"pooler_enabled,omitempty"`
-	PoolerMode    EndpointPoolerMode   `json:"pooler_mode,omitempty"`
+	Settings      *EndpointSettingsData `json:"settings,omitempty"`
+	PoolerEnabled bool                  `json:"pooler_enabled,omitempty"`
+	PoolerMode    EndpointPoolerMode    `json:"pooler_mode,omitempty"`
 	// Disabled Restrict any connections to this endpoint.
 	Disabled bool `json:"disabled,omitempty"`
 	// PasswordlessAccess NOT IMPLEMENTED YET

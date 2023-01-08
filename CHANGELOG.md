@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.1.3] - 2022-01-06
+## [v0.1.4] - 2023-01-08
+
+- Fixed the definition of the optional field `Settings` for the following types:
+  - `EndpointUpdateRequestEndpoint`
+  - `EndpointCreateRequestEndpoint`
+
+_The reason_: to omit the JSON field `settings` when serialising the above types' objects when the field `Settings` is `nil`.  
+
+## [v0.1.3] - 2023-01-06
 
 ### Fixed
 
@@ -13,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed test for `CreateProjectBranch`
 - Fixed definition of the _request_ data types with optional fields of the type `time.Time` 
 
-## [v0.1.2] - 2022-01-04
+## [v0.1.2] - 2023-01-04
 
 ### Fixed
 
@@ -24,13 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the way environment variables are set in the tests: `t.Setenv` instead of `os.Setenv`.
 - Reduced the [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) to be below 16.
 
-## [v0.1.1] - 2022-01-04
+## [v0.1.1] - 2023-01-04
 
 ### Fixed
 
 - Aligned the SDK methods and types definitions with the up-to-date [API spec](https://neon.tech/api-reference/v2)
 
-## [v0.1.0] - 2022-01-03
+## [v0.1.0] - 2023-01-03
 
 ### Added
 

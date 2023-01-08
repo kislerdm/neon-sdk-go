@@ -2448,3 +2448,22 @@ func Test_client_UpdateProjectBranchDatabase(t *testing.T) {
 		)
 	}
 }
+
+func TestTypes(t *testing.T) {
+	// GIVEN
+	// the types are defined correctly
+
+	// WHEN
+	// check fields' types
+
+	// THEN
+	// optional fields of the complex types
+	// are expected to be pointers to the underlying structs
+	if reflect.TypeOf(EndpointCreateRequestEndpoint{}.Settings).Kind() != reflect.Ptr {
+		t.Errorf("EndpointCreateRequestEndpoint{}.Settings must be pointer")
+	}
+
+	if reflect.TypeOf(EndpointUpdateRequestEndpoint{}.Settings).Kind() != reflect.Ptr {
+		t.Errorf("EndpointUpdateRequestEndpoint{}.Settings must be pointer")
+	}
+}
