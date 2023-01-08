@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.1.4] - 2023-01-08
 
+### Fixed
+
 - Fixed the definition of the optional field `Settings` for the following types:
   - `EndpointUpdateRequestEndpoint`
   - `EndpointCreateRequestEndpoint`
