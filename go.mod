@@ -1,3 +1,3 @@
-module github.com/kislerdm/neon-sdk-go
+module github.com/cicdteam/neon-sdk-go
 
 go 1.17

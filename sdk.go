@@ -365,7 +365,7 @@ func NewClient(optFns ...func(*options)) (Client, error) {
 	}
 
 	return &client{
-		baseURL: baseURL,
+		baseURL: resolveBaseURL(),
 		options: o,
 	}, nil
 }
@@ -382,6 +382,15 @@ func resolveApiKey(o *options) error {
 	}
 
 	return nil
+}
+
+func resolveBaseURL() string {
+	url := os.Getenv("NEON_API_URL")
+	if len(url) == 0 {
+		url = baseURL
+	}
+
+	return url
 }
 
 func resolveHTTPClient(o *options) {
