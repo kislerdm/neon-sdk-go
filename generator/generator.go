@@ -9,6 +9,7 @@ import (
 	"go/format"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
 	"sort"
@@ -524,6 +525,7 @@ type endpointImplementation struct {
 	RequestBodyStructExample       interface{}
 	ResponseStruct                 string
 	RequestParametersPath          []field
+	RequestParametersQuery         []field
 	ResponsePositivePathExample    interface{}
 	ResponsePositivePathStatusCode string
 }
@@ -554,8 +556,14 @@ func (e endpointImplementation) generateMethodImplementation() string {
 		reqObj = "cfg"
 	}
 
+	var query string
+	if len(e.RequestParametersQuery) > 0 {
+		query = " + query"
+		o += e.generateQueryBuilder()
+	}
+
 	if e.ResponseStruct == "" {
-		return o + `return c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, nil)
+		return o + `return c.requestHandler(c.baseURL+` + e.route() + query + `, "` + e.Method + `", ` + reqObj + `, nil)
 }`
 	}
 
@@ -565,7 +573,7 @@ func (e endpointImplementation) generateMethodImplementation() string {
 	}
 
 	return o + "	var v " + e.ResponseStruct + `
-	if err := c.requestHandler(c.baseURL+` + e.route() + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+` + e.route() + query + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
 		return ` + returnStatementUnhappyPath + `, err
 	}
 	return v, nil
@@ -617,9 +625,12 @@ func (e endpointImplementation) route() string {
 
 func (e endpointImplementation) inputArgStr() string {
 	o := ""
-	for i, v := range e.RequestParametersPath {
-		o += v.canonicalName() + " " + v.argType()
-		if i < len(e.RequestParametersPath)-1 {
+	parameters := e.RequestParametersPath
+	parameters = append(parameters, e.RequestParametersQuery...)
+
+	for i, v := range parameters {
+		o += v.canonicalName() + " " + v.argType(!v.required)
+		if i < len(parameters)-1 {
 			o += ", "
 		}
 	}
@@ -713,7 +724,12 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	}
 
 	wantUnhappyPath := e.ResponseStruct + "{}"
-	if e.ResponseStruct[:2] == "[]" {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("slice range out of bound: %#v", e.ResponseStruct)
+		}
+	}()
+	if e.ResponseStruct == "" || e.ResponseStruct[:2] == "[]" {
 		wantUnhappyPath = "nil"
 	}
 
@@ -759,28 +775,83 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	return o
 }
 
-func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
-	if schema.Value != nil && schema.Value.Type == "array" {
-		t := modelNameFromRef(schema.Value.Items.Ref)
-		if t == "" {
-			t = field{
-				k:      "",
-				v:      schema.Value.Items.Value.Type,
-				format: schema.Value.Items.Value.Format,
-			}.argType()
+// generateQueryBuilder generates the function to define the request's query
+func (e endpointImplementation) generateQueryBuilder() string {
+	if len(e.RequestParametersQuery) == 0 {
+		return ""
+	}
 
-			switch t {
-			case "":
-				t = "struct {\n"
-				for _, c := range schema.Value.Items.Value.AllOf {
-					t += modelNameFromRef(c.Ref) + "\n"
-				}
-				t += "}"
-			case openapi3.TypeArray:
-				t = extractStructFromSchemaRef(schema.Value.Items)
-			}
+	o := "\tvar queryElements []string\n"
+	for _, p := range filterRequiredParameters(e.RequestParametersQuery) {
+		queryElement := `"` + p.canonicalName() + "=\" + " + p.routeElement()
+		o += "\tqueryElements = append(queryElements, " + queryElement + ")\n"
+	}
+
+	for _, p := range filterOptionalParameters(e.RequestParametersQuery) {
+		optionalCondition := p.canonicalName() + " != nil "
+		ifStatement := "\tif " + optionalCondition + "{\n"
+		queryElement := `"` + p.canonicalName() + "=\" + " + p.routeElement(true)
+		o += ifStatement + "\t\tqueryElements = append(queryElements, " + queryElement + ")\n"
+		o += "\t}\n"
+	}
+
+	o += "\tquery := strings.Join(queryElements, \"&\")\n"
+
+	return o
+}
+
+func filterRequiredParameters(v []field) []field {
+	var o []field
+	for _, p := range v {
+		if p.required {
+			o = append(o, p)
 		}
-		return "[]" + t
+	}
+	return o
+}
+
+func filterOptionalParameters(v []field) []field {
+	var o []field
+	for _, p := range v {
+		if !p.required {
+			o = append(o, p)
+		}
+	}
+	return o
+}
+
+func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
+	if schema.Value != nil {
+		if schema.Value.Type == "array" {
+			t := modelNameFromRef(schema.Value.Items.Ref)
+			if t == "" {
+				t = field{
+					k:      "",
+					v:      schema.Value.Items.Value.Type,
+					format: schema.Value.Items.Value.Format,
+				}.argType()
+
+				switch t {
+				case "":
+					t = "struct {\n"
+					for _, c := range schema.Value.Items.Value.AllOf {
+						t += modelNameFromRef(c.Ref) + "\n"
+					}
+					t += "}"
+				case openapi3.TypeArray:
+					t = extractStructFromSchemaRef(schema.Value.Items)
+				}
+			}
+			return "[]" + t
+		}
+		if len(schema.Value.AllOf) > 0 {
+			t := "struct {\n"
+			for _, c := range schema.Value.AllOf {
+				t += modelNameFromRef(c.Ref) + "\n"
+			}
+			t += "}"
+			return t
+		}
 	}
 	return modelNameFromRef(schema.Ref)
 }
@@ -861,8 +932,11 @@ func objNameGoConventionExport(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func (v field) routeElement() string {
+func (v field) routeElement(withPointer ...bool) string {
 	r := v.canonicalName()
+	if len(withPointer) > 0 && withPointer[0] {
+		r = "*" + r
+	}
 
 	switch v.format {
 	case "int64":
@@ -887,31 +961,34 @@ func (v field) routeElement() string {
 }
 
 func (v field) argType(withPointer ...bool) string {
-	var f bool
-	if len(withPointer) > 0 {
-		f = withPointer[0]
-	}
-	switch v.format {
-	case "date-time", "date":
-		if f {
-			return "*time.Time"
+	baseType := func() string {
+		switch v.format {
+		case "date-time", "date":
+			return "time.Time"
+		case "int64", "int32":
+			return v.format
+		case "double", "number":
+			return "float64"
+		case "float":
+			return "float32"
+		default:
+			switch v.v {
+			case "integer":
+				return "int"
+			case "boolean":
+				return "bool"
+			case "number":
+				return "float64"
+			}
+			return v.v
 		}
-		return "time.Time"
-	case "int64", "int32":
-		return v.format
-	case "double":
-		return "float64"
-	case "float":
-		return "float32"
-	default:
-		switch v.v {
-		case "integer":
-			return "int"
-		case "boolean":
-			return "bool"
-		}
-		return v.v
 	}
+
+	if len(withPointer) > 0 && withPointer[0] {
+		return "*" + baseType()
+	}
+
+	return baseType()
 }
 
 func (v field) generateDummy() interface{} {
@@ -981,9 +1058,12 @@ func (m model) generateCode() string {
 	}
 
 	if len(m.fields) == 0 {
+		var childrenTypes []string
 		for k := range m.children {
-			tmp += k + "\n"
+			childrenTypes = append(childrenTypes, k)
 		}
+		sort.Strings(childrenTypes)
+		tmp += strings.Join(childrenTypes, "\n") + "\n"
 	}
 
 	return tmp + "}"
@@ -1030,13 +1110,17 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpoint
 				ResponseStruct:    "",
 			}
 
+			// read common parameters for all methods
 			pp := p.Parameters
 			pp = append(pp, ops.Parameters...)
+
 			for _, p := range extractParameters(pp) {
-				if !p.isInPath {
-					continue
+				if p.isInPath {
+					e.RequestParametersPath = append(e.RequestParametersPath, p)
 				}
-				e.RequestParametersPath = append(e.RequestParametersPath, p)
+				if p.isInQuery {
+					e.RequestParametersQuery = append(e.RequestParametersQuery, p)
+				}
 			}
 
 			for _, httpCode := range httpCodes {
@@ -1077,12 +1161,13 @@ func extractParameters(params openapi3.Parameters) []field {
 	o := make([]field, len(params))
 	for i, p := range params {
 		o[i] = field{
-			k:         p.Value.Name,
-			v:         p.Value.Schema.Value.Type,
-			format:    p.Value.Schema.Value.Format,
-			required:  p.Value.Required,
-			isInPath:  p.Value.In == openapi3.ParameterInPath,
-			isInQuery: p.Value.In == openapi3.ParameterInQuery,
+			k:           p.Value.Name,
+			v:           p.Value.Schema.Value.Type,
+			description: p.Value.Description,
+			format:      p.Value.Schema.Value.Format,
+			required:    p.Value.Required,
+			isInPath:    p.Value.In == openapi3.ParameterInPath,
+			isInQuery:   p.Value.In == openapi3.ParameterInQuery,
 		}
 	}
 	return o
