@@ -75,14 +75,13 @@ func Run(cfg Config) error {
 	tempInput := extractSpecs(spec)
 
 	var f io.WriteCloser
+	defer func() { _ = f.Close() }()
 
 	for fName, temp := range templateGen {
 		fName = strings.Replace(fName, ".templ", "", -1)
 		if f, err = os.Create(cfg.PathOutput + "/" + fName); err != nil {
 			return err
 		}
-
-		defer func() { _ = f.Close() }()
 
 		var buf bytes.Buffer
 		if err := temp.Execute(&buf, &tempInput); err != nil {
@@ -455,8 +454,18 @@ func extractSpecs(spec openAPISpec) templateInput {
 			mockResponses[s.Route][s.Method] = s.generateMockResponse()
 		}
 
-		filterModels(m, models, s.ResponseStruct)
-		filterModels(m, models, s.RequestBodyStruct)
+		if s.ResponseStruct != nil {
+			if s.ResponseStruct.generated {
+				m[s.ResponseStruct.name] = *s.ResponseStruct
+			}
+			filterModels(m, models, *s.ResponseStruct)
+		}
+		if s.RequestBodyStruct != nil {
+			if s.RequestBodyStruct.generated {
+				m[s.RequestBodyStruct.name] = *s.RequestBodyStruct
+			}
+			filterModels(m, models, *s.RequestBodyStruct)
+		}
 	}
 
 	return templateInput{
@@ -470,8 +479,8 @@ func extractSpecs(spec openAPISpec) templateInput {
 	}
 }
 
-func filterModels(modelsSource models, output models, name string) {
-	name = strings.NewReplacer("[", "", "]", "").Replace(name)
+func filterModels(modelsSource models, output models, m model) {
+	name := strings.NewReplacer("[", "", "]", "").Replace(m.name)
 
 	v, ok := modelsSource[name]
 	if !ok {
@@ -481,11 +490,11 @@ func filterModels(modelsSource models, output models, name string) {
 	output[v.name] = v
 
 	for child := range v.children {
-		filterModels(modelsSource, output, child)
+		filterModels(modelsSource, output, model{name: child})
 	}
 
 	for _, field := range v.fields {
-		filterModels(modelsSource, output, field.v)
+		filterModels(modelsSource, output, model{name: field.v})
 	}
 }
 
@@ -521,9 +530,9 @@ type endpointImplementation struct {
 	Route                          string
 	Description                    string
 	RequestBodyRequires            bool
-	RequestBodyStruct              string
+	RequestBodyStruct              *model
 	RequestBodyStructExample       interface{}
-	ResponseStruct                 string
+	ResponseStruct                 *model
 	RequestParametersPath          []field
 	RequestParametersQuery         []field
 	ResponsePositivePathExample    interface{}
@@ -552,7 +561,7 @@ func (e endpointImplementation) generateMethodImplementation() string {
 	o := "func (c *client) " + e.generateMethodHeader() + " {\n"
 
 	reqObj := "nil"
-	if e.RequestBodyStruct != "" {
+	if e.RequestBodyStruct != nil {
 		reqObj = "cfg"
 	}
 
@@ -562,17 +571,17 @@ func (e endpointImplementation) generateMethodImplementation() string {
 		o += e.generateQueryBuilder()
 	}
 
-	if e.ResponseStruct == "" {
+	if e.ResponseStruct == nil {
 		return o + `return c.requestHandler(c.baseURL+` + e.route() + query + `, "` + e.Method + `", ` + reqObj + `, nil)
 }`
 	}
 
-	returnStatementUnhappyPath := e.ResponseStruct + "{}"
-	if e.ResponseStruct[0] == '[' {
+	returnStatementUnhappyPath := e.ResponseStruct.name + "{}"
+	if e.ResponseStruct.name == "" || e.ResponseStruct.name[0] == '[' {
 		returnStatementUnhappyPath = "nil"
 	}
 
-	return o + "	var v " + e.ResponseStruct + `
+	return o + "	var v " + e.ResponseStruct.name + `
 	if err := c.requestHandler(c.baseURL+` + e.route() + query + `, "` + e.Method + `", ` + reqObj + `, &v); err != nil {
 		return ` + returnStatementUnhappyPath + `, err
 	}
@@ -641,19 +650,19 @@ func (e endpointImplementation) generateMethodHeader() string {
 	args := e.inputArgStr()
 	reqPointer := ""
 
-	if e.RequestBodyStruct != "" {
+	if e.RequestBodyStruct != nil {
 		if args != "" {
 			args += ", "
 		}
 		if !e.RequestBodyRequires {
 			reqPointer = "*"
 		}
-		args += "cfg " + reqPointer + e.RequestBodyStruct
+		args += "cfg " + reqPointer + e.RequestBodyStruct.name
 	}
 
 	resp := "error"
-	if e.ResponseStruct != "" {
-		resp = "(" + e.ResponseStruct + ", error)"
+	if e.ResponseStruct != nil {
+		resp = "(" + e.ResponseStruct.name + ", error)"
 	}
 
 	return e.Name + "(" + args + ") " + resp
@@ -677,8 +686,8 @@ func (e endpointImplementation) generateMockResponse() mockResponse {
 
 func (e endpointImplementation) generateMethodImplementationTest() string {
 	o := `func Test_client_` + e.Name + `(t *testing.T) {
-	deserializeResp := func(s string) ` + e.ResponseStruct + ` {
-		var v ` + e.ResponseStruct + `
+	deserializeResp := func(s string) ` + e.ResponseStruct.name + ` {
+		var v ` + e.ResponseStruct.name + `
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
@@ -689,14 +698,20 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	var (
 		argsInpt, testInpt, fnInputArgs, pointerTypeCfg string
 	)
-	if len(e.RequestParametersPath) > 0 || e.RequestBodyStruct != "" {
+	inputParameters := e.RequestParametersPath
+	inputParameters = append(inputParameters, e.RequestParametersQuery...)
+	if len(inputParameters) > 0 || e.RequestBodyStruct != nil {
 		argsInpt = "\n\t\targs args"
 		testInpt = "\n\t\t\targs: args{\n"
 		o += "\ttype args struct {\n"
-		for i, v := range e.RequestParametersPath {
+		for i, v := range inputParameters {
 			prf := "\t\t" + v.canonicalName()
-			o += fmt.Sprintf("%s %v\n", prf, v.argType())
-			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, v.generateDummy())
+			o += fmt.Sprintf("%s %v\n", prf, v.argType(!v.required))
+			dummyDate := v.generateDummy()
+			if !v.required {
+				dummyDate = wrapIntoPointerGenFn(dummyDate)
+			}
+			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, dummyDate)
 
 			if i > 0 {
 				fnInputArgs += ", "
@@ -704,13 +719,13 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 			fnInputArgs += "tt.args." + v.canonicalName()
 		}
 
-		if e.RequestBodyStruct != "" {
-			cfgInpt := e.RequestBodyStruct + "{}"
+		if e.RequestBodyStruct != nil {
+			cfgInpt := e.RequestBodyStruct.name + "{}"
 			if !e.RequestBodyRequires {
 				pointerTypeCfg = "*"
 				cfgInpt = "nil"
 			}
-			o += "\t\tcfg " + pointerTypeCfg + e.RequestBodyStruct + "\n"
+			o += "\t\tcfg " + pointerTypeCfg + e.RequestBodyStruct.name + "\n"
 			testInpt += "\t\t\t\tcfg: " + cfgInpt + ","
 
 			if fnInputArgs != "" {
@@ -723,20 +738,20 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 		o += "\t}\n"
 	}
 
-	wantUnhappyPath := e.ResponseStruct + "{}"
+	wantUnhappyPath := e.ResponseStruct.name + "{}"
 	defer func() {
 		if r := recover(); r != nil {
 			log.Fatalf("slice range out of bound: %#v", e.ResponseStruct)
 		}
 	}()
-	if e.ResponseStruct == "" || e.ResponseStruct[:2] == "[]" {
+	if e.ResponseStruct.name == "" || e.ResponseStruct.name[:2] == "[]" {
 		wantUnhappyPath = "nil"
 	}
 
 	o += `	tests := []struct {
 		name string` + argsInpt + `
 		apiKey string
-		want ` + e.ResponseStruct + `
+		want ` + e.ResponseStruct.name + `
 		wantErr bool
 	}{
 		{
@@ -775,6 +790,19 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	return o
 }
 
+// wrapIntoPointerGenFn wraps a dummy value into the generic function
+//
+//	type dummyType interface {
+//		int | int64 | int32 | bool | string | float64 | float32
+//	}
+//
+//	func createPointer[V dummyType](v V) *V {
+//		return &v
+//	}
+func wrapIntoPointerGenFn(v interface{}) string {
+	return fmt.Sprintf("createPointer(%v)", v)
+}
+
 // generateQueryBuilder generates the function to define the request's query
 func (e endpointImplementation) generateQueryBuilder() string {
 	if len(e.RequestParametersQuery) == 0 {
@@ -795,7 +823,7 @@ func (e endpointImplementation) generateQueryBuilder() string {
 		o += "\t}\n"
 	}
 
-	o += "\tquery := strings.Join(queryElements, \"&\")\n"
+	o += "\tquery := \"?\" + strings.Join(queryElements, \"&\")\n"
 
 	return o
 }
@@ -820,7 +848,7 @@ func filterOptionalParameters(v []field) []field {
 	return o
 }
 
-func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
+func extractStructFromSchemaRef(schema *openapi3.SchemaRef) *model {
 	if schema.Value != nil {
 		if schema.Value.Type == "array" {
 			t := modelNameFromRef(schema.Value.Items.Ref)
@@ -839,21 +867,23 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) string {
 					}
 					t += "}"
 				case openapi3.TypeArray:
-					t = extractStructFromSchemaRef(schema.Value.Items)
+					t = extractStructFromSchemaRef(schema.Value.Items).name
 				}
 			}
-			return "[]" + t
+			return &model{name: "[]" + t}
 		}
 		if len(schema.Value.AllOf) > 0 {
-			t := "struct {\n"
-			for _, c := range schema.Value.AllOf {
-				t += modelNameFromRef(c.Ref) + "\n"
+			o := model{
+				children: map[string]struct{}{},
 			}
-			t += "}"
-			return t
+			for _, c := range schema.Value.AllOf {
+				o.children[modelNameFromRef(c.Ref)] = struct{}{}
+			}
+			o.generated = true
+			return &o
 		}
 	}
-	return modelNameFromRef(schema.Ref)
+	return &model{name: modelNameFromRef(schema.Ref)}
 }
 
 type fieldType struct {
@@ -1017,6 +1047,7 @@ type model struct {
 	children          map[string]struct{}
 	primitive         fieldType
 	name, description string
+	generated         bool
 }
 
 func (m *model) setPrimitiveType(t fieldType) {
@@ -1098,16 +1129,16 @@ func implementationNameFromID(s string) string {
 }
 
 func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpointImplementation) {
+	const suffixResponseObject = "RespObj"
+
 	httpCodes := []string{"200", "201"}
 	for route, p := range o.Paths {
 		for httpMethod, ops := range p.Operations() {
 			e := endpointImplementation{
-				Name:              implementationNameFromID(ops.OperationID),
-				Method:            httpMethod,
-				Route:             route,
-				Description:       ops.Description,
-				RequestBodyStruct: "",
-				ResponseStruct:    "",
+				Name:        implementationNameFromID(ops.OperationID),
+				Method:      httpMethod,
+				Route:       route,
+				Description: ops.Description,
 			}
 
 			// read common parameters for all methods
@@ -1126,10 +1157,14 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpoint
 			for _, httpCode := range httpCodes {
 				if v, ok := ops.Responses[httpCode]; ok {
 					if v.Value == nil {
-						e.ResponseStruct = modelNameFromRef(v.Ref)
+						e.ResponseStruct = &model{name: modelNameFromRef(v.Ref)}
 					} else {
 						if vv, ok := v.Value.Content["application/json"]; ok {
 							e.ResponseStruct = extractStructFromSchemaRef(vv.Schema)
+							if e.ResponseStruct.name == "" {
+								e.ResponseStruct.name = e.Name + suffixResponseObject
+							}
+
 							e.ResponsePositivePathExample = vv.Example
 							if e.ResponsePositivePathExample == nil && vv.Schema.Value != nil {
 								e.ResponsePositivePathExample = vv.Schema.Value.Example
@@ -1142,7 +1177,7 @@ func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpoint
 			}
 
 			if v := ops.RequestBody; v != nil {
-				e.RequestBodyStruct = modelNameFromRef(v.Ref)
+				e.RequestBodyStruct = &model{name: modelNameFromRef(v.Ref)}
 				if v.Value != nil {
 					if vv, ok := v.Value.Content["application/json"]; ok {
 						e.RequestBodyStruct = extractStructFromSchemaRef(vv.Schema)
@@ -1258,7 +1293,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 		for propertyName, property := range v.Properties {
 			field := field{
 				k:        propertyName,
-				v:        extractStructFromSchemaRef(property),
+				v:        extractStructFromSchemaRef(property).name,
 				format:   "",
 				required: false,
 			}
@@ -1271,7 +1306,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 					m.add(field.v)
 					modelsFromSchema(m, field.v, property)
 				case openapi3.TypeArray:
-					m.addChild(k, extractStructFromSchemaRef(property))
+					m.addChild(k, extractStructFromSchemaRef(property).name)
 				default:
 					field.v = property.Value.Type
 					field.format = property.Value.Format

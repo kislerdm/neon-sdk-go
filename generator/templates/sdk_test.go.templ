@@ -506,3 +506,11 @@ func TestTypes(t *testing.T) {
 		t.Errorf("EndpointUpdateRequestEndpoint{}.Settings must be pointer")
 	}
 }
+
+type dummyType interface {
+	int | int64 | int32 | bool | string | float64 | float32
+}
+
+func createPointer[V dummyType](v V) *V {
+	return &v
+}
