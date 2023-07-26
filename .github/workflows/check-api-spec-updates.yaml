@@ -27,21 +27,21 @@ jobs:
           echo "diff=${DIFF}" >> $GITHUB_OUTPUT
 
   notify:
-      runs-on: ubuntu-latest
-      name: Notify on telegram
-      needs:
-        - compare_to_new_spec
-      if: ${{ needs.compare_to_new_spec.outputs.diff }} != ""
-      steps:
-        - name: check
-          run: |
-            echo ${{ needs.compare_to_new_spec.outputs.cLocDifference }}
-            if [ ${{ needs.compare_to_new_spec.outputs.cLocDifference }} > 0 ]; then echo "gt than 0"; fi
-            if [ ${{ needs.compare_to_new_spec.outputs.cLocDifference }} == 0 ]; then echo "0"; fi
-        - name: Notification via telegram
-          uses: appleboy/telegram-action@master
-          with:
-            to: ${{ secrets.TELEGRAM_TO }}
-            token: ${{ secrets.TELEGRAM_TOKEN }}
-            message: |
-              New NEON API spec detected. Please take action.
+    runs-on: ubuntu-latest
+    name: Notify on telegram
+    needs:
+      - compare_to_new_spec
+    if: ${{ needs.compare_to_new_spec.outputs.diff }} != ""
+    steps:
+      - name: check
+        run: |
+          echo ${{ needs.compare_to_new_spec.outputs.cLocDifference }}
+          if [ ${{ needs.compare_to_new_spec.outputs.cLocDifference }} > 0 ]; then echo "gt than 0"; fi
+          if [ ${{ needs.compare_to_new_spec.outputs.cLocDifference }} == 0 ]; then echo "0"; fi
+      - name: Notification via telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            New NEON API spec detected. Please take action.
