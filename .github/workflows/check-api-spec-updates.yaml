@@ -33,7 +33,7 @@ jobs:
     name: Notify on telegram
     needs:
       - compare_to_new_spec
-    if: needs.compare_to_new_spec.outputs.isNew == 'true'
+#    if: needs.compare_to_new_spec.outputs.isNew == 'true'
     steps:
       - name: Notification via telegram
         uses: appleboy/telegram-action@master
@@ -42,3 +42,6 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             New NEON API spec detected. Please take action.
+            
+            The message was sent from https://github.com/kislerdm/neon-sdk-go
+            Get in touch for details: admin@dkisler.com
