@@ -59,4 +59,4 @@ jobs:
           
             The message was sent from https://github.com/kislerdm/neon-sdk-go
             Get in touch for details: admin@dkisler.com" \
-            ntfy.sh\neon-api-spec-updated
+            ntfy.sh/neon-api-spec-updated
