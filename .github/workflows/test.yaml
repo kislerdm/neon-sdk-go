@@ -26,5 +26,9 @@ jobs:
         run: go mod tidy
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - name: e2e test
+        run: go test -tags=e2etest
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
