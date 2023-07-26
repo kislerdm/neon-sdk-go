@@ -21,10 +21,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.17
+          go-version: 1.18
       - name: Mod tidy
         run: go mod tidy
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - name: e2e test
+        run: go test -tags=e2etest
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

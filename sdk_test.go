@@ -325,7 +325,7 @@ func Test_client_requestHandler(t *testing.T) {
 
 type faultyReader struct{}
 
-func (f faultyReader) Read(p []byte) (n int, err error) {
+func (f faultyReader) Read(_ []byte) (n int, err error) {
 	return 1, errors.New("foo")
 }
 
@@ -484,738 +484,6 @@ func TestError_httpResp(t *testing.T) {
 	}
 }
 
-func Test_client_ListProjectBranchEndpoints(t *testing.T) {
-	deserializeResp := func(s string) EndpointsResponse {
-		var v EndpointsResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    EndpointsResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/endpoints"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    EndpointsResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.ListProjectBranchEndpoints(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ListProjectBranchEndpoints() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListProjectBranchEndpoints() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_CreateProjectBranchDatabase(t *testing.T) {
-	deserializeResp := func(s string) DatabaseOperations {
-		var v DatabaseOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-		cfg       DatabaseCreateRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    DatabaseOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       DatabaseCreateRequest{},
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases"]["POST"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       DatabaseCreateRequest{},
-			},
-			apiKey:  "invalidApiKey",
-			want:    DatabaseOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.CreateProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.cfg)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("CreateProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("CreateProjectBranchDatabase() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_ListProjectBranchDatabases(t *testing.T) {
-	deserializeResp := func(s string) DatabasesResponse {
-		var v DatabasesResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    DatabasesResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    DatabasesResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.ListProjectBranchDatabases(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ListProjectBranchDatabases() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListProjectBranchDatabases() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_DeleteProjectBranchRole(t *testing.T) {
-	deserializeResp := func(s string) RoleOperations {
-		var v RoleOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-		roleName  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    RoleOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				roleName:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles/{role_name}"]["DELETE"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				roleName:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    RoleOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.DeleteProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.roleName)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("DeleteProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("DeleteProjectBranchRole() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_GetProjectBranchRole(t *testing.T) {
-	deserializeResp := func(s string) RoleResponse {
-		var v RoleResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-		roleName  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    RoleResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				roleName:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles/{role_name}"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				roleName:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    RoleResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.GetProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.roleName)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("GetProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("GetProjectBranchRole() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_DeleteProjectBranch(t *testing.T) {
-	deserializeResp := func(s string) BranchOperations {
-		var v BranchOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    BranchOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["DELETE"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    BranchOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.DeleteProjectBranch(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("DeleteProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("DeleteProjectBranch() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_GetProjectBranch(t *testing.T) {
-	deserializeResp := func(s string) BranchResponse {
-		var v BranchResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    BranchResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    BranchResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.GetProjectBranch(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("GetProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("GetProjectBranch() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_UpdateProjectBranch(t *testing.T) {
-	deserializeResp := func(s string) BranchOperations {
-		var v BranchOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-		cfg       BranchUpdateRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    BranchOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       BranchUpdateRequest{},
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["PATCH"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       BranchUpdateRequest{},
-			},
-			apiKey:  "invalidApiKey",
-			want:    BranchOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.UpdateProjectBranch(tt.args.projectID, tt.args.branchID, tt.args.cfg)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("UpdateProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("UpdateProjectBranch() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_ListProjectBranchRoles(t *testing.T) {
-	deserializeResp := func(s string) RolesResponse {
-		var v RolesResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    RolesResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    RolesResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.ListProjectBranchRoles(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ListProjectBranchRoles() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListProjectBranchRoles() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_CreateProjectBranchRole(t *testing.T) {
-	deserializeResp := func(s string) RoleOperations {
-		var v RoleOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-		cfg       RoleCreateRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    RoleOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       RoleCreateRequest{},
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles"]["POST"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-				cfg:       RoleCreateRequest{},
-			},
-			apiKey:  "invalidApiKey",
-			want:    RoleOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.CreateProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.cfg)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("CreateProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("CreateProjectBranchRole() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_ListProjectEndpoints(t *testing.T) {
-	deserializeResp := func(s string) EndpointsResponse {
-		var v EndpointsResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    EndpointsResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    EndpointsResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.ListProjectEndpoints(tt.args.projectID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ListProjectEndpoints() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListProjectEndpoints() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_CreateProjectEndpoint(t *testing.T) {
-	deserializeResp := func(s string) EndpointOperations {
-		var v EndpointOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		cfg       EndpointCreateRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    EndpointOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				cfg:       EndpointCreateRequest{},
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints"]["POST"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				cfg:       EndpointCreateRequest{},
-			},
-			apiKey:  "invalidApiKey",
-			want:    EndpointOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.CreateProjectEndpoint(tt.args.projectID, tt.args.cfg)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("CreateProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("CreateProjectEndpoint() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
 func Test_client_ListApiKeys(t *testing.T) {
 	deserializeResp := func(s string) []ApiKeysListResponseItem {
 		var v []ApiKeysListResponseItem
@@ -1320,6 +588,63 @@ func Test_client_CreateApiKey(t *testing.T) {
 	}
 }
 
+func Test_client_RevokeApiKey(t *testing.T) {
+	deserializeResp := func(s string) ApiKeyRevokeResponse {
+		var v ApiKeyRevokeResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		keyID int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ApiKeyRevokeResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				keyID: 1,
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/api_keys/{key_id}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				keyID: 1,
+			},
+			apiKey:  "invalidApiKey",
+			want:    ApiKeyRevokeResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.RevokeApiKey(tt.args.keyID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("RevokeApiKey() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("RevokeApiKey() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetProjectOperation(t *testing.T) {
 	deserializeResp := func(s string) OperationResponse {
 		var v OperationResponse
@@ -1374,6 +699,123 @@ func Test_client_GetProjectOperation(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("GetProjectOperation() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ListProjects(t *testing.T) {
+	deserializeResp := func(s string) ListProjectsRespObj {
+		var v ListProjectsRespObj
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cursor *string
+		limit  *int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ListProjectsRespObj
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
+			},
+			apiKey:  "invalidApiKey",
+			want:    ListProjectsRespObj{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjects(tt.args.cursor, tt.args.limit)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjects() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateProject(t *testing.T) {
+	deserializeResp := func(s string) CreatedProject {
+		var v CreatedProject
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cfg ProjectCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    CreatedProject
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: ProjectCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cfg: ProjectCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    CreatedProject{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProject(tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1564,6 +1006,8 @@ func Test_client_ListProjectOperations(t *testing.T) {
 	}
 	type args struct {
 		projectID string
+		cursor    *string
+		limit     *int
 	}
 	tests := []struct {
 		name    string
@@ -1576,6 +1020,8 @@ func Test_client_ListProjectOperations(t *testing.T) {
 			name: "happy path",
 			args: args{
 				projectID: "foo",
+				cursor:    createPointer("foo"),
+				limit:     createPointer(1),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/operations"]["GET"].Content),
@@ -1585,6 +1031,8 @@ func Test_client_ListProjectOperations(t *testing.T) {
 			name: "unhappy path",
 			args: args{
 				projectID: "foo",
+				cursor:    createPointer("foo"),
+				limit:     createPointer(1),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListOperations{},
@@ -1598,130 +1046,13 @@ func Test_client_ListProjectOperations(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListProjectOperations(tt.args.projectID)
+				got, err := c.ListProjectOperations(tt.args.projectID, tt.args.cursor, tt.args.limit)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjectOperations() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("ListProjectOperations() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_SuspendProjectEndpoint(t *testing.T) {
-	deserializeResp := func(s string) EndpointOperations {
-		var v EndpointOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID  string
-		endpointID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    EndpointOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID:  "foo",
-				endpointID: "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints/{endpoint_id}/suspend"]["POST"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID:  "foo",
-				endpointID: "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    EndpointOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.SuspendProjectEndpoint(tt.args.projectID, tt.args.endpointID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("SuspendProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("SuspendProjectEndpoint() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_RevokeApiKey(t *testing.T) {
-	deserializeResp := func(s string) ApiKeyRevokeResponse {
-		var v ApiKeyRevokeResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		keyID int64
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    ApiKeyRevokeResponse
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				keyID: 1,
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/api_keys/{key_id}"]["DELETE"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				keyID: 1,
-			},
-			apiKey:  "invalidApiKey",
-			want:    ApiKeyRevokeResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.RevokeApiKey(tt.args.keyID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("RevokeApiKey() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("RevokeApiKey() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1845,43 +1176,43 @@ func Test_client_CreateProjectBranch(t *testing.T) {
 	}
 }
 
-func Test_client_StartProjectEndpoint(t *testing.T) {
-	deserializeResp := func(s string) EndpointOperations {
-		var v EndpointOperations
+func Test_client_GetProjectBranch(t *testing.T) {
+	deserializeResp := func(s string) BranchResponse {
+		var v BranchResponse
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
 		return v
 	}
 	type args struct {
-		projectID  string
-		endpointID string
+		projectID string
+		branchID  string
 	}
 	tests := []struct {
 		name    string
 		args    args
 		apiKey  string
-		want    EndpointOperations
+		want    BranchResponse
 		wantErr bool
 	}{
 		{
 			name: "happy path",
 			args: args{
-				projectID:  "foo",
-				endpointID: "foo",
+				projectID: "foo",
+				branchID:  "foo",
 			},
 			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints/{endpoint_id}/start"]["POST"].Content),
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["GET"].Content),
 			wantErr: false,
 		},
 		{
 			name: "unhappy path",
 			args: args{
-				projectID:  "foo",
-				endpointID: "foo",
+				projectID: "foo",
+				branchID:  "foo",
 			},
 			apiKey:  "invalidApiKey",
-			want:    EndpointOperations{},
+			want:    BranchResponse{},
 			wantErr: true,
 		},
 	}
@@ -1892,13 +1223,883 @@ func Test_client_StartProjectEndpoint(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.StartProjectEndpoint(tt.args.projectID, tt.args.endpointID)
+				got, err := c.GetProjectBranch(tt.args.projectID, tt.args.branchID)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("StartProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("GetProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("StartProjectEndpoint() got = %v, want %v", got, tt.want)
+					t.Errorf("GetProjectBranch() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_UpdateProjectBranch(t *testing.T) {
+	deserializeResp := func(s string) BranchOperations {
+		var v BranchOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		cfg       BranchUpdateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    BranchOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       BranchUpdateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["PATCH"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       BranchUpdateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    BranchOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.UpdateProjectBranch(tt.args.projectID, tt.args.branchID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("UpdateProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("UpdateProjectBranch() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_DeleteProjectBranch(t *testing.T) {
+	deserializeResp := func(s string) BranchOperations {
+		var v BranchOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    BranchOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    BranchOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.DeleteProjectBranch(tt.args.projectID, tt.args.branchID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("DeleteProjectBranch() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_SetPrimaryProjectBranch(t *testing.T) {
+	deserializeResp := func(s string) BranchOperations {
+		var v BranchOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    BranchOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/set_as_primary"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    BranchOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.SetPrimaryProjectBranch(tt.args.projectID, tt.args.branchID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("SetPrimaryProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("SetPrimaryProjectBranch() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ListProjectBranchEndpoints(t *testing.T) {
+	deserializeResp := func(s string) EndpointsResponse {
+		var v EndpointsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    EndpointsResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/endpoints"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    EndpointsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjectBranchEndpoints(tt.args.projectID, tt.args.branchID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjectBranchEndpoints() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjectBranchEndpoints() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ListProjectBranchDatabases(t *testing.T) {
+	deserializeResp := func(s string) DatabasesResponse {
+		var v DatabasesResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    DatabasesResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    DatabasesResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjectBranchDatabases(tt.args.projectID, tt.args.branchID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjectBranchDatabases() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjectBranchDatabases() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateProjectBranchDatabase(t *testing.T) {
+	deserializeResp := func(s string) DatabaseOperations {
+		var v DatabaseOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		cfg       DatabaseCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    DatabaseOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       DatabaseCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       DatabaseCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    DatabaseOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProjectBranchDatabase() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetProjectBranchDatabase(t *testing.T) {
+	deserializeResp := func(s string) DatabaseResponse {
+		var v DatabaseResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID    string
+		branchID     string
+		databaseName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    DatabaseResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    DatabaseResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetProjectBranchDatabase() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_UpdateProjectBranchDatabase(t *testing.T) {
+	deserializeResp := func(s string) DatabaseOperations {
+		var v DatabaseOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID    string
+		branchID     string
+		databaseName string
+		cfg          DatabaseUpdateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    DatabaseOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+				cfg:          DatabaseUpdateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["PATCH"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+				cfg:          DatabaseUpdateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    DatabaseOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.UpdateProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("UpdateProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("UpdateProjectBranchDatabase() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_DeleteProjectBranchDatabase(t *testing.T) {
+	deserializeResp := func(s string) DatabaseOperations {
+		var v DatabaseOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID    string
+		branchID     string
+		databaseName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    DatabaseOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     "foo",
+				databaseName: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    DatabaseOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.DeleteProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("DeleteProjectBranchDatabase() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ListProjectBranchRoles(t *testing.T) {
+	deserializeResp := func(s string) RolesResponse {
+		var v RolesResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    RolesResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    RolesResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjectBranchRoles(tt.args.projectID, tt.args.branchID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjectBranchRoles() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjectBranchRoles() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateProjectBranchRole(t *testing.T) {
+	deserializeResp := func(s string) RoleOperations {
+		var v RoleOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		cfg       RoleCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    RoleOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       RoleCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       RoleCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    RoleOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProjectBranchRole() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetProjectBranchRole(t *testing.T) {
+	deserializeResp := func(s string) RoleResponse {
+		var v RoleResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		roleName  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    RoleResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles/{role_name}"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    RoleResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.roleName)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetProjectBranchRole() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_DeleteProjectBranchRole(t *testing.T) {
+	deserializeResp := func(s string) RoleOperations {
+		var v RoleOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		roleName  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    RoleOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles/{role_name}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    RoleOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.DeleteProjectBranchRole(tt.args.projectID, tt.args.branchID, tt.args.roleName)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteProjectBranchRole() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("DeleteProjectBranchRole() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetProjectBranchRolePassword(t *testing.T) {
+	deserializeResp := func(s string) RolePasswordResponse {
+		var v RolePasswordResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		roleName  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    RolePasswordResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				roleName:  "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    RolePasswordResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetProjectBranchRolePassword(tt.args.projectID, tt.args.branchID, tt.args.roleName)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetProjectBranchRolePassword() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetProjectBranchRolePassword() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1962,6 +2163,123 @@ func Test_client_ResetProjectBranchRolePassword(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("ResetProjectBranchRolePassword() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_ListProjectEndpoints(t *testing.T) {
+	deserializeResp := func(s string) EndpointsResponse {
+		var v EndpointsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    EndpointsResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    EndpointsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjectEndpoints(tt.args.projectID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjectEndpoints() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjectEndpoints() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateProjectEndpoint(t *testing.T) {
+	deserializeResp := func(s string) EndpointOperations {
+		var v EndpointOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		cfg       EndpointCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    EndpointOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				cfg:       EndpointCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				cfg:       EndpointCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    EndpointOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProjectEndpoint(tt.args.projectID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProjectEndpoint() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -2151,87 +2469,43 @@ func Test_client_DeleteProjectEndpoint(t *testing.T) {
 	}
 }
 
-func Test_client_ListProjects(t *testing.T) {
-	deserializeResp := func(s string) ProjectsResponse {
-		var v ProjectsResponse
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	tests := []struct {
-		name    string
-		apiKey  string
-		want    ProjectsResponse
-		wantErr bool
-	}{
-		{
-			name:    "happy path",
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
-			wantErr: false,
-		},
-		{
-			name:    "unhappy path",
-			apiKey:  "invalidApiKey",
-			want:    ProjectsResponse{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.ListProjects()
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("ListProjects() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_CreateProject(t *testing.T) {
-	deserializeResp := func(s string) CreatedProject {
-		var v CreatedProject
+func Test_client_StartProjectEndpoint(t *testing.T) {
+	deserializeResp := func(s string) EndpointOperations {
+		var v EndpointOperations
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
 		return v
 	}
 	type args struct {
-		cfg ProjectCreateRequest
+		projectID  string
+		endpointID string
 	}
 	tests := []struct {
 		name    string
 		args    args
 		apiKey  string
-		want    CreatedProject
+		want    EndpointOperations
 		wantErr bool
 	}{
 		{
 			name: "happy path",
 			args: args{
-				cfg: ProjectCreateRequest{},
+				projectID:  "foo",
+				endpointID: "foo",
 			},
 			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects"]["POST"].Content),
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints/{endpoint_id}/start"]["POST"].Content),
 			wantErr: false,
 		},
 		{
 			name: "unhappy path",
 			args: args{
-				cfg: ProjectCreateRequest{},
+				projectID:  "foo",
+				endpointID: "foo",
 			},
 			apiKey:  "invalidApiKey",
-			want:    CreatedProject{},
+			want:    EndpointOperations{},
 			wantErr: true,
 		},
 	}
@@ -2242,59 +2516,56 @@ func Test_client_CreateProject(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.CreateProject(tt.args.cfg)
+				got, err := c.StartProjectEndpoint(tt.args.projectID, tt.args.endpointID)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("CreateProject() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("StartProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("CreateProject() got = %v, want %v", got, tt.want)
+					t.Errorf("StartProjectEndpoint() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
 	}
 }
 
-func Test_client_DeleteProjectBranchDatabase(t *testing.T) {
-	deserializeResp := func(s string) DatabaseOperations {
-		var v DatabaseOperations
+func Test_client_SuspendProjectEndpoint(t *testing.T) {
+	deserializeResp := func(s string) EndpointOperations {
+		var v EndpointOperations
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
 		return v
 	}
 	type args struct {
-		projectID    string
-		branchID     string
-		databaseName string
+		projectID  string
+		endpointID string
 	}
 	tests := []struct {
 		name    string
 		args    args
 		apiKey  string
-		want    DatabaseOperations
+		want    EndpointOperations
 		wantErr bool
 	}{
 		{
 			name: "happy path",
 			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
+				projectID:  "foo",
+				endpointID: "foo",
 			},
 			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["DELETE"].Content),
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints/{endpoint_id}/suspend"]["POST"].Content),
 			wantErr: false,
 		},
 		{
 			name: "unhappy path",
 			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
+				projectID:  "foo",
+				endpointID: "foo",
 			},
 			apiKey:  "invalidApiKey",
-			want:    DatabaseOperations{},
+			want:    EndpointOperations{},
 			wantErr: true,
 		},
 	}
@@ -2305,59 +2576,56 @@ func Test_client_DeleteProjectBranchDatabase(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.DeleteProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName)
+				got, err := c.SuspendProjectEndpoint(tt.args.projectID, tt.args.endpointID)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("DeleteProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("SuspendProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("DeleteProjectBranchDatabase() got = %v, want %v", got, tt.want)
+					t.Errorf("SuspendProjectEndpoint() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
 	}
 }
 
-func Test_client_GetProjectBranchDatabase(t *testing.T) {
-	deserializeResp := func(s string) DatabaseResponse {
-		var v DatabaseResponse
+func Test_client_ListProjectsConsumption(t *testing.T) {
+	deserializeResp := func(s string) ListProjectsConsumptionRespObj {
+		var v ListProjectsConsumptionRespObj
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
 		return v
 	}
 	type args struct {
-		projectID    string
-		branchID     string
-		databaseName string
+		cursor *string
+		limit  *int
 	}
 	tests := []struct {
 		name    string
 		args    args
 		apiKey  string
-		want    DatabaseResponse
+		want    ListProjectsConsumptionRespObj
 		wantErr bool
 	}{
 		{
 			name: "happy path",
 			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
 			},
 			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["GET"].Content),
+			want:    deserializeResp(endpointResponseExamples["/consumption/projects"]["GET"].Content),
 			wantErr: false,
 		},
 		{
 			name: "unhappy path",
 			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
 			},
 			apiKey:  "invalidApiKey",
-			want:    DatabaseResponse{},
+			want:    ListProjectsConsumptionRespObj{},
 			wantErr: true,
 		},
 	}
@@ -2368,81 +2636,13 @@ func Test_client_GetProjectBranchDatabase(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.GetProjectBranchDatabase(tt.args.projectID, tt.args.branchID, tt.args.databaseName)
+				got, err := c.ListProjectsConsumption(tt.args.cursor, tt.args.limit)
 				if (err != nil) != tt.wantErr {
-					t.Errorf("GetProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("ListProjectsConsumption() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
 				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("GetProjectBranchDatabase() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
-func Test_client_UpdateProjectBranchDatabase(t *testing.T) {
-	deserializeResp := func(s string) DatabaseOperations {
-		var v DatabaseOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID    string
-		branchID     string
-		databaseName string
-		cfg          DatabaseUpdateRequest
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    DatabaseOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
-				cfg:          DatabaseUpdateRequest{},
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/databases/{database_name}"]["PATCH"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID:    "foo",
-				branchID:     "foo",
-				databaseName: "foo",
-				cfg:          DatabaseUpdateRequest{},
-			},
-			apiKey:  "invalidApiKey",
-			want:    DatabaseOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.UpdateProjectBranchDatabase(
-					tt.args.projectID, tt.args.branchID, tt.args.databaseName, tt.args.cfg,
-				)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("UpdateProjectBranchDatabase() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("UpdateProjectBranchDatabase() got = %v, want %v", got, tt.want)
+					t.Errorf("ListProjectsConsumption() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -2466,4 +2666,12 @@ func TestTypes(t *testing.T) {
 	if reflect.TypeOf(EndpointUpdateRequestEndpoint{}.Settings).Kind() != reflect.Ptr {
 		t.Errorf("EndpointUpdateRequestEndpoint{}.Settings must be pointer")
 	}
+}
+
+type dummyType interface {
+	int | int64 | int32 | bool | string | float64 | float32
+}
+
+func createPointer[V dummyType](v V) *V {
+	return &v
 }

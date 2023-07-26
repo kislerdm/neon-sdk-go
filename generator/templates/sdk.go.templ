@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -89,7 +90,7 @@ type client struct {
 }
 
 const (
-	baseURL        = "https://console.neon.tech{{.ServerURL}}"
+	baseURL        = "{{.ServerURL}}"
 	defaultTimeout = 2 * time.Minute
 )
 
@@ -185,7 +186,7 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 
 	// cover non-existing object which will have 200+ status code
 	// see the ticket https://github.com/neondatabase/neon/issues/2159
-	if req.Method == "GET" && res.ContentLength < 10 {
+	if req.Method == "GET" && res.ContentLength < 4 {
 		return Error{
 			HTTPCode: 404,
 			errorResp: errorResp{

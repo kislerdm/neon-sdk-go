@@ -15,7 +15,7 @@
             * [Environment Variables Evaluation](#environment-variables-evaluation)
         - [Mock](#mock)
 - [Development](#development)
-    + [API V2](#api-v2)
+  + [Commands](#commands)
 - [Contribution](#contribution)
 
 The SDK to manage [Neon Platform](https://neon.tech) programmatically.
@@ -30,7 +30,7 @@ Find more about Neon [here](https://neon.tech/docs/introduction/about/).
 
 ### Prerequisites
 
-- [go ~> 1.17](https://go.dev/dl/)
+- [go ~> 1.18](https://go.dev/dl/)
 - [API Key](https://neon.tech/docs/manage/api-keys/)
 
 ### Installation
@@ -91,7 +91,8 @@ func main() {
 
 ##### Environment Variables Evaluation
 
-**_Requirement_**: a valid Neon [API key](https://neon.tech/docs/manage/api-keys/) must be exported as the environment variable `NEON_API_KEY`.
+**_Requirement_**: a valid Neon [API key](https://neon.tech/docs/manage/api-keys/) must be exported as the environment
+variable `NEON_API_KEY`.
 
 ```go
 package main
@@ -151,12 +152,59 @@ The SDK codebase is generated using the [OpenAPI](https://spec.openapis.org/) fr
 the [API reference page](https://neon.tech/api-reference/v2/). The generator application codebase can be
 found [here](generator).
 
-### API V2
+### Commands
 
-The SDK supports V2 only because V1 has been deprecated.
+**Prerequisites**:
+
+- go ~> 1.18
+- gnuMake / cmake
+
+Run to see all available commands:
+
+```commandline
+make help
+```
+
+Run to generate the SDK codebase and store it to PWD, given the OpenAPI spec is available in the
+file [`openAPIDefinition.json`](openAPIDefinition.json):
+
+```commandline
+make generate-sdk
+```
+
+Run to customise the locations:
+
+```commandline
+make generate-sdk PATH_SDK=##/PATH/TO/OUTPUT/SDK/CODE## PATH_SPEC=##/PATH/TO/SPEC.json##
+```
+
+Run to test generated SDK:
+
+```commandline
+make tests
+```
+
+Run to test generated SDK stored to `/PATH/TO/OUTPUT/SDK/CODE`:
+
+```commandline
+make tests DIR=/PATH/TO/OUTPUT/SDK/CODE
+```
+
+Run to test the [code generator](generator):
+
+```commandline
+make tests DIR=generator
+```
+
+Run to build the [code generator](generator):
+
+```commandline
+make build DIR=generator
+```
 
 ## Contribution
 
-The SDK is distributed under the [MIT license](LICENSE), find full list of dependencies' licenses [here](https://app.fossa.com/reports/fcbd29f3-1d63-4437-9946-cb320a567c42). 
+The SDK is distributed under the [MIT license](LICENSE), find full list of dependencies'
+licenses [here](https://app.fossa.com/reports/fcbd29f3-1d63-4437-9946-cb320a567c42).
 
 Please feel free to open an issue ticket, or PR to contribute.

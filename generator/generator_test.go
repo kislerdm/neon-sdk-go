@@ -128,13 +128,14 @@ func TestRun(t *testing.T) {
 
 func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 	type fields struct {
-		Name                  string
-		Method                string
-		Route                 string
-		Description           string
-		RequestBodyStruct     string
-		ResponseStruct        string
-		RequestParametersPath []field
+		Name                   string
+		Method                 string
+		Route                  string
+		Description            string
+		RequestBodyStruct      *model
+		ResponseStruct         *model
+		RequestParametersPath  []field
+		RequestParametersQuery []field
 	}
 	tests := []struct {
 		name   string
@@ -148,14 +149,40 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Method:                "GET",
 				Route:                 "/projects",
 				Description:           "Retrieves a list of projects for the Neon account",
-				RequestBodyStruct:     "",
-				ResponseStruct:        "ProjectsResponse",
+				RequestBodyStruct:     nil,
+				ResponseStruct:        &model{name: "ListProjectsResponse"},
 				RequestParametersPath: nil,
+				RequestParametersQuery: []field{
+					{
+						k:           "cursor",
+						v:           "string",
+						description: "Specify the cursor value from the previous response to get the next batch of projects.",
+						required:    false,
+						isInPath:    false,
+						isInQuery:   true,
+					},
+					{
+						k:           "limit",
+						v:           "integer",
+						description: "Specify a value from 1 to 100 to limit number of projects in the response",
+						required:    false,
+						isInPath:    false,
+						isInQuery:   true,
+					},
+				},
 			},
-			want: `func (c *client) ListProjects() (ProjectsResponse, error) {
-	var v ProjectsResponse
-	if err := c.requestHandler(c.baseURL+"/projects", "GET", nil, &v); err != nil {
-		return ProjectsResponse{}, err
+			want: `func (c *client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
+	var queryElements []string
+	if cursor != nil {
+		queryElements = append(queryElements, "cursor=" + *cursor)
+	}
+	if limit != nil {
+		queryElements = append(queryElements, "limit=" + strconv.FormatInt(int64(*limit), 10))
+	}
+	query := "?" + strings.Join(queryElements, "&")
+	var v ListProjectsResponse
+	if err := c.requestHandler(c.baseURL+"/projects" + query, "GET", nil, &v); err != nil {
+		return ListProjectsResponse{}, err
 	}
 	return v, nil
 }`,
@@ -167,8 +194,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Method:                "GET",
 				Route:                 "/projects/{project_id}",
 				Description:           "Retrieves information about the specified project",
-				RequestBodyStruct:     "",
-				ResponseStruct:        "ProjectsResponse",
+				RequestBodyStruct:     nil,
+				ResponseStruct:        &model{name: "ProjectsResponse"},
 				RequestParametersPath: []field{{"project_id", "string", "", "", true, true, false}},
 			},
 			want: `func (c *client) GetProject(projectID string) (ProjectsResponse, error) {
@@ -186,8 +213,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Method:            "GET",
 				Route:             "/projects/{project_id}/branches/{branch_id}/databases",
 				Description:       "Retrieves a list of databases for the specified branch",
-				RequestBodyStruct: "",
-				ResponseStruct:    "DatabasesResponse",
+				RequestBodyStruct: nil,
+				ResponseStruct:    &model{name: "DatabasesResponse"},
 				RequestParametersPath: []field{
 					{"project_id", "string", "", "", true, true, false},
 					{"branch_id", "string", "", "", true, true, false},
@@ -208,8 +235,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Method:                "DELETE",
 				Route:                 "/api_keys/{key_id}",
 				Description:           "Revokes the specified API key",
-				RequestBodyStruct:     "",
-				ResponseStruct:        "ApiKeyRevokeResponse",
+				RequestBodyStruct:     nil,
+				ResponseStruct:        &model{name: "ApiKeyRevokeResponse"},
 				RequestParametersPath: []field{{"key_id", "integer", "int64", "", true, true, false}},
 			},
 			want: `func (c *client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
@@ -227,8 +254,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				Method:                "POST",
 				Route:                 "/projects",
 				Description:           "Creates a Neon project",
-				RequestBodyStruct:     "ProjectCreateRequest",
-				ResponseStruct:        "CreatedProject",
+				RequestBodyStruct:     &model{name: "ProjectCreateRequest"},
+				ResponseStruct:        &model{name: "CreatedProject"},
 				RequestParametersPath: nil,
 			},
 			want: `func (c *client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
@@ -246,13 +273,15 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				assert.Equal(
 					t, tt.want,
 					endpointImplementation{
-						Name:                  tt.fields.Name,
-						Method:                tt.fields.Method,
-						Route:                 tt.fields.Route,
-						Description:           tt.fields.Description,
-						RequestBodyStruct:     tt.fields.RequestBodyStruct,
-						ResponseStruct:        tt.fields.ResponseStruct,
-						RequestParametersPath: tt.fields.RequestParametersPath,
+						Name:                           tt.fields.Name,
+						Method:                         tt.fields.Method,
+						Route:                          tt.fields.Route,
+						Description:                    tt.fields.Description,
+						RequestBodyStruct:              tt.fields.RequestBodyStruct,
+						ResponseStruct:                 tt.fields.ResponseStruct,
+						RequestParametersPath:          tt.fields.RequestParametersPath,
+						RequestParametersQuery:         tt.fields.RequestParametersQuery,
+						ResponsePositivePathStatusCode: "",
 					}.generateMethodImplementation(),
 				)
 			},
@@ -422,7 +451,7 @@ var inputSpec = openAPISpec{
 								Name:            "limit",
 								In:              openapi3.ParameterInQuery,
 								Description:     "query limit",
-								AllowEmptyValue: false,
+								AllowEmptyValue: true,
 								Required:        false,
 								Schema: &openapi3.SchemaRef{
 									Ref: "",
@@ -575,7 +604,8 @@ var inputSpec = openAPISpec{
 
 func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	type args struct {
-		o openAPISpec
+		o                openAPISpec
+		orderedEndpoints []string
 	}
 	tests := []struct {
 		name          string
@@ -586,6 +616,10 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 			name: "happy path",
 			args: args{
 				o: inputSpec,
+				orderedEndpoints: []string{
+					"/foo/{bar}/{qux_id}",
+					"/foo/bar/{qux_id}/{date_submit}",
+				},
 			},
 			wantEndpoints: []endpointImplementation{
 				{
@@ -593,8 +627,8 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					Method:            "GET",
 					Route:             "/foo/{bar}/{qux_id}",
 					Description:       "get /foo",
-					RequestBodyStruct: "",
-					ResponseStruct:    "[]Foo",
+					RequestBodyStruct: nil,
+					ResponseStruct:    &model{name: "[]Foo"},
 					ResponsePositivePathExample: []map[string]interface{}{
 						{
 							"foo_id": "bar",
@@ -608,18 +642,28 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					ResponsePositivePathStatusCode: "200",
 					RequestParametersPath: []field{
 						{
-							k:        "bar",
-							v:        "string",
-							format:   "",
-							required: true,
-							isInPath: true,
+							k:           "bar",
+							v:           "string",
+							description: "bar parameter",
+							format:      "",
+							required:    true,
+							isInPath:    true,
 						},
 						{
-							k:        "qux_id",
-							v:        "integer",
-							format:   "int64",
-							required: true,
-							isInPath: true,
+							k:           "qux_id",
+							v:           "integer",
+							description: "qux parameter",
+							format:      "int64",
+							required:    true,
+							isInPath:    true,
+						},
+					},
+					RequestParametersQuery: []field{
+						{
+							k:           "limit",
+							v:           "integer",
+							description: "query limit",
+							isInQuery:   true,
 						},
 					},
 				},
@@ -628,8 +672,8 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					Method:            "GET",
 					Route:             "/foo/bar/{qux_id}/{date_submit}",
 					Description:       "get /foo/bar",
-					RequestBodyStruct: "",
-					ResponseStruct:    "FooBarResponse",
+					RequestBodyStruct: nil,
+					ResponseStruct:    &model{name: "FooBarResponse"},
 					ResponsePositivePathExample: map[string]interface{}{
 						"foo": map[string]interface{}{
 							"foo_id": "bar",
@@ -640,18 +684,20 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					ResponsePositivePathStatusCode: "200",
 					RequestParametersPath: []field{
 						{
-							k:        "qux_id",
-							v:        "integer",
-							format:   "int64",
-							required: true,
-							isInPath: true,
+							k:           "qux_id",
+							description: "qux parameter",
+							v:           "integer",
+							format:      "int64",
+							required:    true,
+							isInPath:    true,
 						},
 						{
-							k:        "date_submit",
-							v:        "string",
-							format:   "date-time",
-							required: true,
-							isInPath: true,
+							k:           "date_submit",
+							description: "date parameter",
+							v:           "string",
+							format:      "date-time",
+							required:    true,
+							isInPath:    true,
 						},
 					},
 				},
@@ -661,7 +707,9 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equal(t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o))
+				assert.Equal(
+					t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o, tt.args.orderedEndpoints),
+				)
 			},
 		)
 	}
@@ -1017,8 +1065,8 @@ func Test_models_generateCode(t *testing.T) {
 			},
 			want: []string{
 				`type FooBarResponse struct {
-FooResponse
 BarResponse
+FooResponse
 }`,
 			},
 		},
@@ -1138,9 +1186,9 @@ func Test_endpointImplementation_generateMethodDefinition(t *testing.T) {
 		Route                       string
 		Description                 string
 		RequestBodyRequires         bool
-		RequestBodyStruct           string
+		RequestBodyStruct           *model
 		RequestBodyStructExample    interface{}
-		ResponseStruct              string
+		ResponseStruct              *model
 		RequestParametersPath       []field
 		ResponsePositivePathExample interface{}
 	}
@@ -1157,9 +1205,9 @@ func Test_endpointImplementation_generateMethodDefinition(t *testing.T) {
 				Route:                    "/projects/{project_id}/branches",
 				Description:              "Creates a branch in the specified project",
 				RequestBodyRequires:      false,
-				RequestBodyStruct:        "BranchCreateRequest",
+				RequestBodyStruct:        &model{name: "BranchCreateRequest"},
 				RequestBodyStructExample: nil,
-				ResponseStruct:           "CreatedBranch",
+				ResponseStruct:           &model{name: "CreatedBranch"},
 				RequestParametersPath: []field{
 					{
 						k:        "project_id",
@@ -1201,14 +1249,14 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want string
+		want *model
 	}{
 		{
 			name: "reference case",
 			args: args{
 				schema: &openapi3.SchemaRef{Ref: "#/components/schemas/ExplainData"},
 			},
-			want: "ExplainData",
+			want: &model{name: "ExplainData"},
 		},
 		{
 			name: "array of arrays",
@@ -1227,7 +1275,7 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 					},
 				},
 			},
-			want: "[][]string",
+			want: &model{name: "[][]string"},
 		},
 		{
 			name: "array of arrays of arrays",
@@ -1253,7 +1301,21 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 					},
 				},
 			},
-			want: "[][][]string",
+			want: &model{name: "[][][]string"},
+		},
+		{
+			name: "array of arrays of arrays",
+			args: args{
+				schema: &openapi3.SchemaRef{
+					Value: &openapi3.Schema{
+						AllOf: openapi3.SchemaRefs{
+							{Ref: "#/components/schemas/Foo"},
+							{Ref: "#/components/schemas/Bar"},
+						},
+					},
+				},
+			},
+			want: &model{name: "", children: map[string]struct{}{"Foo": {}, "Bar": {}}, generated: true},
 		},
 	}
 	for _, tt := range tests {
@@ -1275,9 +1337,9 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 		Route                          string
 		Description                    string
 		RequestBodyRequires            bool
-		RequestBodyStruct              string
+		RequestBodyStruct              *model
 		RequestBodyStructExample       interface{}
-		ResponseStruct                 string
+		ResponseStruct                 *model
 		RequestParametersPath          []field
 		ResponsePositivePathExample    interface{}
 		ResponsePositivePathStatusCode string
@@ -1294,7 +1356,7 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 				Method:         "GET",
 				Route:          "/projects",
 				Description:    "Retrieves a list of projects for the Neon account",
-				ResponseStruct: "ProjectsResponse",
+				ResponseStruct: &model{name: "ProjectsResponse"},
 				ResponsePositivePathExample: map[string]interface{}{
 					"projects": []map[string]interface{}{
 						{
@@ -1378,11 +1440,11 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 				Route:               "/projects/{project_id}",
 				Description:         "Updates the specified project",
 				RequestBodyRequires: true,
-				RequestBodyStruct:   "ProjectUpdateRequest",
+				RequestBodyStruct:   &model{name: "ProjectUpdateRequest"},
 				RequestBodyStructExample: map[string]interface{}{
 					"project": map[string]interface{}{"name": "foo"},
 				},
-				ResponseStruct: "ProjectOperations",
+				ResponseStruct: &model{name: "ProjectOperations"},
 				RequestParametersPath: []field{
 					{
 						k:           "project_id",
