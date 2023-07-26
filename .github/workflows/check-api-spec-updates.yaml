@@ -23,14 +23,15 @@ jobs:
       - name: Diff
         id: diff
         run: |
-          echo "diff=$(diff openAPIDefinition_new.json openAPIDefinition.json)" >> $GITHUB_OUTPUT
+          DIFF=$(diff openAPIDefinition_new.json openAPIDefinition.json)
+          echo "diff=${DIFF}" >> $GITHUB_OUTPUT
 
   notify:
       runs-on: ubuntu-latest
       name: Notify on telegram
       needs:
         - compare_to_new_spec
-      if: "${{ needs.compare_to_new_spec.outputs.diff }}" != ""
+      if: ${{ needs.compare_to_new_spec.outputs.diff }} != ""
       steps:
         - name: check
           run: |
