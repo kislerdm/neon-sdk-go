@@ -1,4 +1,4 @@
-name: "Check API Spec Updates"
+name: "CheckForAPISpecUpdates"
 
 on:
   schedule:
