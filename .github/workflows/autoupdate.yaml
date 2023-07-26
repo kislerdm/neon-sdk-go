@@ -1,0 +1,42 @@
+name: "Auto-update"
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  compare_to_new_spec:
+    runs-on: ubuntu-latest
+    name: Compare to new API spec
+    outputs:
+      cLocDifference: ${{ steps.diff.outputs.loc }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Pull new spec
+        run: |
+          curl -SLo openAPIDefinition_new.json "$SPEC_URL"
+        env:
+          SPEC_URL: https://dfv3qgd2ykmrx.cloudfront.net/api_spec/release/v2.json
+      - name: Diff
+        id: diff
+        run: |
+          DIFF=$(diff openAPIDefinition_new.json openAPIDefinition.json | wc -l)
+          echo "loc=${DIFF}" >> $GITHUB_OUTPUT
+
+  notify:
+      runs-on: ubuntu-latest
+      name: Notify on telegram
+      needs:
+        - compare_to_new_spec
+      steps:
+      - name: Notification via telegram
+        if: ${{ needs.compare_to_new_spec.outputs.cLocDifference }} > 0
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            New NEON API spec detected. Please take action.
