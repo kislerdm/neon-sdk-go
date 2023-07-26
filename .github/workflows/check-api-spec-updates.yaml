@@ -33,19 +33,19 @@ jobs:
     name: Notify
     needs:
       - compare_to_new_spec
-#    if: needs.compare_to_new_spec.outputs.isNew == 'true'
+    if: needs.compare_to_new_spec.outputs.isNew == 'true'
     steps:
-#      - name: Telegram
-#        uses: appleboy/telegram-action@master
-#        with:
-#          to: ${{ secrets.TELEGRAM_TO }}
-#          token: ${{ secrets.TELEGRAM_TOKEN }}
-#          message: |
-#            New Neon API spec has been detected. Please take action.
-#
-#            The message was sent from https://github.com/kislerdm/neon-sdk-go
-#            Get in touch for details: admin@dkisler.com
-#        continue-on-error: true
+      - name: Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            New Neon API spec has been detected. Please take action.
+
+            The message was sent from https://github.com/kislerdm/neon-sdk-go
+            Get in touch for details: admin@dkisler.com
+        continue-on-error: true
       - name: Ntfy
         run: |
           curl \
