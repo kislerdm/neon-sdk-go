@@ -25,6 +25,7 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 ### Changed
 
 - Module's documentation
+- Order of the data structs' attributes, they will be sorted alphabetically 
 
 ### Removed
 

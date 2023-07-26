@@ -1,6 +1,6 @@
 module github.com/kislerdm/neon-sdk-go/generator
 
-go 1.17
+go 1.18
 
 require (
 	github.com/getkin/kin-openapi v0.112.0

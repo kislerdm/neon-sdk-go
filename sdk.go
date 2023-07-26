@@ -804,25 +804,25 @@ type ApiKeyCreateResponse struct {
 type ApiKeyRevokeResponse struct {
 	// ID The API key ID
 	ID int64 `json:"id"`
-	// Name The user-specified API key name
-	Name string `json:"name"`
-	// Revoked A `true` or `false` value indicating whether the API key is revoked
-	Revoked bool `json:"revoked"`
 	// LastUsedAt A timestamp indicating when the API was last used
 	LastUsedAt time.Time `json:"last_used_at,omitempty"`
 	// LastUsedFromAddr The IP address from which the API key was last used
 	LastUsedFromAddr string `json:"last_used_from_addr"`
+	// Name The user-specified API key name
+	Name string `json:"name"`
+	// Revoked A `true` or `false` value indicating whether the API key is revoked
+	Revoked bool `json:"revoked"`
 }
 
 type ApiKeysListResponseItem struct {
 	// CreatedAt A timestamp indicating when the API key was created
 	CreatedAt time.Time `json:"created_at"`
+	// ID The API key ID
+	ID int64 `json:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
 	LastUsedAt time.Time `json:"last_used_at,omitempty"`
 	// LastUsedFromAddr The IP address from which the API key was last used
 	LastUsedFromAddr string `json:"last_used_from_addr"`
-	// ID The API key ID
-	ID int64 `json:"id"`
 	// Name The user-specified API key name
 	Name string `json:"name"`
 }
@@ -832,64 +832,64 @@ type ApiKeysListResponseItem struct {
 type BillingSubscriptionType string
 
 type Branch struct {
-	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
-	ID           string      `json:"id"`
-	PendingState BranchState `json:"pending_state,omitempty"`
-	// ProjectID The ID of the project to which the branch belongs
-	ProjectID         string `json:"project_id"`
-	ActiveTimeSeconds int64  `json:"active_time_seconds"`
-	// UpdatedAt A timestamp indicating when the branch was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// Name The branch name
-	Name string `json:"name"`
-	// ParentTimestamp The point in time on the parent branch from which this branch was created
-	ParentTimestamp  time.Time `json:"parent_timestamp,omitempty"`
-	WrittenDataBytes int64     `json:"written_data_bytes"`
-	// LogicalSize The logical size of the branch, in bytes
-	LogicalSize        int64       `json:"logical_size,omitempty"`
-	ComputeTimeSeconds int64       `json:"compute_time_seconds"`
-	CurrentState       BranchState `json:"current_state"`
+	ActiveTimeSeconds  int64 `json:"active_time_seconds"`
+	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// CpuUsedSec CPU seconds used by all the endpoints of the branch, including deleted ones.
 	// This value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. A branch that uses 1 CPU for 1 second is equal to `cpu_used_sec=1`.
 	// 2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
-	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created
-	ParentLsn string `json:"parent_lsn,omitempty"`
-	// Primary Whether the branch is the project's primary branch
-	Primary           bool  `json:"primary"`
-	DataTransferBytes int64 `json:"data_transfer_bytes"`
-	// CreationSource The branch creation source
-	CreationSource string `json:"creation_source"`
 	// CreatedAt A timestamp indicating when the branch was created
 	CreatedAt time.Time `json:"created_at"`
+	// CreationSource The branch creation source
+	CreationSource    string      `json:"creation_source"`
+	CurrentState      BranchState `json:"current_state"`
+	DataTransferBytes int64       `json:"data_transfer_bytes"`
+	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
+	ID string `json:"id"`
+	// LogicalSize The logical size of the branch, in bytes
+	LogicalSize int64 `json:"logical_size,omitempty"`
+	// Name The branch name
+	Name string `json:"name"`
 	// ParentID The `branch_id` of the parent branch
 	ParentID string `json:"parent_id,omitempty"`
+	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created
+	ParentLsn string `json:"parent_lsn,omitempty"`
+	// ParentTimestamp The point in time on the parent branch from which this branch was created
+	ParentTimestamp time.Time   `json:"parent_timestamp,omitempty"`
+	PendingState    BranchState `json:"pending_state,omitempty"`
+	// Primary Whether the branch is the project's primary branch
+	Primary bool `json:"primary"`
+	// ProjectID The ID of the project to which the branch belongs
+	ProjectID string `json:"project_id"`
+	// UpdatedAt A timestamp indicating when the branch was last updated
+	UpdatedAt        time.Time `json:"updated_at"`
+	WrittenDataBytes int64     `json:"written_data_bytes"`
 }
 
 type BranchCreateRequest struct {
-	Endpoints *[]BranchCreateRequestEndpointOptions `json:"endpoints,omitempty"`
 	Branch    *BranchCreateRequestBranch            `json:"branch,omitempty"`
+	Endpoints *[]BranchCreateRequestEndpointOptions `json:"endpoints,omitempty"`
 }
 
 type BranchCreateRequestBranch struct {
 	// Name The branch name
 	Name *string `json:"name,omitempty"`
+	// ParentID The `branch_id` of the parent branch
+	ParentID *string `json:"parent_id,omitempty"`
 	// ParentLsn A Log Sequence Number (LSN) on the parent branch. The branch will be created with data from this LSN.
 	ParentLsn *string `json:"parent_lsn,omitempty"`
 	// ParentTimestamp A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.
 	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
-	// ParentID The `branch_id` of the parent branch
-	ParentID *string `json:"parent_id,omitempty"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
-	Type                  EndpointType           `json:"type"`
-	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
 	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
+	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
 	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
+	Type                  EndpointType           `json:"type"`
 }
 
 type BranchOperations struct {
@@ -919,23 +919,23 @@ type BranchesResponse struct {
 type ComputeUnit float64
 
 type ConnectionDetails struct {
+	ConnectionParameters ConnectionParameters `json:"connection_parameters"`
 	// ConnectionURI Connection URI is same as specified in https://www.postgresql.org/docs/current/libpq-connect.html#id-1.7.3.8.3.6
 	// It is a ready to use string for psql or for DATABASE_URL environment variable.
-	ConnectionURI        string               `json:"connection_uri"`
-	ConnectionParameters ConnectionParameters `json:"connection_parameters"`
+	ConnectionURI string `json:"connection_uri"`
 }
 
 type ConnectionParameters struct {
-	// PoolerHost Pooler host name.
-	PoolerHost string `json:"pooler_host"`
 	// Database name.
 	Database string `json:"database"`
-	// Password for the role.
-	Password string `json:"password"`
-	// Role name.
-	Role string `json:"role"`
 	// Host name.
 	Host string `json:"host"`
+	// Password for the role.
+	Password string `json:"password"`
+	// PoolerHost Pooler host name.
+	PoolerHost string `json:"pooler_host"`
+	// Role name.
+	Role string `json:"role"`
 }
 
 type ConnectionURIsOptionalResponse struct {
@@ -964,18 +964,18 @@ type CreatedProject struct {
 }
 
 type Database struct {
-	// OwnerName The name of role that owns the database
-	OwnerName string `json:"owner_name"`
-	// CreatedAt A timestamp indicating when the database was created
-	CreatedAt time.Time `json:"created_at"`
-	// UpdatedAt A timestamp indicating when the database was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// ID The database ID
-	ID int64 `json:"id"`
 	// BranchID The ID of the branch to which the database belongs
 	BranchID string `json:"branch_id"`
+	// CreatedAt A timestamp indicating when the database was created
+	CreatedAt time.Time `json:"created_at"`
+	// ID The database ID
+	ID int64 `json:"id"`
 	// Name The database name
 	Name string `json:"name"`
+	// OwnerName The name of role that owns the database
+	OwnerName string `json:"owner_name"`
+	// UpdatedAt A timestamp indicating when the database was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type DatabaseCreateRequest struct {
@@ -983,10 +983,10 @@ type DatabaseCreateRequest struct {
 }
 
 type DatabaseCreateRequestDatabase struct {
-	// OwnerName The name of the role that owns the database
-	OwnerName string `json:"owner_name"`
 	// Name The name of the datbase
 	Name string `json:"name"`
+	// OwnerName The name of the role that owns the database
+	OwnerName string `json:"owner_name"`
 }
 
 type DatabaseOperations struct {
@@ -1015,48 +1015,48 @@ type DatabasesResponse struct {
 
 // DefaultEndpointSettings A collection of settings for a Neon endpoint
 type DefaultEndpointSettings struct {
-	PgSettings            PgSettingsData        `json:"pg_settings,omitempty"`
-	AutoscalingLimitMinCu ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
 	AutoscalingLimitMaxCu ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
+	AutoscalingLimitMinCu ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
+	PgSettings            PgSettingsData        `json:"pg_settings,omitempty"`
 	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
 
 type Endpoint struct {
-	// PasswordlessAccess Whether to permit passwordless access to the compute endpoint
-	PasswordlessAccess bool `json:"passwordless_access"`
-	// LastActive A timestamp indicating when the compute endpoint was last active
-	LastActive time.Time `json:"last_active,omitempty"`
-	// CreationSource The compute endpoint creation source
-	CreationSource string      `json:"creation_source"`
-	Provisioner    Provisioner `json:"provisioner"`
-	// ProjectID The ID of the project to which the compute endpoint belongs
-	ProjectID    string        `json:"project_id"`
-	CurrentState EndpointState `json:"current_state"`
-	// Disabled Whether to restrict connections to the compute endpoint
-	Disabled              bool        `json:"disabled"`
+	AutoscalingLimitMaxCu ComputeUnit `json:"autoscaling_limit_max_cu"`
 	AutoscalingLimitMinCu ComputeUnit `json:"autoscaling_limit_min_cu"`
-	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// Host The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
-	Host       string               `json:"host"`
-	Type       EndpointType         `json:"type"`
-	PoolerMode EndpointPoolerMode   `json:"pooler_mode"`
-	Settings   EndpointSettingsData `json:"settings"`
-	// PoolerEnabled Whether connection pooling is enabled for the compute endpoint
-	PoolerEnabled bool `json:"pooler_enabled"`
-	// ID The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`
-	ID                    string                `json:"id"`
-	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
-	AutoscalingLimitMaxCu ComputeUnit           `json:"autoscaling_limit_max_cu"`
-	// CreatedAt A timestamp indicating when the compute endpoint was created
-	CreatedAt time.Time `json:"created_at"`
-	// ProxyHost DEPRECATED. Use the "host" property instead.
-	ProxyHost    string        `json:"proxy_host"`
-	PendingState EndpointState `json:"pending_state,omitempty"`
-	// RegionID The region identifier
-	RegionID string `json:"region_id"`
 	// BranchID The ID of the branch that the compute endpoint is associated with
 	BranchID string `json:"branch_id"`
+	// CreatedAt A timestamp indicating when the compute endpoint was created
+	CreatedAt time.Time `json:"created_at"`
+	// CreationSource The compute endpoint creation source
+	CreationSource string        `json:"creation_source"`
+	CurrentState   EndpointState `json:"current_state"`
+	// Disabled Whether to restrict connections to the compute endpoint
+	Disabled bool `json:"disabled"`
+	// Host The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
+	Host string `json:"host"`
+	// ID The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`
+	ID string `json:"id"`
+	// LastActive A timestamp indicating when the compute endpoint was last active
+	LastActive time.Time `json:"last_active,omitempty"`
+	// PasswordlessAccess Whether to permit passwordless access to the compute endpoint
+	PasswordlessAccess bool          `json:"passwordless_access"`
+	PendingState       EndpointState `json:"pending_state,omitempty"`
+	// PoolerEnabled Whether connection pooling is enabled for the compute endpoint
+	PoolerEnabled bool               `json:"pooler_enabled"`
+	PoolerMode    EndpointPoolerMode `json:"pooler_mode"`
+	// ProjectID The ID of the project to which the compute endpoint belongs
+	ProjectID   string      `json:"project_id"`
+	Provisioner Provisioner `json:"provisioner"`
+	// ProxyHost DEPRECATED. Use the "host" property instead.
+	ProxyHost string `json:"proxy_host"`
+	// RegionID The region identifier
+	RegionID              string                `json:"region_id"`
+	Settings              EndpointSettingsData  `json:"settings"`
+	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
+	Type                  EndpointType          `json:"type"`
+	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type EndpointCreateRequest struct {
@@ -1064,23 +1064,23 @@ type EndpointCreateRequest struct {
 }
 
 type EndpointCreateRequestEndpoint struct {
-	Provisioner *Provisioner `json:"provisioner,omitempty"`
+	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
+	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
+	// BranchID The ID of the branch the compute endpoint will be associated with
+	BranchID string `json:"branch_id"`
 	// Disabled Whether to restrict connections to the compute endpoint
 	Disabled *bool `json:"disabled,omitempty"`
-	// RegionID The region where the compute endpoint will be created. Only the project's `region_id` is permitted.
-	RegionID              *string                `json:"region_id,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
-	// BranchID The ID of the branch the compute endpoint will be associated with
-	BranchID string                `json:"branch_id"`
-	Type     EndpointType          `json:"type"`
-	Settings *EndpointSettingsData `json:"settings,omitempty"`
+	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
+	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
 	PoolerEnabled *bool               `json:"pooler_enabled,omitempty"`
 	PoolerMode    *EndpointPoolerMode `json:"pooler_mode,omitempty"`
-	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
-	PasswordlessAccess    *bool        `json:"passwordless_access,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
-	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
+	Provisioner   *Provisioner        `json:"provisioner,omitempty"`
+	// RegionID The region where the compute endpoint will be created. Only the project's `region_id` is permitted.
+	RegionID              *string                `json:"region_id,omitempty"`
+	Settings              *EndpointSettingsData  `json:"settings,omitempty"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
+	Type                  EndpointType           `json:"type"`
 }
 
 type EndpointOperations struct {
@@ -1112,20 +1112,20 @@ type EndpointUpdateRequest struct {
 }
 
 type EndpointUpdateRequestEndpoint struct {
-	// BranchID The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
-	BranchID              *string      `json:"branch_id,omitempty"`
+	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
-	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
-	PasswordlessAccess    *bool                 `json:"passwordless_access,omitempty"`
-	Settings              *EndpointSettingsData `json:"settings,omitempty"`
-	AutoscalingLimitMaxCu *ComputeUnit          `json:"autoscaling_limit_max_cu,omitempty"`
+	// BranchID The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
+	BranchID *string `json:"branch_id,omitempty"`
 	// Disabled Whether to restrict connections to the compute endpoint
-	Disabled              *bool                  `json:"disabled,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
+	Disabled *bool `json:"disabled,omitempty"`
+	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
+	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
-	PoolerEnabled *bool               `json:"pooler_enabled,omitempty"`
-	PoolerMode    *EndpointPoolerMode `json:"pooler_mode,omitempty"`
-	Provisioner   *Provisioner        `json:"provisioner,omitempty"`
+	PoolerEnabled         *bool                  `json:"pooler_enabled,omitempty"`
+	PoolerMode            *EndpointPoolerMode    `json:"pooler_mode,omitempty"`
+	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
+	Settings              *EndpointSettingsData  `json:"settings,omitempty"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
 
 type EndpointsResponse struct {
@@ -1148,26 +1148,26 @@ type ListProjectsRespObj struct {
 }
 
 type Operation struct {
-	// FailuresCount The number of times the operation failed
-	FailuresCount int32 `json:"failures_count"`
+	Action OperationAction `json:"action"`
+	// BranchID The branch ID
+	BranchID string `json:"branch_id,omitempty"`
 	// CreatedAt A timestamp indicating when the operation was created
 	CreatedAt time.Time `json:"created_at"`
-	// BranchID The branch ID
-	BranchID string          `json:"branch_id,omitempty"`
-	Status   OperationStatus `json:"status"`
+	// EndpointID The endpoint ID
+	EndpointID string `json:"endpoint_id,omitempty"`
 	// Error The error that occured
 	Error string `json:"error,omitempty"`
-	// RetryAt A timestamp indicating when the operation was last retried
-	RetryAt time.Time `json:"retry_at,omitempty"`
-	// ProjectID The Neon project ID
-	ProjectID string `json:"project_id"`
-	// EndpointID The endpoint ID
-	EndpointID string          `json:"endpoint_id,omitempty"`
-	Action     OperationAction `json:"action"`
-	// UpdatedAt A timestamp indicating when the operation status was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	// FailuresCount The number of times the operation failed
+	FailuresCount int32 `json:"failures_count"`
 	// ID The operation ID
 	ID string `json:"id"`
+	// ProjectID The Neon project ID
+	ProjectID string `json:"project_id"`
+	// RetryAt A timestamp indicating when the operation was last retried
+	RetryAt time.Time       `json:"retry_at,omitempty"`
+	Status  OperationStatus `json:"status"`
+	// UpdatedAt A timestamp indicating when the operation status was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // OperationAction The action performed by the operation
@@ -1202,117 +1202,117 @@ type PgSettingsData map[string]interface{}
 type PgVersion int
 
 type Project struct {
-	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords bool `json:"store_passwords"`
-	// ConsumptionPeriodEnd A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
-	ConsumptionPeriodEnd time.Time `json:"consumption_period_end"`
-	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
-	// The value is reset at the beginning of each billing period.
-	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
-	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
-	ProxyHost string `json:"proxy_host"`
-	// SyntheticStorageSize Experimental. Do not use this field yet.
-	// The data storage size in bytes.
-	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
-	// Name The project name
-	Name string `json:"name"`
-	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
-	//
-	// Omitted when observed no actitivy for endpoints of this project.
-	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
-	// CreatedAt A timestamp indicating when the project was created
-	CreatedAt time.Time `json:"created_at"`
-	// HistoryRetentionSeconds The number of seconds to retain point-in-time restore (PITR) backup history for this project.
-	HistoryRetentionSeconds int64 `json:"history_retention_seconds"`
-	// ConsumptionPeriodStart A date-time indicating when Neon Cloud started measuring consumption for current consumption period.
-	ConsumptionPeriodStart time.Time `json:"consumption_period_start"`
-	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
-	MaintenanceStartsAt time.Time `json:"maintenance_starts_at,omitempty"`
-	// CreationSource The project creation source
-	CreationSource string              `json:"creation_source"`
-	Settings       ProjectSettingsData `json:"settings,omitempty"`
-	// ID The project ID
-	ID string `json:"id"`
-	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
-	// The value has some lag. The value is reset at the beginning of each billing period.
-	WrittenDataBytes int64 `json:"written_data_bytes"`
-	// BranchLogicalSizeLimitBytes The logical size limit for a branch. The value is in B.
-	BranchLogicalSizeLimitBytes int64       `json:"branch_logical_size_limit_bytes"`
-	Provisioner                 Provisioner `json:"provisioner"`
-	PgVersion                   PgVersion   `json:"pg_version"`
-	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
-	PlatformID string `json:"platform_id"`
-	// CpuUsedSec DEPRECATED, use compute_time instead.
-	CpuUsedSec int64 `json:"cpu_used_sec"`
-	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
-	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
-	DataTransferBytes int64 `json:"data_transfer_bytes"`
-	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
-	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
-	// UpdatedAt A timestamp indicating when the project was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
-	// The value has some lag. The value is reset at the beginning of each billing period.
-	// Examples:
-	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
-	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
-	ComputeTimeSeconds      int64                   `json:"compute_time_seconds"`
-	OwnerID                 string                  `json:"owner_id"`
-	DefaultEndpointSettings DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// RegionID The region identifier
-	RegionID string `json:"region_id"`
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
-	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
-	// A timestamp indicating when the project quota resets
-	QuotaResetAt time.Time        `json:"quota_reset_at,omitempty"`
-	Owner        ProjectOwnerData `json:"owner,omitempty"`
-}
-
-type ProjectConsumption struct {
-	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
-	// The value is reset at the beginning of each billing period.
-	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
-	// WrittenDataBytesUpdatedAt The timestamp when the `written_data_bytes` value was last updated.
-	WrittenDataBytesUpdatedAt time.Time `json:"written_data_bytes_updated_at,omitempty"`
+	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
+	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
+	// BranchLogicalSizeLimitBytes The logical size limit for a branch. The value is in B.
+	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
+	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
+	//
+	// Omitted when observed no actitivy for endpoints of this project.
+	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
 	// The value has some lag. The value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
+	// ConsumptionPeriodEnd A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
+	ConsumptionPeriodEnd time.Time `json:"consumption_period_end"`
+	// ConsumptionPeriodStart A date-time indicating when Neon Cloud started measuring consumption for current consumption period.
+	ConsumptionPeriodStart time.Time `json:"consumption_period_start"`
+	// CpuUsedSec DEPRECATED, use compute_time instead.
+	CpuUsedSec int64 `json:"cpu_used_sec"`
+	// CreatedAt A timestamp indicating when the project was created
+	CreatedAt time.Time `json:"created_at"`
+	// CreationSource The project creation source
+	CreationSource string `json:"creation_source"`
+	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
+	// The value is reset at the beginning of each billing period.
+	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
+	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
+	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
+	DataTransferBytes       int64                   `json:"data_transfer_bytes"`
+	DefaultEndpointSettings DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// HistoryRetentionSeconds The number of seconds to retain point-in-time restore (PITR) backup history for this project.
+	HistoryRetentionSeconds int64 `json:"history_retention_seconds"`
+	// ID The project ID
+	ID string `json:"id"`
+	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
+	MaintenanceStartsAt time.Time `json:"maintenance_starts_at,omitempty"`
+	// Name The project name
+	Name      string           `json:"name"`
+	Owner     ProjectOwnerData `json:"owner,omitempty"`
+	OwnerID   string           `json:"owner_id"`
+	PgVersion PgVersion        `json:"pg_version"`
+	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
+	PlatformID  string      `json:"platform_id"`
+	Provisioner Provisioner `json:"provisioner"`
+	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
+	ProxyHost string `json:"proxy_host"`
+	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
+	// A timestamp indicating when the project quota resets
+	QuotaResetAt time.Time `json:"quota_reset_at,omitempty"`
+	// RegionID The region identifier
+	RegionID string              `json:"region_id"`
+	Settings ProjectSettingsData `json:"settings,omitempty"`
+	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
+	StorePasswords bool `json:"store_passwords"`
+	// SyntheticStorageSize Experimental. Do not use this field yet.
+	// The data storage size in bytes.
+	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
+	// UpdatedAt A timestamp indicating when the project was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
 	// The value has some lag. The value is reset at the beginning of each billing period.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
-	// ActiveTimeSecondsUpdatedAt The timestamp when the `active_time_seconds` value was last updated.
-	ActiveTimeSecondsUpdatedAt time.Time `json:"active_time_seconds_updated_at,omitempty"`
-	// DataTransferBytesUpdatedAt The timestamp when the `data_transfer_bytes` value was last updated.
-	DataTransferBytesUpdatedAt time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
-	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
-	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
-	DataTransferBytes int64 `json:"data_transfer_bytes"`
-	// SyntheticStorageSize Bytes. Current space occupied by project in the storage. The value has some lag.
-	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
-	// SyntheticStorageSizeUpdatedAt The timestamp when the `synthetic_storage_size` value was last updated.
-	SyntheticStorageSizeUpdatedAt time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
-	// ID The project ID
-	ID string `json:"id"`
-	// UpdatedAt A timestamp indicating when the project was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
-	//
-	// Omitted when observed no actitivy for endpoints of this project.
-	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
+}
+
+type ProjectConsumption struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
-	// DataStorageBytesHourUpdatedAt The timestamp when the `data_storage_bytes_hour` value was last updated.
-	DataStorageBytesHourUpdatedAt time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
+	// ActiveTimeSecondsUpdatedAt The timestamp when the `active_time_seconds` value was last updated.
+	ActiveTimeSecondsUpdatedAt time.Time `json:"active_time_seconds_updated_at,omitempty"`
+	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
+	//
+	// Omitted when observed no actitivy for endpoints of this project.
+	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
+	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
+	// The value has some lag. The value is reset at the beginning of each billing period.
+	// Examples:
+	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
+	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
+	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// ComputeTimeSecondsUpdatedAt The timestamp when the `compute_time_seconds` value was last updated.
 	ComputeTimeSecondsUpdatedAt time.Time `json:"compute_time_seconds_updated_at,omitempty"`
+	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
+	// The value is reset at the beginning of each billing period.
+	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
+	// DataStorageBytesHourUpdatedAt The timestamp when the `data_storage_bytes_hour` value was last updated.
+	DataStorageBytesHourUpdatedAt time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
+	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
+	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
+	DataTransferBytes int64 `json:"data_transfer_bytes"`
+	// DataTransferBytesUpdatedAt The timestamp when the `data_transfer_bytes` value was last updated.
+	DataTransferBytesUpdatedAt time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
+	// ID The project ID
+	ID string `json:"id"`
+	// SyntheticStorageSize Bytes. Current space occupied by project in the storage. The value has some lag.
+	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
+	// SyntheticStorageSizeUpdatedAt The timestamp when the `synthetic_storage_size` value was last updated.
+	SyntheticStorageSizeUpdatedAt time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
+	// UpdatedAt A timestamp indicating when the project was last updated
+	UpdatedAt time.Time `json:"updated_at"`
+	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
+	// The value has some lag. The value is reset at the beginning of each billing period.
+	WrittenDataBytes int64 `json:"written_data_bytes"`
+	// WrittenDataBytesUpdatedAt The timestamp when the `written_data_bytes` value was last updated.
+	WrittenDataBytesUpdatedAt time.Time `json:"written_data_bytes_updated_at,omitempty"`
 }
 
 type ProjectCreateRequest struct {
@@ -1320,78 +1320,78 @@ type ProjectCreateRequest struct {
 }
 
 type ProjectCreateRequestProject struct {
-	Settings              *ProjectSettingsData `json:"settings,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit         `json:"autoscaling_limit_min_cu,omitempty"`
-	// RegionID The region identifier. Refer to our [Regions](https://neon.tech/docs/introduction/regions) documentation for supported regions. Values are specified in this format: `aws-us-east-1`
-	RegionID  *string    `json:"region_id,omitempty"`
-	PgVersion *PgVersion `json:"pg_version,omitempty"`
-	// Name The project name
-	Name        *string      `json:"name,omitempty"`
-	Provisioner *Provisioner `json:"provisioner,omitempty"`
-	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords          *bool                    `json:"store_passwords,omitempty"`
-	AutoscalingLimitMaxCu   *ComputeUnit             `json:"autoscaling_limit_max_cu,omitempty"`
-	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	AutoscalingLimitMaxCu   *ComputeUnit                       `json:"autoscaling_limit_max_cu,omitempty"`
+	AutoscalingLimitMinCu   *ComputeUnit                       `json:"autoscaling_limit_min_cu,omitempty"`
+	Branch                  *ProjectCreateRequestProjectBranch `json:"branch,omitempty"`
+	DefaultEndpointSettings *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
 	// The default is 604800 seconds (7 days).
-	HistoryRetentionSeconds *int64                             `json:"history_retention_seconds,omitempty"`
-	Branch                  *ProjectCreateRequestProjectBranch `json:"branch,omitempty"`
+	HistoryRetentionSeconds *int64 `json:"history_retention_seconds,omitempty"`
+	// Name The project name
+	Name        *string      `json:"name,omitempty"`
+	PgVersion   *PgVersion   `json:"pg_version,omitempty"`
+	Provisioner *Provisioner `json:"provisioner,omitempty"`
+	// RegionID The region identifier. Refer to our [Regions](https://neon.tech/docs/introduction/regions) documentation for supported regions. Values are specified in this format: `aws-us-east-1`
+	RegionID *string              `json:"region_id,omitempty"`
+	Settings *ProjectSettingsData `json:"settings,omitempty"`
+	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
+	StorePasswords *bool `json:"store_passwords,omitempty"`
 }
 
 type ProjectCreateRequestProjectBranch struct {
+	// DatabaseName The database name. If not specified, the default database name will be used.
+	DatabaseName *string `json:"database_name,omitempty"`
 	// Name The branch name. If not specified, the default branch name will be used.
 	Name *string `json:"name,omitempty"`
 	// RoleName The role name. If not specified, the default role name will be used.
 	RoleName *string `json:"role_name,omitempty"`
-	// DatabaseName The database name. If not specified, the default database name will be used.
-	DatabaseName *string `json:"database_name,omitempty"`
 }
 
 // ProjectListItem Essential data about the project. Full data is available at the getProject endpoint.
 type ProjectListItem struct {
-	// RegionID The region identifier
-	RegionID string `json:"region_id"`
+	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
+	ActiveTime int64 `json:"active_time"`
+	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
+	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
 	// BranchLogicalSizeLimitBytes The logical size limit for a branch. The value is in B.
 	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
-	// UpdatedAt A timestamp indicating when the project was last updated
-	UpdatedAt time.Time `json:"updated_at"`
-	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
-	// A timestamp indicating when the project quota resets
-	QuotaResetAt time.Time `json:"quota_reset_at,omitempty"`
-	// SyntheticStorageSize Experimental. Do not use this field yet.
-	// The data storage size in bytes.
-	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
-	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
-	ActiveTime  int64       `json:"active_time"`
-	Provisioner Provisioner `json:"provisioner"`
-	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords bool                `json:"store_passwords"`
-	Settings       ProjectSettingsData `json:"settings,omitempty"`
-	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
-	ProxyHost string `json:"proxy_host"`
-	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
-	MaintenanceStartsAt time.Time `json:"maintenance_starts_at,omitempty"`
 	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
 	//
 	// Omitted when observed no actitivy for endpoints of this project.
 	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
-	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
-	PlatformID string `json:"platform_id"`
-	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
-	BranchLogicalSizeLimit  int64                   `json:"branch_logical_size_limit"`
-	PgVersion               PgVersion               `json:"pg_version"`
-	OwnerID                 string                  `json:"owner_id"`
-	DefaultEndpointSettings DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// Name The project name
-	Name string `json:"name"`
 	// CpuUsedSec DEPRECATED, use data from the getProject endpoint instead.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
-	// CreationSource The project creation source
-	CreationSource string `json:"creation_source"`
-	// ID The project ID
-	ID string `json:"id"`
 	// CreatedAt A timestamp indicating when the project was created
 	CreatedAt time.Time `json:"created_at"`
+	// CreationSource The project creation source
+	CreationSource          string                  `json:"creation_source"`
+	DefaultEndpointSettings DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// ID The project ID
+	ID string `json:"id"`
+	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
+	MaintenanceStartsAt time.Time `json:"maintenance_starts_at,omitempty"`
+	// Name The project name
+	Name      string    `json:"name"`
+	OwnerID   string    `json:"owner_id"`
+	PgVersion PgVersion `json:"pg_version"`
+	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
+	PlatformID  string      `json:"platform_id"`
+	Provisioner Provisioner `json:"provisioner"`
+	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
+	ProxyHost string `json:"proxy_host"`
+	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
+	// A timestamp indicating when the project quota resets
+	QuotaResetAt time.Time `json:"quota_reset_at,omitempty"`
+	// RegionID The region identifier
+	RegionID string              `json:"region_id"`
+	Settings ProjectSettingsData `json:"settings,omitempty"`
+	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
+	StorePasswords bool `json:"store_passwords"`
+	// SyntheticStorageSize Experimental. Do not use this field yet.
+	// The data storage size in bytes.
+	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
+	// UpdatedAt A timestamp indicating when the project was last updated
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type ProjectOperations struct {
@@ -1401,8 +1401,8 @@ type ProjectOperations struct {
 
 type ProjectOwnerData struct {
 	BranchesLimit    int                     `json:"branches_limit"`
-	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 	Email            string                  `json:"email"`
+	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 }
 
 // ProjectQuota Per-project consumption quota. If the quota is exceeded, all active computes
@@ -1422,12 +1422,12 @@ type ProjectQuota struct {
 	ActiveTimeSeconds int64 `json:"active_time_seconds,omitempty"`
 	// ComputeTimeSeconds The total amount of CPU seconds allowed to be spent by the project's compute endpoints.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds,omitempty"`
-	// WrittenDataBytes Total amount of data written to all of a project's branches.
-	WrittenDataBytes int64 `json:"written_data_bytes,omitempty"`
 	// DataTransferBytes Total amount of data transferred from all of a project's branches using the proxy.
 	DataTransferBytes int64 `json:"data_transfer_bytes,omitempty"`
 	// LogicalSizeBytes Limit on the logical size of every project's branch.
 	LogicalSizeBytes int64 `json:"logical_size_bytes,omitempty"`
+	// WrittenDataBytes Total amount of data written to all of a project's branches.
+	WrittenDataBytes int64 `json:"written_data_bytes,omitempty"`
 }
 
 type ProjectResponse struct {
@@ -1446,10 +1446,10 @@ type ProjectUpdateRequestProject struct {
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
 	// The default is 604800 seconds (7 days).
-	HistoryRetentionSeconds *int64               `json:"history_retention_seconds,omitempty"`
-	Settings                *ProjectSettingsData `json:"settings,omitempty"`
+	HistoryRetentionSeconds *int64 `json:"history_retention_seconds,omitempty"`
 	// Name The project name
-	Name *string `json:"name,omitempty"`
+	Name     *string              `json:"name,omitempty"`
+	Settings *ProjectSettingsData `json:"settings,omitempty"`
 }
 
 type ProjectsConsumptionResponse struct {
@@ -1467,14 +1467,14 @@ type Provisioner string
 type Role struct {
 	// BranchID The ID of the branch to which the role belongs
 	BranchID string `json:"branch_id"`
+	// CreatedAt A timestamp indicating when the role was created
+	CreatedAt time.Time `json:"created_at"`
 	// Name The role name
 	Name string `json:"name"`
 	// Password The role password
 	Password string `json:"password,omitempty"`
 	// Protected Whether or not the role is system-protected
 	Protected bool `json:"protected,omitempty"`
-	// CreatedAt A timestamp indicating when the role was created
-	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt A timestamp indicating when the role was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 }

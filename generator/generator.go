@@ -1079,7 +1079,9 @@ func (m model) generateCode() string {
 		tmp += " struct {\n"
 	}
 
-	for fieldName, field := range m.fields {
+	for _, fieldName := range m.orderedFieldNames() {
+		field := m.fields[fieldName]
+
 		tmp += field.docString()
 
 		omitEmpty := ""
@@ -1110,6 +1112,21 @@ func (m *model) docString() string {
 		return ""
 	}
 	return docString(m.name, m.description)
+}
+
+func (m model) orderedFieldNames() []string {
+	if len(m.fields) == 0 {
+		return nil
+	}
+
+	var o = make([]string, len(m.fields))
+	var i uint16
+	for k := range m.fields {
+		o[i] = k
+		i++
+	}
+	sort.Strings(o)
+	return o
 }
 
 func docString(name string, description string) string {
