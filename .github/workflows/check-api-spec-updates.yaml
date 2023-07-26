@@ -1,4 +1,4 @@
-name: "CheckForAPISpecUpdates"
+name: "Check For API Spec Updates"
 
 on:
   schedule:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Compare to new API spec
     outputs:
-      diff: ${{ steps.diff.outputs.diff }}
+      isNew: ${{ steps.diff.outputs.isNew }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,15 +23,17 @@ jobs:
       - name: Diff
         id: diff
         run: |
-          DIFF=$(diff openAPIDefinition_new.json openAPIDefinition.json)
-          echo "diff=${DIFF}" >> $GITHUB_OUTPUT
-
+          if [ $(diff openAPIDefinition_new.json openAPIDefinition.json | wc -l) -gt 0 ]; then
+            echo "isNew=true" >> $GITHUB_OUTPUT
+          else
+            echo "isNew=false" >> $GITHUB_OUTPUT
+          fi
   notify:
     runs-on: ubuntu-latest
     name: Notify on telegram
     needs:
       - compare_to_new_spec
-    if: ${{ needs.compare_to_new_spec.outputs.diff }} != ""
+    if: needs.compare_to_new_spec.outputs.isNew == 'true'
     steps:
       - name: Notification via telegram
         uses: appleboy/telegram-action@master
