@@ -3,6 +3,7 @@ name: "Check Neon API Spec Updates"
 on:
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   compare_to_new_spec:
@@ -29,18 +30,33 @@ jobs:
           fi
   notify:
     runs-on: ubuntu-latest
-    name: Notify on telegram
+    name: Notify
     needs:
       - compare_to_new_spec
-    if: needs.compare_to_new_spec.outputs.isNew == 'true'
+#    if: needs.compare_to_new_spec.outputs.isNew == 'true'
     steps:
-      - name: Notification via telegram
+      - name: Telegram
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            New NEON API spec detected. Please take action.
+            New Neon API spec has been detected. Please take action.
             
             The message was sent from https://github.com/kislerdm/neon-sdk-go
             Get in touch for details: admin@dkisler.com
+        continue-on-error: true
+      - name: Ntfy
+        run: |
+          curl \
+              -H "Title: Neon API Spec Updated" \
+              -H "Priority: urgent" \
+              -H "Tags: warning" \
+              -H "Actions: view, Open API Spec, https://api-docs.neon.tech/; \
+                           view, Open Repo, https://github.com/kislerdm/neon-sdk-go; \
+                           view, Send Email to maintainer, mailto:admin@dkisler.com?subject=[alert]Neon-API-Updated" \
+              -d "New Neon API spec has been detected. Please take action.
+          
+            The message was sent from https://github.com/kislerdm/neon-sdk-go
+            Get in touch for details: admin@dkisler.com" \
+            ntfy.sh\neon-api-spec-updated
