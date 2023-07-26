@@ -1,4 +1,4 @@
-name: "Check For API Spec Updates"
+name: "Check Neon API Spec Updates"
 
 on:
   schedule:
