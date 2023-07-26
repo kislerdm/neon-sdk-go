@@ -155,7 +155,7 @@ ListProjects(cursor *string, limit *int) (ListProjectsRespObj, error)`,
 			}
 
 			// WHEN
-			got := extractSpecs(spec)
+			got := extractSpecs(spec, []string{"/projects"})
 
 			// THEN
 			if !reflect.DeepEqual(got.EndpointsInterfaceMethods, want.EndpointsInterfaceMethods) {

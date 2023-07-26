@@ -72,7 +72,11 @@ func Run(cfg Config) error {
 		return errors.New("cannot parse OpenAPI spec: " + err.Error())
 	}
 
-	tempInput := extractSpecs(spec)
+	orderedEndpointRoutes, err := extractOrderedEndpointRoutes(specBytes)
+	if err != nil {
+		return errors.New("cannot extract ordered list of endpoints from the OpenAPI spec: " + err.Error())
+	}
+	tempInput := extractSpecs(spec, orderedEndpointRoutes)
 
 	var f io.WriteCloser
 	defer func() { _ = f.Close() }()
@@ -103,12 +107,12 @@ func Run(cfg Config) error {
 	return testGeneratedCode(cfg.PathOutput)
 }
 
-func extractSpecs(spec openAPISpec) templateInput {
+func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInput {
 	if len(spec.Servers) < 1 {
 		panic("no server spec found")
 	}
 
-	endpoints := generateEndpointsImplementationMethods(spec)
+	endpoints := generateEndpointsImplementationMethods(spec, orderedEndpointRoutes)
 	m := generateModels(spec)
 
 	endpointsStr := make([]string, len(endpoints))
@@ -1128,11 +1132,19 @@ func implementationNameFromID(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-func generateEndpointsImplementationMethods(o openAPISpec) (endpoints []endpointImplementation) {
+func generateEndpointsImplementationMethods(
+	o openAPISpec, orderedEndpoints []string,
+) (endpoints []endpointImplementation) {
 	const suffixResponseObject = "RespObj"
 
 	httpCodes := []string{"200", "201"}
-	for route, p := range o.Paths {
+
+	for _, route := range orderedEndpoints {
+		p := o.Paths.Find(route)
+		if p == nil {
+			continue
+		}
+
 		for httpMethod, ops := range p.Operations() {
 			e := endpointImplementation{
 				Name:        implementationNameFromID(ops.OperationID),

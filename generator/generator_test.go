@@ -1,8 +1,13 @@
 package generator
 
 import (
+	"bytes"
 	_ "embed"
+	"io/fs"
+	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/assert"
@@ -31,95 +36,95 @@ func helperExtractSchemaNames(spec openAPISpec) (o []string) {
 	return
 }
 
-// func TestRun(t *testing.T) {
-// 	createTempDir := func() string {
-// 		dir := "/tmp"
-// 		if s := os.Getenv("TEMP_DIR"); s != "" {
-// 			dir = s
-// 		}
-// 		s := dir + "/" +
-// 			strings.ReplaceAll(
-// 				time.Now().UTC().Format("20060102150405.000"),
-// 				".", "",
-// 			)
-// 		if err := os.MkdirAll(s, 0774); err != nil {
-// 			panic(err)
-// 		}
-// 		return s
-// 	}
-//
-// 	type args struct {
-// 		cfg Config
-// 	}
-//
-// 	tests := []struct {
-// 		name    string
-// 		args    args
-// 		wantErr bool
-// 		files   map[string]struct{}
-// 	}{
-// 		{
-// 			name: "happy path",
-// 			args: args{
-// 				cfg: Config{
-// 					OpenAPIReader: bytes.NewReader(openAPIFixture),
-// 					PathOutput:    createTempDir(),
-// 				},
-// 			},
-// 			wantErr: false,
-// 			files: map[string]struct{}{
-// 				"go.mod":       {},
-// 				"doc.go":       {},
-// 				"sdk.go":       {},
-// 				"sdk_test.go":  {},
-// 				"mock.go":      {},
-// 				"mock_test.go": {},
-// 			},
-// 		},
-// 	}
-//
-// 	for _, tt := range tests {
-// 		t.Run(
-// 			tt.name, func(t *testing.T) {
-// 				// WHEN
-// 				// run generator
-// 				if err := Run(tt.args.cfg); (err != nil) != tt.wantErr {
-// 					t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
-// 				}
-//
-// 				// WANT
-// 				// all generated files are present in the output dir
-// 				if err := fs.WalkDir(
-// 					os.DirFS(tt.args.cfg.PathOutput), ".", func(path string, d fs.DirEntry, err error) error {
-// 						if path == "." {
-// 							return nil
-// 						}
-//
-// 						if _, ok := tt.files[d.Name()]; !ok {
-// 							t.Errorf(d.Name() + " is not expected to be generated")
-// 						} else {
-// 							delete(tt.files, d.Name())
-// 						}
-// 						return nil
-// 					},
-// 				); err != nil {
-// 					panic(err)
-// 				}
-//
-// 				if len(tt.files) > 0 {
-// 					t.Errorf("not all expected files were generated")
-// 				}
-// 			},
-// 		)
-// 		t.Cleanup(
-// 			func() {
-// 				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-// 					panic(err)
-// 				}
-// 			},
-// 		)
-// 	}
-// }
+func TestRun(t *testing.T) {
+	createTempDir := func() string {
+		dir := "/tmp"
+		if s := os.Getenv("TEMP_DIR"); s != "" {
+			dir = s
+		}
+		s := dir + "/" +
+			strings.ReplaceAll(
+				time.Now().UTC().Format("20060102150405.000"),
+				".", "",
+			)
+		if err := os.MkdirAll(s, 0774); err != nil {
+			panic(err)
+		}
+		return s
+	}
+
+	type args struct {
+		cfg Config
+	}
+
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		files   map[string]struct{}
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: Config{
+					OpenAPIReader: bytes.NewReader(openAPIFixture),
+					PathOutput:    createTempDir(),
+				},
+			},
+			wantErr: false,
+			files: map[string]struct{}{
+				"go.mod":       {},
+				"doc.go":       {},
+				"sdk.go":       {},
+				"sdk_test.go":  {},
+				"mock.go":      {},
+				"mock_test.go": {},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				// WHEN
+				// run generator
+				if err := Run(tt.args.cfg); (err != nil) != tt.wantErr {
+					t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				// WANT
+				// all generated files are present in the output dir
+				if err := fs.WalkDir(
+					os.DirFS(tt.args.cfg.PathOutput), ".", func(path string, d fs.DirEntry, err error) error {
+						if path == "." {
+							return nil
+						}
+
+						if _, ok := tt.files[d.Name()]; !ok {
+							t.Errorf(d.Name() + " is not expected to be generated")
+						} else {
+							delete(tt.files, d.Name())
+						}
+						return nil
+					},
+				); err != nil {
+					panic(err)
+				}
+
+				if len(tt.files) > 0 {
+					t.Errorf("not all expected files were generated")
+				}
+			},
+		)
+		t.Cleanup(
+			func() {
+				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+					panic(err)
+				}
+			},
+		)
+	}
+}
 
 func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 	type fields struct {
@@ -599,7 +604,8 @@ var inputSpec = openAPISpec{
 
 func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	type args struct {
-		o openAPISpec
+		o                openAPISpec
+		orderedEndpoints []string
 	}
 	tests := []struct {
 		name          string
@@ -610,6 +616,10 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 			name: "happy path",
 			args: args{
 				o: inputSpec,
+				orderedEndpoints: []string{
+					"/foo/{bar}/{qux_id}",
+					"/foo/bar/{qux_id}/{date_submit}",
+				},
 			},
 			wantEndpoints: []endpointImplementation{
 				{
@@ -697,7 +707,9 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equal(t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o))
+				assert.Equal(
+					t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o, tt.args.orderedEndpoints),
+				)
 			},
 		)
 	}
