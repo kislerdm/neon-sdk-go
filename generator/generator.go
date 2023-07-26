@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"sort"
@@ -1138,6 +1139,13 @@ func generateEndpointsImplementationMethods(
 	const suffixResponseObject = "RespObj"
 
 	httpCodes := []string{"200", "201"}
+	httpMethods := []string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPatch,
+		http.MethodPut,
+		http.MethodDelete,
+	}
 
 	for _, route := range orderedEndpoints {
 		p := o.Paths.Find(route)
@@ -1145,7 +1153,14 @@ func generateEndpointsImplementationMethods(
 			continue
 		}
 
-		for httpMethod, ops := range p.Operations() {
+		operations := p.Operations()
+
+		for _, httpMethod := range httpMethods {
+			ops, ok := operations[httpMethod]
+			if !ok {
+				continue
+			}
+
 			e := endpointImplementation{
 				Name:        implementationNameFromID(ops.OperationID),
 				Method:      httpMethod,
