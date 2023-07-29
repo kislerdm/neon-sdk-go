@@ -949,8 +949,10 @@ type ConnectionURIsResponse struct {
 type CreatedBranch struct {
 	BranchResponse
 	ConnectionURIsOptionalResponse
+	DatabasesResponse
 	EndpointsResponse
 	OperationsResponse
+	RolesResponse
 }
 
 type CreatedProject struct {
@@ -1166,6 +1168,8 @@ type Operation struct {
 	// RetryAt A timestamp indicating when the operation was last retried
 	RetryAt time.Time       `json:"retry_at,omitempty"`
 	Status  OperationStatus `json:"status"`
+	// TotalDurationMs The total duration of the operation in milliseconds
+	TotalDurationMs int32 `json:"total_duration_ms"`
 	// UpdatedAt A timestamp indicating when the operation status was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 }

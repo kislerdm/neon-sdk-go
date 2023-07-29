@@ -248,7 +248,8 @@
                                         "status": "finished",
                                         "failures_count": 0,
                                         "created_at": "2022-10-04T18:20:17Z",
-                                        "updated_at": "2022-10-04T18:20:18Z"
+                                        "updated_at": "2022-10-04T18:20:18Z",
+                                        "total_duration_ms": 100
                                     }
                                 }
                             }
@@ -962,7 +963,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:53:05Z",
-                                            "updated_at": "2022-12-01T19:53:05Z"
+                                            "updated_at": "2022-12-01T19:53:05Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "b6afbc21-2990-4a76-980b-b57d8c2948f2",
@@ -972,7 +974,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:53:05Z",
-                                            "updated_at": "2022-12-01T19:53:05Z"
+                                            "updated_at": "2022-12-01T19:53:05Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1296,7 +1299,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-04T00:15:04Z",
-                                            "updated_at": "2022-12-04T00:15:04Z"
+                                            "updated_at": "2022-12-04T00:15:04Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "b7483d4e-33da-4d40-b319-ac858d4d3e69",
@@ -1307,7 +1311,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-04T00:15:04Z",
-                                            "updated_at": "2022-12-04T00:15:04Z"
+                                            "updated_at": "2022-12-04T00:15:04Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1433,7 +1438,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-04T00:21:01Z",
-                                            "updated_at": "2022-12-04T00:21:01Z"
+                                            "updated_at": "2022-12-04T00:21:01Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "42dafb46-f861-497b-ae89-f2bec54f4966",
@@ -1444,7 +1450,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-04T00:21:01Z",
-                                            "updated_at": "2022-12-04T00:21:01Z"
+                                            "updated_at": "2022-12-04T00:21:01Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1490,7 +1497,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:51:41Z",
-                                            "updated_at": "2022-12-01T19:51:41Z"
+                                            "updated_at": "2022-12-01T19:51:41Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "42dafb46-f861-497b-ae89-f2bec54f4966",
@@ -1501,7 +1509,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:51:41Z",
-                                            "updated_at": "2022-12-01T19:51:41Z"
+                                            "updated_at": "2022-12-01T19:51:41Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1625,7 +1634,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T11:58:29Z",
-                                            "updated_at": "2022-12-03T11:58:29Z"
+                                            "updated_at": "2022-12-03T11:58:29Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1733,7 +1743,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:48:11Z",
-                                            "updated_at": "2022-12-01T19:48:11Z"
+                                            "updated_at": "2022-12-01T19:48:11Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "ab94cdad-7630-4943-a55e-5a0952d2e598",
@@ -1744,7 +1755,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-01T19:48:11Z",
-                                            "updated_at": "2022-12-01T19:48:11Z"
+                                            "updated_at": "2022-12-01T19:48:11Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -1898,7 +1910,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T12:58:18Z",
-                                            "updated_at": "2022-12-03T12:58:18Z"
+                                            "updated_at": "2022-12-03T12:58:18Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "16b5bfca-4697-4194-a338-d2cdc9aca2af",
@@ -1909,7 +1922,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T12:58:18Z",
-                                            "updated_at": "2022-12-03T12:58:18Z"
+                                            "updated_at": "2022-12-03T12:58:18Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2026,7 +2040,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:37:07Z",
-                                            "updated_at": "2022-12-03T15:37:07Z"
+                                            "updated_at": "2022-12-03T15:37:07Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2263,7 +2278,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:51:06Z",
-                                            "updated_at": "2022-12-03T15:51:06Z"
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2341,7 +2357,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:51:06Z",
-                                            "updated_at": "2022-12-03T15:51:06Z"
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
                                         },
                                         {
                                             "id": "9ffda74b-a582-4cff-b0f0-aaa8d14b8e6a",
@@ -2352,7 +2369,8 @@
                                             "status": "scheduling",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:51:06Z",
-                                            "updated_at": "2022-12-03T15:51:06Z"
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2437,7 +2455,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:51:06Z",
-                                            "updated_at": "2022-12-03T15:51:06Z"
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2522,7 +2541,8 @@
                                             "status": "running",
                                             "failures_count": 0,
                                             "created_at": "2022-12-03T15:51:06Z",
-                                            "updated_at": "2022-12-03T15:51:06Z"
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
                                         }
                                     ]
                                 }
@@ -2674,6 +2694,12 @@
                                 },
                                 {
                                     "$ref": "#/components/schemas/OperationsResponse"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/RolesResponse"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/DatabasesResponse"
                                 },
                                 {
                                     "$ref": "#/components/schemas/ConnectionURIsOptionalResponse"
@@ -2862,7 +2888,8 @@
                     "status",
                     "failures_count",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "total_duration_ms"
                 ],
                 "properties": {
                     "id": {
@@ -2911,6 +2938,11 @@
                         "description": "A timestamp indicating when the operation status was last updated",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "total_duration_ms": {
+                        "description": "The total duration of the operation in milliseconds",
+                        "type": "integer",
+                        "format": "int32"
                     }
                 },
                 "example": [
@@ -2923,7 +2955,8 @@
                         "status": "running",
                         "failures_count": 0,
                         "created_at": "2022-11-08T23:33:16Z",
-                        "updated_at": "2022-11-08T23:33:20Z"
+                        "updated_at": "2022-11-08T23:33:20Z",
+                        "total_duration_ms": 400
                     },
                     {
                         "id": "d8ac46eb-a757-42b1-9907-f78322ee394e",
@@ -2934,7 +2967,8 @@
                         "status": "finished",
                         "failures_count": 0,
                         "created_at": "2022-11-15T20:02:00Z",
-                        "updated_at": "2022-11-15T20:02:02Z"
+                        "updated_at": "2022-11-15T20:02:02Z",
+                        "total_duration_ms": 200
                     }
                 ]
             },

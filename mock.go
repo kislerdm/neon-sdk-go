@@ -245,7 +245,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-01T19:53:05Z"}]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
@@ -282,14 +282,14 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code: 200,
 		},
 		"POST": mockResponse{
-			Content: `{"database":{"branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","id":876692,"name":"mydb","owner_name":"casey","updated_at":"2022-12-04T00:15:04Z"},"operations":[{"action":"apply_config","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"39426015-db00-40fa-85c5-1c7072df46d0","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-04T00:15:04Z"},{"action":"suspend_compute","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"b7483d4e-33da-4d40-b319-ac858d4d3e69","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-04T00:15:04Z"}]}`,
+			Content: `{"database":{"branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","id":876692,"name":"mydb","owner_name":"casey","updated_at":"2022-12-04T00:15:04Z"},"operations":[{"action":"apply_config","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"39426015-db00-40fa-85c5-1c7072df46d0","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-04T00:15:04Z"},{"action":"suspend_compute","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"b7483d4e-33da-4d40-b319-ac858d4d3e69","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-04T00:15:04Z"}]}`,
 			Code:    201,
 		},
 	},
 
 	"/projects/{project_id}/branches/{branch_id}/databases/{database_name}": {
 		"DELETE": mockResponse{
-			Content: `{"database":{"branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:41:46Z","id":851537,"name":"mydb","owner_name":"casey","updated_at":"2022-12-01T19:41:46Z"},"operations":[{"action":"apply_config","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:51:41Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"9ef1c2ed-dce4-43aa-bae8-78aea636bf8a","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-01T19:51:41Z"},{"action":"suspend_compute","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:51:41Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"42dafb46-f861-497b-ae89-f2bec54f4966","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-01T19:51:41Z"}]}`,
+			Content: `{"database":{"branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:41:46Z","id":851537,"name":"mydb","owner_name":"casey","updated_at":"2022-12-01T19:41:46Z"},"operations":[{"action":"apply_config","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:51:41Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"9ef1c2ed-dce4-43aa-bae8-78aea636bf8a","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:51:41Z"},{"action":"suspend_compute","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:51:41Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"42dafb46-f861-497b-ae89-f2bec54f4966","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:51:41Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
@@ -297,7 +297,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"database":{"branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","id":876692,"name":"mydb","owner_name":"sally","updated_at":"2022-12-04T00:15:04Z"},"operations":[{"action":"apply_config","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:21:01Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"9ef1c2ed-dce4-43aa-bae8-78aea636bf8a","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-04T00:21:01Z"},{"action":"suspend_compute","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:21:01Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"42dafb46-f861-497b-ae89-f2bec54f4966","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-04T00:21:01Z"}]}`,
+			Content: `{"database":{"branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:15:04Z","id":876692,"name":"mydb","owner_name":"sally","updated_at":"2022-12-04T00:15:04Z"},"operations":[{"action":"apply_config","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:21:01Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"9ef1c2ed-dce4-43aa-bae8-78aea636bf8a","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-04T00:21:01Z"},{"action":"suspend_compute","branch_id":"br-aged-salad-637688","created_at":"2022-12-04T00:21:01Z","endpoint_id":"ep-little-smoke-851426","failures_count":0,"id":"42dafb46-f861-497b-ae89-f2bec54f4966","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-04T00:21:01Z"}]}`,
 			Code:    200,
 		},
 	},
@@ -322,7 +322,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}/roles/{role_name}": {
 		"DELETE": mockResponse{
-			Content: `{"operations":[{"action":"apply_config","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:48:11Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"db646be3-eace-4910-9f60-8150823c5cb8","project_id":"shiny-wind-028834","status":"running","updated_at":"2022-12-01T19:48:11Z"},{"action":"suspend_compute","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:48:11Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"ab94cdad-7630-4943-a55e-5a0952d2e598","project_id":"shiny-wind-028834","status":"scheduling","updated_at":"2022-12-01T19:48:11Z"}],"role":{"branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T14:36:23Z","name":"thomas","protected":false,"updated_at":"2022-12-01T14:36:23Z"}}`,
+			Content: `{"operations":[{"action":"apply_config","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:48:11Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"db646be3-eace-4910-9f60-8150823c5cb8","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:48:11Z"},{"action":"suspend_compute","branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T19:48:11Z","endpoint_id":"ep-steep-bush-777093","failures_count":0,"id":"ab94cdad-7630-4943-a55e-5a0952d2e598","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:48:11Z"}],"role":{"branch_id":"br-raspy-hill-832856","created_at":"2022-12-01T14:36:23Z","name":"thomas","protected":false,"updated_at":"2022-12-01T14:36:23Z"}}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
@@ -463,7 +463,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/operations/{operation_id}": {
 		"GET": mockResponse{
-			Content: `{"operation":{"action":"create_timeline","branch_id":"br-bitter-sound-247814","created_at":"2022-10-04T18:20:17Z","endpoint_id":"ep-dark-snowflake-942567","failures_count":0,"id":"a07f8772-1877-4da9-a939-3a3ae62d1d8d","project_id":"floral-king-961888","status":"finished","updated_at":"2022-10-04T18:20:18Z"}}`,
+			Content: `{"operation":{"action":"create_timeline","branch_id":"br-bitter-sound-247814","created_at":"2022-10-04T18:20:17Z","endpoint_id":"ep-dark-snowflake-942567","failures_count":0,"id":"a07f8772-1877-4da9-a939-3a3ae62d1d8d","project_id":"floral-king-961888","status":"finished","total_duration_ms":100,"updated_at":"2022-10-04T18:20:18Z"}}`,
 			Code:    200,
 		},
 	},

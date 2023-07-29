@@ -5,9 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.1] - 2023-07-30
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-07-29 23:16:06 GMT.
+
+### Changed
+
+- The response type `CreatedBranch` of the method `CreateProjectBranch`.
+- The type `Operation`: `TotalDurationMs` attribute added to reflect duration of the operation.
+
 ## [v0.2.0] - 2023-07-26
 
-The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-07-26 11:57:20 GMT.   
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-07-26 11:57:20 GMT.
 
 ### Added
 
@@ -25,7 +34,7 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 ### Changed
 
 - Module's documentation
-- Order of the data structs' attributes, they will be sorted alphabetically 
+- Order of the data structs' attributes, they will be sorted alphabetically
 
 ### Removed
 
