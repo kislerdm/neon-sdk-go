@@ -10,17 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     name: Compare to new API spec
     outputs:
-      isNew: ${{ steps.diff.outputs.isNew }}
+      isNew: ${{ steps.diff_sdk.outputs.isNew }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 1.18
       - name: Pull new spec
         run: |
           curl -SLo openAPIDefinition_new.json "$SPEC_URL"
         env:
           SPEC_URL: https://dfv3qgd2ykmrx.cloudfront.net/api_spec/release/v2.json
-      - name: Diff
+      - name: Diff spec files
         id: diff
         run: |
           if [ $(diff openAPIDefinition_new.json openAPIDefinition.json | wc -l) -gt 0 ]; then
@@ -28,6 +31,23 @@ jobs:
           else
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
+      - name: Generate SDK using new spec
+        id: diff_sdk
+        if: steps.diff.outputs.isNew == 'true'
+        run: |
+          echo "isNew=false" >> $GITHUB_OUTPUT
+          
+          mkdir tmp
+          make generate-sdk PATH_SPEC=${PWD}/openAPIDefinition_new.json PATH_SDK=${PWD}/tmp
+          
+          for obj in $(ls ${PWD}/tmp); do
+            echo check ${obj}
+            if [ $(diff ${obj} ${PWD}/tmp/${obj} | wc -l) -gt 0 ]; then
+              echo diff in SDK generated using new new spec, file ${obj}
+              echo "isNew=true" >> $GITHUB_OUTPUT
+            fi
+          done
+
   notify:
     runs-on: ubuntu-latest
     name: Notify
