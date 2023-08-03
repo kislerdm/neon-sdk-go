@@ -14,8 +14,9 @@ PATH_SDK := $(PWD)
 
 .PHONY: generate-sdk
 generate-sdk: ## Generates the SDK codebase using code generator.
-	@ make build DIR=generator
-	@ ./generator/bin/generator-$(OS)-$(ARCH) --output $(PATH_SDK) --input $(PATH_SPEC)
+	@ cd generator && \
+		go mod tidy && \
+		CGO_ENABLED=0 go run cmd/main.go --output $(PATH_SDK) --input $(PATH_SPEC)
 
 .PHONY: tests
 tests: ## Run tests.
