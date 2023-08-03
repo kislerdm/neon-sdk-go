@@ -106,7 +106,7 @@ jobs:
               -H "Title: Neon API Spec Updated" \
               -H "Priority: urgent" \
               -H "Tags: warning" \
-              -H "Actions: view, Open PR, PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}" \
+              -H "Actions: view, Open Repo: https://github.com/kislerdm/neon-sdk-go" \
               -d "New Neon API spec has been detected. Please take action.
             PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}
           
