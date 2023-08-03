@@ -4334,17 +4334,6 @@
                     }
                 }
             },
-            "ConnectionURIResponse": {
-                "type": "object",
-                "required": [
-                    "connection_uri"
-                ],
-                "properties": {
-                    "connection_uri": {
-                        "$ref": "#/components/schemas/ConnectionDetails"
-                    }
-                }
-            },
             "EndpointsResponse": {
                 "type": "object",
                 "required": [
@@ -4774,18 +4763,6 @@
                         "items": {
                             "$ref": "#/components/schemas/Database"
                         }
-                    }
-                }
-            },
-            "ConsoleSettingsRaw": {
-                "type": "object",
-                "properties": {
-                    "project_creation_forbidden": {
-                        "description": "management",
-                        "type": "boolean"
-                    },
-                    "proxy_host": {
-                        "type": "string"
                     }
                 }
             },
