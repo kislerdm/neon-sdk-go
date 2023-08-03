@@ -473,8 +473,8 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 // Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
 // - 401 is returned when the string `invalidApiKey` is used as the API key;
 // - 404 is returned if either of the following:
-//   - the string value `notFound` is used as the string argument, e.g. projectID
-//   - a negative int/float value is used as the int/float argument, e.g. database ID
+//		- the string value `notFound` is used as the string argument, e.g. projectID
+//		- a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
 	u, _ := url.Parse(baseURL)
 	return mockHTTPClient{
