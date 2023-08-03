@@ -6,18 +6,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  compare_to_new_spec:
+  main:
+    permissions:
+      pull-requests: write
+      contents: write
     runs-on: ubuntu-latest
-    name: Compare to new API spec
     outputs:
       isNew: ${{ steps.diff_sdk.outputs.isNew }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      - uses: actions/setup-go@v4
-        with:
-          go-version: 1.18
       - name: Pull new spec
         run: |
           curl -SLo openAPIDefinition_new.json "$SPEC_URL"
@@ -31,6 +30,10 @@ jobs:
           else
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
+      - uses: actions/setup-go@v4
+        if: steps.diff.outputs.isNew == 'true'
+        with:
+          go-version: 1.18
       - name: Generate SDK using new spec
         id: diff_sdk
         if: steps.diff.outputs.isNew == 'true'
@@ -48,12 +51,37 @@ jobs:
             fi
           done
 
+      - name: MV new sdk to root
+        run: |
+          mv ${PWD}/tmp/* .
+          mv openAPIDefinition_new.json openAPIDefinition.json
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          add-paths: |
+            *.go
+            go.mod
+            openAPIDefinition.json
+          commit-message: |
+            feat: auto-updated SDK
+          signoff: true
+          branch: feat/auto-generated-new-api-spec
+          branch-suffix: timestamp
+          delete-branch: true
+          title: Auto-generated SDK upon new spec
+          body: |
+            ## What changed
+              New generated SDK
+            ## Why do we need it
+              To reflect API spec changes
+
   notify:
     runs-on: ubuntu-latest
     name: Notify
     needs:
-      - compare_to_new_spec
-    if: needs.compare_to_new_spec.outputs.isNew == 'true'
+      - main
+    if: needs.main.outputs.isNew == 'true'
     steps:
       - name: Telegram
         uses: appleboy/telegram-action@master
