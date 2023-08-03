@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       isNew: ${{ steps.diff_sdk.outputs.isNew }}
+      prId: ${{ steps.pr.outputs.pull-request-number }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -52,12 +53,15 @@ jobs:
           done
 
       - name: MV new sdk to root
+        if: steps.diff_sdk.outputs.isNew == 'true'
         run: |
           mv ${PWD}/tmp/* .
           mv openAPIDefinition_new.json openAPIDefinition.json
 
       - name: Create Pull Request
+        if: steps.diff_sdk.outputs.isNew == 'true'
         uses: peter-evans/create-pull-request@v5
+        id: pr
         with:
           add-paths: |
             *.go
@@ -69,6 +73,7 @@ jobs:
           branch: feat/auto-generated-new-api-spec
           branch-suffix: timestamp
           delete-branch: true
+          assignees: kislerdm
           title: Auto-generated SDK upon new spec
           body: |
             ## What changed
@@ -90,6 +95,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             New Neon API spec has been detected. Please take action.
+            PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}
 
             The message was sent from https://github.com/kislerdm/neon-sdk-go
             Get in touch for details: admin@dkisler.com
@@ -100,10 +106,9 @@ jobs:
               -H "Title: Neon API Spec Updated" \
               -H "Priority: urgent" \
               -H "Tags: warning" \
-              -H "Actions: view, Open API Spec, https://api-docs.neon.tech/; \
-                           view, Open Repo, https://github.com/kislerdm/neon-sdk-go; \
-                           view, Send Email to maintainer, mailto:admin@dkisler.com?subject=[alert]Neon-API-Updated" \
+              -H "Actions: view, Open PR, PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}" \
               -d "New Neon API spec has been detected. Please take action.
+            PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}
           
             The message was sent from https://github.com/kislerdm/neon-sdk-go
             Get in touch for details: admin@dkisler.com" \
