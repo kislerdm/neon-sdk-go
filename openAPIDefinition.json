@@ -3914,7 +3914,7 @@
                         "type": "object",
                         "properties": {
                             "parent_id": {
-                                "description": "The `branch_id` of the parent branch\n",
+                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's primary branch.\n",
                                 "type": "string"
                             },
                             "name": {
@@ -4228,6 +4228,7 @@
                                 "$ref": "#/components/schemas/Provisioner"
                             },
                             "pooler_enabled": {
+                                "deprecated": true,
                                 "description": "Whether to enable connection pooling for the compute endpoint\n",
                                 "type": "boolean"
                             },
@@ -4277,6 +4278,7 @@
                                 "$ref": "#/components/schemas/EndpointSettingsData"
                             },
                             "pooler_enabled": {
+                                "deprecated": true,
                                 "description": "Whether to enable connection pooling for the compute endpoint\n",
                                 "type": "boolean"
                             },

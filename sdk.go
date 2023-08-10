@@ -876,7 +876,7 @@ type BranchCreateRequest struct {
 type BranchCreateRequestBranch struct {
 	// Name The branch name
 	Name *string `json:"name,omitempty"`
-	// ParentID The `branch_id` of the parent branch
+	// ParentID The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's primary branch.
 	ParentID *string `json:"parent_id,omitempty"`
 	// ParentLsn A Log Sequence Number (LSN) on the parent branch. The branch will be created with data from this LSN.
 	ParentLsn *string `json:"parent_lsn,omitempty"`
