@@ -716,6 +716,18 @@
                 }
             ]
         },
+        "/projects/{project_id}/query/history": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/projects/{project_id}/branches": {
             "parameters": [
                 {
@@ -4183,7 +4195,7 @@
                 ]
             },
             "SuspendTimeoutSeconds": {
-                "description": "Duration of inactivity in seconds after which the cimpute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
+                "description": "Duration of inactivity in seconds after which the compute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
                 "type": "integer",
                 "format": "int64",
                 "minimum": -1,
@@ -4536,6 +4548,30 @@
                     "last4": {
                         "type": "string",
                         "description": "Last 4 digits of the card.\n"
+                    },
+                    "brand": {
+                        "type": "string",
+                        "description": "Brand of credit card.\n",
+                        "enum": [
+                            "amex",
+                            "diners",
+                            "discover",
+                            "jcb",
+                            "mastercard",
+                            "unionpay",
+                            "unknown",
+                            "visa"
+                        ]
+                    },
+                    "exp_month": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Credit card expiration month\n"
+                    },
+                    "exp_year": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Credit card expiration year\n"
                     }
                 }
             },
@@ -5042,6 +5078,15 @@
                     {
                         "$ref": "#/components/schemas/OperationsResponse"
                     }
+                ]
+            },
+            "SupportTicketSeverity": {
+                "type": "string",
+                "enum": [
+                    "low",
+                    "normal",
+                    "high",
+                    "critical"
                 ]
             }
         }
