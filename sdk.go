@@ -1202,7 +1202,7 @@ type PaginationResponse struct {
 // PgSettingsData A raw representation of PostgreSQL settings
 type PgSettingsData map[string]interface{}
 
-// PgVersion The major PostgreSQL version number. Currently supported version are `14` and `15`.
+// PgVersion The major PostgreSQL version number. Currently supported versions are `14`, `15` and `16`.
 type PgVersion int
 
 type Project struct {
