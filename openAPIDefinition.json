@@ -280,13 +280,13 @@
                     },
                     {
                         "name": "limit",
-                        "description": "Specify a value from 1 to 100 to limit number of projects in the response.",
+                        "description": "Specify a value from 1 to 400 to limit number of projects in the response.",
                         "in": "query",
                         "schema": {
                             "type": "integer",
                             "minimum": 1,
                             "default": 10,
-                            "maximum": 100
+                            "maximum": 400
                         }
                     }
                 ],
@@ -4643,6 +4643,10 @@
                     "address_state": {
                         "description": "Billing address state or region.\n",
                         "type": "string"
+                    },
+                    "orb_portal_url": {
+                        "description": "Orb user portal url\n",
+                        "type": "string"
                     }
                 }
             },
@@ -4681,8 +4685,7 @@
                     "UNKNOWN",
                     "free",
                     "pro",
-                    "platform_partnership",
-                    "enterprise"
+                    "direct_sales"
                 ]
             },
             "Database": {
@@ -4973,8 +4976,11 @@
                 }
             },
             "PgVersion": {
-                "description": "The major PostgreSQL version number. Currently supported version are `14` and `15`.",
-                "type": "integer"
+                "description": "The major PostgreSQL version number. Currently supported versions are `14`, `15` and `16`.",
+                "type": "integer",
+                "minimum": 14,
+                "maximum": 16,
+                "default": 15
             },
             "HealthCheck": {
                 "type": "object",
