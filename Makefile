@@ -32,6 +32,6 @@ build: ## Compiles the binary.
  		go mod tidy && \
   		CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -o bin/$(APP)-$(OS)-$(ARCH) -ldflags="-s -w" ./cmd/main.go
 
-.PHONY: .e2etest
-.e2etest:
-	@ source .env && go test -tags=e2etest
+.PHONY: testacc
+testacc: ## Runs smoke tests.
+	@ source .env && go test -tags=acctest
