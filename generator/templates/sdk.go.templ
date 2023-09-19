@@ -184,18 +184,6 @@ func (c *client) requestHandler(url string, t string, reqPayload interface{}, re
 		return convertErrorResponse(res)
 	}
 
-	// cover non-existing object which will have 200+ status code
-	// see the ticket https://github.com/neondatabase/neon/issues/2159
-	if req.Method == "GET" && res.ContentLength < 4 {
-		return Error{
-			HTTPCode: 404,
-			errorResp: errorResp{
-				Code:    "",
-				Message: "object not found",
-			},
-		}
-	}
-
 	if responsePayload != nil {
 		buf, err := io.ReadAll(res.Body)
 	    defer func() { _ = res.Body.Close() }()

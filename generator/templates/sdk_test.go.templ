@@ -264,36 +264,6 @@ func Test_client_requestHandler(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "unhappy path: https://github.com/neondatabase/neon/issues/2159",
-			fields: fields{
-				options: options{
-					key: "bar",
-					httpClient: &mockHttp{
-						err: Error{HTTPCode: http.StatusOK},
-					},
-				},
-				baseURL: "",
-			},
-			args: args{
-				url:             "",
-				t:               "GET",
-				responsePayload: &respPayload,
-			},
-			wantRequestHeaders: http.Header{
-				"Accept":        []string{"application/json"},
-				"Content-Type":  []string{"application/json"},
-				"Authorization": []string{"Bearer bar"},
-			},
-			wantResp: mockPayload{},
-			wantErr: Error{
-				HTTPCode: http.StatusNotFound,
-				errorResp: errorResp{
-					Code:    "",
-					Message: "object not found",
-				},
-			},
-		},
 	}
 	for _, tt := range tests {
 		t.Run(
