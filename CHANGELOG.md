@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.2] - 2023-09-19
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-09-14 00:08:27 GMT.
+
+### Fixed
+
+- ([#26](https://github.com/kislerdm/neon-sdk-go/issues/26)) Removed temporary workaround to map invalid
+  "200 response" which used to be returned by the Neon API for non existed resources (find
+  details [here](https://github.com/neondatabase/neon/issues/2159)).
+  The rationale:
+    - The workaround logic relies on the header `Content-Length`, but the server response _may not contain_ that header
+      according to the [RFC#7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2):
+      > [...] Aside from the cases defined above, in the absence of Transfer-Encoding, an origin server SHOULD send a
+      Content-Length header field when the payload body size is known prior to sending the complete header section.[...]
+    - It was noticed that the workaround leads to unexpected behaviour for the method `ListProject`: it returns the
+    error "object not found" for the API response which contains a non-empty list of projects. The issue appeared when 
+    such list contains more than a couple of objects.
+    - The reason caused implementation of the workaround was _presumably_ resolved on the Neon API side.
+
 ## [v0.2.1] - 2023-07-30
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-07-29 23:16:06 GMT.
