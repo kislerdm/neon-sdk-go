@@ -2619,6 +2619,53 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 	}
 }
 
+func Test_client_GetCurrentUserInfo(t *testing.T) {
+	deserializeResp := func(s string) CurrentUserInfoResponse {
+		var v CurrentUserInfoResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	tests := []struct {
+		name    string
+		apiKey  string
+		want    CurrentUserInfoResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/users/me"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			want:    CurrentUserInfoResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetCurrentUserInfo()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetCurrentUserInfo() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetCurrentUserInfo() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func TestTypes(t *testing.T) {
 	// GIVEN
 	// the types are defined correctly

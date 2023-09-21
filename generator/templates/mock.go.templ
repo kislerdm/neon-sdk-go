@@ -124,7 +124,7 @@ func parsePath(s string) objPath {
 			o += "/{key_id}"
 		case "branches":
 			o += "/{branch_id}"
-        case "consumption":
+        case "consumption", "users":
             o += "/" + splt[i]
 		}
 

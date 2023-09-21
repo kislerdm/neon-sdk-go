@@ -2639,6 +2639,31 @@
                     }
                 }
             }
+        },
+        "/users/me": {
+            "get": {
+                "summary": "Get current user details",
+                "description": "Retrieves information about the current user",
+                "tags": [
+                    "Users"
+                ],
+                "operationId": "getCurrentUserInfo",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about the current user\nWarning! This api is unstable and susceptible to changes\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CurrentUserInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
         }
     },
     "components": {

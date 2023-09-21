@@ -337,6 +337,9 @@ type Client interface {
 	// ListProjectsConsumption This is a preview API and is subject to changes in the future.
 	// Retrieves a list project consumption metrics for each project for the current billing period.
 	ListProjectsConsumption(cursor *string, limit *int) (ListProjectsConsumptionRespObj, error)
+
+	// GetCurrentUserInfo Retrieves information about the current user
+	GetCurrentUserInfo() (CurrentUserInfoResponse, error)
 }
 
 // HTTPClient client to handle http requests.
@@ -777,6 +780,14 @@ func (c *client) ListProjectsConsumption(cursor *string, limit *int) (ListProjec
 	return v, nil
 }
 
+func (c *client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
+	var v CurrentUserInfoResponse
+	if err := c.requestHandler(c.baseURL+"/users/me", "GET", nil, &v); err != nil {
+		return CurrentUserInfoResponse{}, err
+	}
+	return v, nil
+}
+
 type ApiKeyCreateRequest struct {
 	// KeyName A user-specified API key name. This value is required when creating an API key.
 	KeyName string `json:"key_name"`
@@ -813,6 +824,29 @@ type ApiKeysListResponseItem struct {
 	LastUsedFromAddr string `json:"last_used_from_addr"`
 	// Name The user-specified API key name
 	Name string `json:"name"`
+}
+
+type BillingAccount struct {
+	// AddressCity Billing address city.
+	AddressCity string `json:"address_city"`
+	// AddressCountry Billing address country.
+	AddressCountry string `json:"address_country"`
+	// AddressLine1 Billing address line 1.
+	AddressLine1 string `json:"address_line1"`
+	// AddressLine2 Billing address line 2.
+	AddressLine2 string `json:"address_line2"`
+	// AddressPostalCode Billing address postal code.
+	AddressPostalCode string `json:"address_postal_code"`
+	// AddressState Billing address state or region.
+	AddressState string `json:"address_state"`
+	// Email Billing email, to receive emails related to invoices and subscriptions.
+	Email string `json:"email"`
+	// OrbPortalURL Orb user portal url
+	OrbPortalURL  string        `json:"orb_portal_url,omitempty"`
+	PaymentSource PaymentSource `json:"payment_source"`
+	// QuotaResetAtLast Last time when quota was reset. Defaults to current datetime when account is created.
+	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
+	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 }
 
 // BillingSubscriptionType Type of subscription to Neon Cloud.
@@ -951,6 +985,31 @@ type CreatedProject struct {
 	OperationsResponse
 	ProjectResponse
 	RolesResponse
+}
+
+type CurrentUserAuthAccount struct {
+	Email    string `json:"email"`
+	Image    string `json:"image"`
+	Login    string `json:"login"`
+	Name     string `json:"name"`
+	Provider string `json:"provider"`
+}
+
+type CurrentUserInfoResponse struct {
+	// ActiveSecondsLimit Control plane observes active endpoints of a user this amount of wall-clock time.
+	ActiveSecondsLimit  int64                    `json:"active_seconds_limit"`
+	AuthAccounts        []CurrentUserAuthAccount `json:"auth_accounts"`
+	BillingAccount      BillingAccount           `json:"billing_account"`
+	BranchesLimit       int64                    `json:"branches_limit"`
+	ComputeSecondsLimit int64                    `json:"compute_seconds_limit,omitempty"`
+	Email               string                   `json:"email"`
+	ID                  string                   `json:"id"`
+	Image               string                   `json:"image"`
+	Login               string                   `json:"login"`
+	MaxAutoscalingLimit ComputeUnit              `json:"max_autoscaling_limit"`
+	Name                string                   `json:"name"`
+	Plan                string                   `json:"plan"`
+	ProjectsLimit       int64                    `json:"projects_limit"`
 }
 
 type Database struct {
@@ -1185,6 +1244,23 @@ type Pagination struct {
 
 type PaginationResponse struct {
 	Pagination Pagination `json:"pagination,omitempty"`
+}
+
+type PaymentSource struct {
+	Card PaymentSourceBankCard `json:"card,omitempty"`
+	// Type of payment source. E.g. "card".
+	Type string `json:"type"`
+}
+
+type PaymentSourceBankCard struct {
+	// Brand of credit card.
+	Brand string `json:"brand,omitempty"`
+	// ExpMonth Credit card expiration month
+	ExpMonth int64 `json:"exp_month,omitempty"`
+	// ExpYear Credit card expiration year
+	ExpYear int64 `json:"exp_year,omitempty"`
+	// Last4 Last 4 digits of the card.
+	Last4 string `json:"last4"`
 }
 
 // PgSettingsData A raw representation of PostgreSQL settings
