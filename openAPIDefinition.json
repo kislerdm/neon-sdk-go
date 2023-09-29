@@ -19,6 +19,9 @@
     "security": [
         {
             "BearerAuth": []
+        },
+        {
+            "CookieAuth": []
         }
     ],
     "tags": [
@@ -523,10 +526,9 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProjectOperations"
+                                    "$ref": "#/components/schemas/ProjectResponse"
                                 },
                                 "example": {
-                                    "operations": [],
                                     "project": {
                                         "id": "shiny-wind-028834",
                                         "platform_id": "aws",
@@ -2772,6 +2774,11 @@
                 "type": "http",
                 "scheme": "bearer",
                 "description": "The Neon API requires an API key to authorize your requests, which you can enter below.\nRefer to our documentation to find out how to generate and use [API keys](https://neon.tech/docs/manage/api-keys).\n"
+            },
+            "CookieAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "zenith"
             }
         },
         "schemas": {
@@ -4859,6 +4866,31 @@
                     }
                 }
             },
+            "UpdateUserInfoRequest": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "email"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "image": {
+                        "type": "string"
+                    },
+                    "first_name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    }
+                }
+            },
             "CurrentUserInfoResponse": {
                 "type": "object",
                 "required": [
@@ -4868,6 +4900,7 @@
                     "email",
                     "login",
                     "name",
+                    "last_name",
                     "image",
                     "projects_limit",
                     "branches_limit",
@@ -4903,6 +4936,9 @@
                         "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "last_name": {
                         "type": "string"
                     },
                     "projects_limit": {
@@ -5060,16 +5096,6 @@
             },
             "ErrorCode": {
                 "type": "string"
-            },
-            "ProjectOperations": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/ProjectResponse"
-                    },
-                    {
-                        "$ref": "#/components/schemas/OperationsResponse"
-                    }
-                ]
             },
             "BranchOperations": {
                 "allOf": [

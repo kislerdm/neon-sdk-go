@@ -116,7 +116,7 @@ type Client interface {
 	// UpdateProject Updates the specified project.
 	// You can obtain a `project_id` by listing the projects for your Neon account.
 	// Neon permits updating the project name only.
-	UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectOperations, error)
+	UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectResponse, error)
 
 	// DeleteProject Deletes the specified project.
 	// You can obtain a `project_id` by listing the projects for your Neon account.
@@ -532,10 +532,10 @@ func (c *client) GetProject(projectID string) (ProjectResponse, error) {
 	return v, nil
 }
 
-func (c *client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectOperations, error) {
-	var v ProjectOperations
+func (c *client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectResponse, error) {
+	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
-		return ProjectOperations{}, err
+		return ProjectResponse{}, err
 	}
 	return v, nil
 }
@@ -1005,6 +1005,7 @@ type CurrentUserInfoResponse struct {
 	Email               string                   `json:"email"`
 	ID                  string                   `json:"id"`
 	Image               string                   `json:"image"`
+	LastName            string                   `json:"last_name"`
 	Login               string                   `json:"login"`
 	MaxAutoscalingLimit ComputeUnit              `json:"max_autoscaling_limit"`
 	Name                string                   `json:"name"`
@@ -1460,11 +1461,6 @@ type ProjectListItem struct {
 	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-type ProjectOperations struct {
-	OperationsResponse
-	ProjectResponse
 }
 
 type ProjectOwnerData struct {
