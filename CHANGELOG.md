@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.4] - 2023-09-29
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-09-29 00:08:00 GMT.
+
+### Changed
+
+- [**BREAKING**] Method `UpdateProject` returns the object of the type `ProjectResponse` now
+- The struct `CurrentUserInfoResponse` (the response type of the method `GetCurrentUserInfo`) contains the attribute `LastName` now
+
 ## [v0.2.3] - 2023-09-21
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-09-21 01:30:00 GMT.
