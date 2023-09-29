@@ -850,8 +850,8 @@ func Test_client_GetProject(t *testing.T) {
 }
 
 func Test_client_UpdateProject(t *testing.T) {
-	deserializeResp := func(s string) ProjectOperations {
-		var v ProjectOperations
+	deserializeResp := func(s string) ProjectResponse {
+		var v ProjectResponse
 		if err := json.Unmarshal([]byte(s), &v); err != nil {
 			panic(err)
 		}
@@ -865,7 +865,7 @@ func Test_client_UpdateProject(t *testing.T) {
 		name    string
 		args    args
 		apiKey  string
-		want    ProjectOperations
+		want    ProjectResponse
 		wantErr bool
 	}{
 		{
@@ -885,7 +885,7 @@ func Test_client_UpdateProject(t *testing.T) {
 				cfg:       ProjectUpdateRequest{},
 			},
 			apiKey:  "invalidApiKey",
-			want:    ProjectOperations{},
+			want:    ProjectResponse{},
 			wantErr: true,
 		},
 	}
