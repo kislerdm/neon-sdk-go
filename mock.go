@@ -163,7 +163,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"project":{"active_time_seconds":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10500,"compute_time_seconds":100,"consumption_period_end":"2023-03-01T00:00:00Z","consumption_period_start":"2023-02-01T00:00:00Z","cpu_used_sec":213230,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","data_storage_bytes_hour":1040,"data_transfer_bytes":1000000,"history_retention_seconds":604800,"id":"shiny-wind-028834","name":"myproject","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-12-04T02:39:25Z","written_data_bytes":100800}}`,
+			Content: `{"operations":[],"project":{"active_time_seconds":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10500,"compute_time_seconds":100,"consumption_period_end":"2023-03-01T00:00:00Z","consumption_period_start":"2023-02-01T00:00:00Z","cpu_used_sec":213230,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","data_storage_bytes_hour":1040,"data_transfer_bytes":1000000,"history_retention_seconds":604800,"id":"shiny-wind-028834","name":"myproject","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-12-04T02:39:25Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 	},
