@@ -526,9 +526,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProjectResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ProjectResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/OperationsResponse"
+                                        }
+                                    ]
                                 },
                                 "example": {
+                                    "operations": [],
                                     "project": {
                                         "id": "shiny-wind-028834",
                                         "platform_id": "aws",
