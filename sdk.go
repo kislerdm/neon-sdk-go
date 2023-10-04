@@ -116,7 +116,7 @@ type Client interface {
 	// UpdateProject Updates the specified project.
 	// You can obtain a `project_id` by listing the projects for your Neon account.
 	// Neon permits updating the project name only.
-	UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectResponse, error)
+	UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error)
 
 	// DeleteProject Deletes the specified project.
 	// You can obtain a `project_id` by listing the projects for your Neon account.
@@ -532,10 +532,10 @@ func (c *client) GetProject(projectID string) (ProjectResponse, error) {
 	return v, nil
 }
 
-func (c *client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (ProjectResponse, error) {
-	var v ProjectResponse
+func (c *client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error) {
+	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
-		return ProjectResponse{}, err
+		return UpdateProjectRespObj{}, err
 	}
 	return v, nil
 }
@@ -1576,3 +1576,8 @@ type RolesResponse struct {
 // The maximum value is `604800` seconds (1 week). For more information, see
 // [Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).
 type SuspendTimeoutSeconds int64
+
+type UpdateProjectRespObj struct {
+	OperationsResponse
+	ProjectResponse
+}
