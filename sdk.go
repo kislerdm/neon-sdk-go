@@ -794,10 +794,14 @@ type ApiKeyCreateRequest struct {
 }
 
 type ApiKeyCreateResponse struct {
+	// CreatedAt A timestamp indicating when the API key was created
+	CreatedAt time.Time `json:"created_at"`
 	// ID The API key ID
 	ID int64 `json:"id"`
 	// Key The generated 64-bit token required to access the Neon API
 	Key string `json:"key"`
+	// Name The user-specified API key name
+	Name string `json:"name"`
 }
 
 type ApiKeyRevokeResponse struct {
