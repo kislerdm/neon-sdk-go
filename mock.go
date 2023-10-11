@@ -15,7 +15,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"POST": mockResponse{
-			Content: `{"id":165434,"key":"9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3"}`,
+			Content: `{"created_at":"2022-11-15T20:13:35Z","id":165434,"key":"9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3","name":"mykey_1"}`,
 			Code:    200,
 		},
 	},
