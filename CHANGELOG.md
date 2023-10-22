@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.5] - 2023-10-22
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-10-11 00:08:16 GMT.
+
+### Fixed
+
+- [**BREAKING**] Method `UpdateProject` returns the object of the type `UpdateProjectRespObj` (combination of `OperationsResponse` and `ProjectResponse`) now.
+  **Note** that it reverts corresponding change made in [v0.2.4](#v024---2023-09-29).
+
+### Changed
+
+- The struct `ApiKeyCreateResponse` (the response type of the method `CreateApiKey`) contains the attributes `CreatedAt` and `Name` now.
+
 ## [v0.2.4] - 2023-09-29
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-09-29 00:08:00 GMT.
