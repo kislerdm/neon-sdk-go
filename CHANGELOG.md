@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         log.Printf("%d projects found", len(v.Projects))
   }
   ```
+- [**BREAKING**] Removed support of variadic functions used to configure SDK client.
 
 ## [v0.2.5] - 2023-10-22
 
