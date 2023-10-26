@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.0] - 2023-10-26
+
+### Changed
+
+- The interface `Client` is removed and the output of the `NewClient` is the pointer to the struct now. It will facilitate stub of the SDK client.
+- [**BREAKING**] `NewClient` requires `Config` to initialise a Neon client. It's meant to improve security by eliminating
+  support of environment variables for authentication by default. It also simplifies the codebase.
+  
+  **Example**
+  ```go
+  package main
+
+  import (
+        "log"
+  
+        neon "github.com/kislerdm/neon-sdk-go"
+  )
+  
+  func main() {
+        client, err := neon.NewClient(neon.Config{Key: "{{.NeonApiKey}}"})
+        if err != nil {
+            panic(err)
+        }
+  
+        v, err := client.ListProjects()
+        if err != nil {
+            panic(err)
+        }
+  
+        log.Printf("%d projects found", len(v.Projects))
+  }
+  ```
+
 ## [v0.2.5] - 2023-10-22
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-10-11 00:08:16 GMT.

@@ -14,69 +14,67 @@ import (
 
 func TestNewClient(t *testing.T) {
 	type args struct {
-		optFns []func(*options)
+		cfg Config
 	}
 	tests := []struct {
 		name    string
-		envVar  string
 		args    args
-		want    Client
+		want    *Client
 		wantErr bool
 	}{
 		{
-			name:   "happy path",
-			envVar: "foo",
+			name: "happy path, default http client",
 			args: args{
-				optFns: nil,
+				cfg: Config{
+					Key: "foo",
+				},
 			},
-			want: &client{
-				options: options{
-					key:        "foo",
-					httpClient: &http.Client{Timeout: defaultTimeout},
+			want: &Client{
+				cfg: Config{
+					Key:        "foo",
+					HTTPClient: &http.Client{Timeout: defaultTimeout},
 				},
 				baseURL: baseURL,
 			},
 			wantErr: false,
 		},
 		{
-			name:   "unhappy path: missing api key",
-			envVar: "",
+			name: "unhappy path: missing api key",
 			args: args{
-				optFns: nil,
+				cfg: Config{},
 			},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:   "happy path: custom http client",
-			envVar: "bar",
+			name: "happy path: custom http client",
 			args: args{
-				optFns: []func(*options){
-					WithHTTPClient(&http.Client{Timeout: 1 * time.Minute}),
+				cfg: Config{
+					Key:        "bar",
+					HTTPClient: &http.Client{Timeout: 1 * time.Minute},
 				},
 			},
-			want: &client{
-				options: options{
-					key:        "bar",
-					httpClient: &http.Client{Timeout: 1 * time.Minute},
+			want: &Client{
+				cfg: Config{
+					Key:        "bar",
+					HTTPClient: &http.Client{Timeout: 1 * time.Minute},
 				},
 				baseURL: baseURL,
 			},
 			wantErr: false,
 		},
 		{
-			name:   "happy path: custom http client and key from variadic fn",
-			envVar: "",
+			name: "happy path: custom http client and key",
 			args: args{
-				optFns: []func(*options){
-					WithHTTPClient(&http.Client{Timeout: 1 * time.Minute}),
-					WithAPIKey("bar"),
+				cfg: Config{
+					Key:        "bar",
+					HTTPClient: &http.Client{Timeout: 1 * time.Minute},
 				},
 			},
-			want: &client{
-				options: options{
-					key:        "bar",
-					httpClient: &http.Client{Timeout: 1 * time.Minute},
+			want: &Client{
+				cfg: Config{
+					Key:        "bar",
+					HTTPClient: &http.Client{Timeout: 1 * time.Minute},
 				},
 				baseURL: baseURL,
 			},
@@ -87,9 +85,7 @@ func TestNewClient(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				t.Setenv("NEON_API_KEY", tt.envVar)
-
-				got, err := NewClient(tt.args.optFns...)
+				got, err := NewClient(tt.args.cfg)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -158,7 +154,7 @@ func (m *mockHttp) Do(req *http.Request) (*http.Response, error) {
 
 func Test_client_requestHandler(t *testing.T) {
 	type fields struct {
-		options options
+		cfg     Config
 		baseURL string
 	}
 	type args struct {
@@ -181,9 +177,9 @@ func Test_client_requestHandler(t *testing.T) {
 		{
 			name: "happy path: post w payload",
 			fields: fields{
-				options: options{
-					key: "foo",
-					httpClient: &mockHttp{
+				cfg: Config{
+					Key: "foo",
+					HTTPClient: &mockHttp{
 						err: Error{HTTPCode: http.StatusOK},
 					},
 				},
@@ -206,9 +202,9 @@ func Test_client_requestHandler(t *testing.T) {
 		{
 			name: "happy path: get w/o payload",
 			fields: fields{
-				options: options{
-					key: "bar",
-					httpClient: &mockHttp{
+				cfg: Config{
+					Key: "bar",
+					HTTPClient: &mockHttp{
 						err:      Error{HTTPCode: http.StatusOK},
 						respBody: mockPayload{Foo: "resp:"},
 					},
@@ -231,9 +227,9 @@ func Test_client_requestHandler(t *testing.T) {
 		{
 			name: "unhappy path: get w/o payload",
 			fields: fields{
-				options: options{
-					key: "bar",
-					httpClient: &mockHttp{
+				cfg: Config{
+					Key: "bar",
+					HTTPClient: &mockHttp{
 						err: Error{
 							HTTPCode: http.StatusNotFound,
 							errorResp: errorResp{
@@ -268,8 +264,8 @@ func Test_client_requestHandler(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c := &client{
-					options: tt.fields.options,
+				c := &Client{
+					cfg:     tt.fields.cfg,
 					baseURL: tt.fields.baseURL,
 				}
 				respPayload = mockPayload{}
@@ -280,7 +276,7 @@ func Test_client_requestHandler(t *testing.T) {
 					t.Errorf("requestHandler() error = %v, wantErr %v", err, tt.wantErr)
 				}
 
-				if !reflect.DeepEqual(tt.wantRequestHeaders, (tt.fields.options.httpClient).(*mockHttp).reqHeaders) {
+				if !reflect.DeepEqual(tt.wantRequestHeaders, (tt.fields.cfg.HTTPClient).(*mockHttp).reqHeaders) {
 					t.Errorf("missing expected request headers")
 				}
 
@@ -484,7 +480,7 @@ func Test_client_ListApiKeys(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -541,7 +537,7 @@ func Test_client_CreateApiKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -598,7 +594,7 @@ func Test_client_RevokeApiKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -658,7 +654,7 @@ func Test_client_GetProjectOperation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -718,7 +714,7 @@ func Test_client_ListProjects(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -775,7 +771,7 @@ func Test_client_CreateProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -832,7 +828,7 @@ func Test_client_GetProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -892,7 +888,7 @@ func Test_client_UpdateProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -949,7 +945,7 @@ func Test_client_DeleteProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1012,7 +1008,7 @@ func Test_client_ListProjectOperations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1069,7 +1065,7 @@ func Test_client_ListProjectBranches(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1129,7 +1125,7 @@ func Test_client_CreateProjectBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1189,7 +1185,7 @@ func Test_client_GetProjectBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1252,7 +1248,7 @@ func Test_client_UpdateProjectBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1312,7 +1308,7 @@ func Test_client_DeleteProjectBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1372,7 +1368,7 @@ func Test_client_SetPrimaryProjectBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1432,7 +1428,7 @@ func Test_client_ListProjectBranchEndpoints(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1492,7 +1488,7 @@ func Test_client_ListProjectBranchDatabases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1555,7 +1551,7 @@ func Test_client_CreateProjectBranchDatabase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1618,7 +1614,7 @@ func Test_client_GetProjectBranchDatabase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1684,7 +1680,7 @@ func Test_client_UpdateProjectBranchDatabase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1747,7 +1743,7 @@ func Test_client_DeleteProjectBranchDatabase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1807,7 +1803,7 @@ func Test_client_ListProjectBranchRoles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1870,7 +1866,7 @@ func Test_client_CreateProjectBranchRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1933,7 +1929,7 @@ func Test_client_GetProjectBranchRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1996,7 +1992,7 @@ func Test_client_DeleteProjectBranchRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2059,7 +2055,7 @@ func Test_client_GetProjectBranchRolePassword(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2122,7 +2118,7 @@ func Test_client_ResetProjectBranchRolePassword(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2179,7 +2175,7 @@ func Test_client_ListProjectEndpoints(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2239,7 +2235,7 @@ func Test_client_CreateProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2299,7 +2295,7 @@ func Test_client_GetProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2362,7 +2358,7 @@ func Test_client_UpdateProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2422,7 +2418,7 @@ func Test_client_DeleteProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2482,7 +2478,7 @@ func Test_client_StartProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2542,7 +2538,7 @@ func Test_client_SuspendProjectEndpoint(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2602,7 +2598,7 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -2649,7 +2645,7 @@ func Test_client_GetCurrentUserInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}

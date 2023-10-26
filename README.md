@@ -51,19 +51,9 @@ Where `{{.Ver}}` is the release version.
 
 ### Code Snippets
 
-#### Authentication
+### Default HTTP Client
 
-Authentication with the Neon Platform is implemented
-using [variadic functions](https://gobyexample.com/variadic-functions) and environment variables evaluation in the
-following order:
-
-1. Variadic function client's argument;
-2. Environment variable `NEON_API_KEY`.
-
-Note that if the API key is provided as the variadic function argument, key from the environment variable `NEON_API_KEY`
-will be ignored.
-
-##### Variadic Function
+The following snippet demonstrates how to initialize SDK which will use default HTTP client. 
 
 ```go
 package main
@@ -75,7 +65,7 @@ import (
 )
 
 func main() {
-	client, err := neon.NewClient(neon.WithAPIKey("{{.NeonApiKey}}"))
+	client, err := neon.NewClient(neon.Config{Key: "{{.NeonApiKey}}"})
 	if err != nil {
 		panic(err)
 	}
@@ -89,22 +79,25 @@ func main() {
 }
 ```
 
-##### Environment Variables Evaluation
+### Custom HTTP client
 
-**_Requirement_**: a valid Neon [API key](https://neon.tech/docs/manage/api-keys/) must be exported as the environment
-variable `NEON_API_KEY`.
+The SDK can initialized with a custom HTTP client.
 
 ```go
 package main
 
 import (
+	"net/http"
 	"log"
+	"time"
 
 	neon "github.com/kislerdm/neon-sdk-go"
 )
 
 func main() {
-	client, err := neon.NewClient()
+	myHTTPClient := &http.Client{Timeout: 30 * time.Second}
+
+	client, err := neon.NewClient(neon.Config{Key: "{{.NeonApiKey}}", HTTPClient: myHTTPClient})
 	if err != nil {
 		panic(err)
 	}
@@ -132,7 +125,7 @@ import (
 )
 
 func main() {
-	client, err := neon.NewClient(neon.WithHTTPClient(neon.NewMockHTTPClient()))
+	client, err := neon.NewClient(neon.Config{HTTPClient: neon.NewMockHTTPClient()})
 	if err != nil {
 		panic(err)
 	}
