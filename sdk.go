@@ -108,7 +108,7 @@ func (c *Client) requestHandler(url string, t string, reqPayload interface{}, re
 // The response does not include API key tokens. A token is only provided when creating an API key.
 // API keys can also be managed in the Neon Console.
 // For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c *Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
+func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
 	var v []ApiKeysListResponseItem
 	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
 		return nil, err
@@ -121,7 +121,7 @@ func (c *Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
 // API keys can also be managed in the Neon Console.
 // See [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c *Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, error) {
+func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, error) {
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
@@ -135,7 +135,7 @@ func (c *Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, er
 // You can obtain `key_id` values by listing the API keys for your Neon account.
 // API keys can also be managed in the Neon Console.
 // See [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
+func (c Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return ApiKeyRevokeResponse{}, err
@@ -147,7 +147,7 @@ func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 // An operation is an action performed on a Neon project resource.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain a `operation_id` by listing operations for the project.
-func (c *Client) GetProjectOperation(projectID string, operationID string) (OperationResponse, error) {
+func (c Client) GetProjectOperation(projectID string, operationID string) (OperationResponse, error) {
 	var v OperationResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/operations/"+operationID, "GET", nil, &v); err != nil {
 		return OperationResponse{}, err
@@ -158,7 +158,7 @@ func (c *Client) GetProjectOperation(projectID string, operationID string) (Oper
 // ListProjects Retrieves a list of projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c *Client) ListProjects(cursor *string, limit *int) (ListProjectsRespObj, error) {
+func (c Client) ListProjects(cursor *string, limit *int) (ListProjectsRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
@@ -182,7 +182,7 @@ func (c *Client) ListProjects(cursor *string, limit *int) (ListProjectsRespObj, 
 // You can specify a region and PostgreSQL version in the request body.
 // Neon currently supports PostgreSQL 14 and 15.
 // For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
-func (c *Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
+func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
 	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
 		return CreatedProject{}, err
@@ -193,7 +193,7 @@ func (c *Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error)
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
-func (c *Client) GetProject(projectID string) (ProjectResponse, error) {
+func (c Client) GetProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectResponse{}, err
@@ -204,7 +204,7 @@ func (c *Client) GetProject(projectID string) (ProjectResponse, error) {
 // UpdateProject Updates the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Neon permits updating the project name only.
-func (c *Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error) {
+func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error) {
 	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
 		return UpdateProjectRespObj{}, err
@@ -216,7 +216,7 @@ func (c *Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (Upda
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Deleting a project is a permanent action.
 // Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
-func (c *Client) DeleteProject(projectID string) (ProjectResponse, error) {
+func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
 		return ProjectResponse{}, err
@@ -229,7 +229,7 @@ func (c *Client) DeleteProject(projectID string) (ProjectResponse, error) {
 // The number of operations returned can be large.
 // To paginate the response, issue an initial request with a `limit` value.
 // Then, add the `cursor` value that was returned in the response to the next request.
-func (c *Client) ListProjectOperations(projectID string, cursor *string, limit *int) (ListOperations, error) {
+func (c Client) ListProjectOperations(projectID string, cursor *string, limit *int) (ListOperations, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
@@ -252,7 +252,7 @@ func (c *Client) ListProjectOperations(projectID string, cursor *string, limit *
 // A project may contain child branches that were branched from `main` or from another branch.
 // A parent branch is identified by the `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c *Client) ListProjectBranches(projectID string) (BranchesResponse, error) {
+func (c Client) ListProjectBranches(projectID string) (BranchesResponse, error) {
 	var v BranchesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "GET", nil, &v); err != nil {
 		return BranchesResponse{}, err
@@ -265,7 +265,7 @@ func (c *Client) ListProjectBranches(projectID string) (BranchesResponse, error)
 // This method does not require a request body, but you can specify one to create an endpoint for the branch or to select a non-default parent branch.
 // The default behavior is to create a branch from the project's root branch (`main`) with no endpoint, and the branch name is auto-generated.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c *Client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest) (CreatedBranch, error) {
+func (c Client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest) (CreatedBranch, error) {
 	var v CreatedBranch
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "POST", cfg, &v); err != nil {
 		return CreatedBranch{}, err
@@ -281,7 +281,7 @@ func (c *Client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest)
 // A project may contain child branches that were branched from `main` or from another branch.
 // A parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c *Client) GetProjectBranch(projectID string, branchID string) (BranchResponse, error) {
+func (c Client) GetProjectBranch(projectID string, branchID string) (BranchResponse, error) {
 	var v BranchResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
 		return BranchResponse{}, err
@@ -293,7 +293,7 @@ func (c *Client) GetProjectBranch(projectID string, branchID string) (BranchResp
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
 // For more information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c *Client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
+func (c Client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "PATCH", cfg, &v); err != nil {
 		return BranchOperations{}, err
@@ -311,7 +311,7 @@ func (c *Client) UpdateProjectBranch(projectID string, branchID string, cfg Bran
 // The deletion occurs after all operations finish.
 // You cannot delete a branch if it is the only remaining branch in the project.
 // A project must have at least one branch.
-func (c *Client) DeleteProjectBranch(projectID string, branchID string) (BranchOperations, error) {
+func (c Client) DeleteProjectBranch(projectID string, branchID string) (BranchOperations, error) {
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "DELETE", nil, &v); err != nil {
 		return BranchOperations{}, err
@@ -323,7 +323,7 @@ func (c *Client) DeleteProjectBranch(projectID string, branchID string) (BranchO
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
 // For more information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c *Client) SetPrimaryProjectBranch(projectID string, branchID string) (BranchOperations, error) {
+func (c Client) SetPrimaryProjectBranch(projectID string, branchID string) (BranchOperations, error) {
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/set_as_primary", "POST", nil, &v); err != nil {
 		return BranchOperations{}, err
@@ -335,7 +335,7 @@ func (c *Client) SetPrimaryProjectBranch(projectID string, branchID string) (Bra
 // Currently, Neon permits only one endpoint per branch.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
-func (c *Client) ListProjectBranchEndpoints(projectID string, branchID string) (EndpointsResponse, error) {
+func (c Client) ListProjectBranchEndpoints(projectID string, branchID string) (EndpointsResponse, error) {
 	var v EndpointsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/endpoints", "GET", nil, &v); err != nil {
 		return EndpointsResponse{}, err
@@ -348,7 +348,7 @@ func (c *Client) ListProjectBranchEndpoints(projectID string, branchID string) (
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
 // For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
+func (c Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
 		return DatabasesResponse{}, err
@@ -361,7 +361,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
 // For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c *Client) CreateProjectBranchDatabase(projectID string, branchID string, cfg DatabaseCreateRequest) (DatabaseOperations, error) {
+func (c Client) CreateProjectBranchDatabase(projectID string, branchID string, cfg DatabaseCreateRequest) (DatabaseOperations, error) {
 	var v DatabaseOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "POST", cfg, &v); err != nil {
 		return DatabaseOperations{}, err
@@ -373,7 +373,7 @@ func (c *Client) CreateProjectBranchDatabase(projectID string, branchID string, 
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing branch's databases.
 // For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c *Client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseResponse, error) {
+func (c Client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseResponse, error) {
 	var v DatabaseResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
 		return DatabaseResponse{}, err
@@ -385,7 +385,7 @@ func (c *Client) GetProjectBranchDatabase(projectID string, branchID string, dat
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing the branch's databases.
 // For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c *Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
+func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
 	var v DatabaseOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
 		return DatabaseOperations{}, err
@@ -397,7 +397,7 @@ func (c *Client) UpdateProjectBranchDatabase(projectID string, branchID string, 
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing branch's databases.
 // For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c *Client) DeleteProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseOperations, error) {
+func (c Client) DeleteProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseOperations, error) {
 	var v DatabaseOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "DELETE", nil, &v); err != nil {
 		return DatabaseOperations{}, err
@@ -410,7 +410,7 @@ func (c *Client) DeleteProjectBranchDatabase(projectID string, branchID string, 
 // You can obtain the `branch_id` by listing the project's branches.
 // In Neon, the terms "role" and "user" are synonymous.
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c *Client) ListProjectBranchRoles(projectID string, branchID string) (RolesResponse, error) {
+func (c Client) ListProjectBranchRoles(projectID string, branchID string) (RolesResponse, error) {
 	var v RolesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "GET", nil, &v); err != nil {
 		return RolesResponse{}, err
@@ -425,7 +425,7 @@ func (c *Client) ListProjectBranchRoles(projectID string, branchID string) (Role
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
 // Connections established to the active compute endpoint will be dropped.
 // If the compute endpoint is idle, the endpoint becomes active for a short period of time and is suspended afterward.
-func (c *Client) CreateProjectBranchRole(projectID string, branchID string, cfg RoleCreateRequest) (RoleOperations, error) {
+func (c Client) CreateProjectBranchRole(projectID string, branchID string, cfg RoleCreateRequest) (RoleOperations, error) {
 	var v RoleOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles", "POST", cfg, &v); err != nil {
 		return RoleOperations{}, err
@@ -439,7 +439,7 @@ func (c *Client) CreateProjectBranchRole(projectID string, branchID string, cfg 
 // You can obtain the `role_name` by listing the roles for a branch.
 // In Neon, the terms "role" and "user" are synonymous.
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c *Client) GetProjectBranchRole(projectID string, branchID string, roleName string) (RoleResponse, error) {
+func (c Client) GetProjectBranchRole(projectID string, branchID string, roleName string) (RoleResponse, error) {
 	var v RoleResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "GET", nil, &v); err != nil {
 		return RoleResponse{}, err
@@ -453,7 +453,7 @@ func (c *Client) GetProjectBranchRole(projectID string, branchID string, roleNam
 // You can obtain the `role_name` by listing the roles for a branch.
 // In Neon, the terms "role" and "user" are synonymous.
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c *Client) DeleteProjectBranchRole(projectID string, branchID string, roleName string) (RoleOperations, error) {
+func (c Client) DeleteProjectBranchRole(projectID string, branchID string, roleName string) (RoleOperations, error) {
 	var v RoleOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "DELETE", nil, &v); err != nil {
 		return RoleOperations{}, err
@@ -467,7 +467,7 @@ func (c *Client) DeleteProjectBranchRole(projectID string, branchID string, role
 // You can obtain the `role_name` by listing the roles for a branch.
 // In Neon, the terms "role" and "user" are synonymous.
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c *Client) GetProjectBranchRolePassword(projectID string, branchID string, roleName string) (RolePasswordResponse, error) {
+func (c Client) GetProjectBranchRolePassword(projectID string, branchID string, roleName string) (RolePasswordResponse, error) {
 	var v RolePasswordResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName+"/reveal_password", "GET", nil, &v); err != nil {
 		return RolePasswordResponse{}, err
@@ -485,7 +485,7 @@ func (c *Client) GetProjectBranchRolePassword(projectID string, branchID string,
 // You can obtain the `role_name` by listing the roles for a branch.
 // In Neon, the terms "role" and "user" are synonymous.
 // For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c *Client) ResetProjectBranchRolePassword(projectID string, branchID string, roleName string) (RoleOperations, error) {
+func (c Client) ResetProjectBranchRolePassword(projectID string, branchID string, roleName string) (RoleOperations, error) {
 	var v RoleOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName+"/reset_password", "POST", nil, &v); err != nil {
 		return RoleOperations{}, err
@@ -497,7 +497,7 @@ func (c *Client) ResetProjectBranchRolePassword(projectID string, branchID strin
 // An endpoint is a Neon compute instance.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) ListProjectEndpoints(projectID string) (EndpointsResponse, error) {
+func (c Client) ListProjectEndpoints(projectID string) (EndpointsResponse, error) {
 	var v EndpointsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints", "GET", nil, &v); err != nil {
 		return EndpointsResponse{}, err
@@ -515,7 +515,7 @@ func (c *Client) ListProjectEndpoints(projectID string) (EndpointsResponse, erro
 // A `branch_id` has a `br-` prefix.
 // For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateRequest) (EndpointOperations, error) {
+func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateRequest) (EndpointOperations, error) {
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints", "POST", cfg, &v); err != nil {
 		return EndpointOperations{}, err
@@ -529,7 +529,7 @@ func (c *Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReque
 // You can obtain an `endpoint_id` by listing your project's endpoints.
 // An `endpoint_id` has an `ep-` prefix.
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) GetProjectEndpoint(projectID string, endpointID string) (EndpointResponse, error) {
+func (c Client) GetProjectEndpoint(projectID string, endpointID string) (EndpointResponse, error) {
 	var v EndpointResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "GET", nil, &v); err != nil {
 		return EndpointResponse{}, err
@@ -547,7 +547,7 @@ func (c *Client) GetProjectEndpoint(projectID string, endpointID string) (Endpoi
 // The client must wait for the last operation to finish before using the endpoint.
 // If the endpoint was idle before the update, the endpoint becomes active for a short period of time,
 // and the control plane suspends it again after the update.
-func (c *Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
+func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v); err != nil {
 		return EndpointOperations{}, err
@@ -563,7 +563,7 @@ func (c *Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg 
 // You can obtain an `endpoint_id` by listing your project's endpoints.
 // An `endpoint_id` has an `ep-` prefix.
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) DeleteProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
+func (c Client) DeleteProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "DELETE", nil, &v); err != nil {
 		return EndpointOperations{}, err
@@ -577,7 +577,7 @@ func (c *Client) DeleteProjectEndpoint(projectID string, endpointID string) (End
 // You can obtain an `endpoint_id` by listing your project's endpoints.
 // An `endpoint_id` has an `ep-` prefix.
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) StartProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
+func (c Client) StartProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/start", "POST", nil, &v); err != nil {
 		return EndpointOperations{}, err
@@ -590,7 +590,7 @@ func (c *Client) StartProjectEndpoint(projectID string, endpointID string) (Endp
 // You can obtain an `endpoint_id` by listing your project's endpoints.
 // An `endpoint_id` has an `ep-` prefix.
 // For more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).
-func (c *Client) SuspendProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
+func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/suspend", "POST", nil, &v); err != nil {
 		return EndpointOperations{}, err
@@ -600,7 +600,7 @@ func (c *Client) SuspendProjectEndpoint(projectID string, endpointID string) (En
 
 // ListProjectsConsumption This is a preview API and is subject to changes in the future.
 // Retrieves a list project consumption metrics for each project for the current billing period.
-func (c *Client) ListProjectsConsumption(cursor *string, limit *int) (ListProjectsConsumptionRespObj, error) {
+func (c Client) ListProjectsConsumption(cursor *string, limit *int) (ListProjectsConsumptionRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
@@ -617,7 +617,7 @@ func (c *Client) ListProjectsConsumption(cursor *string, limit *int) (ListProjec
 }
 
 // GetCurrentUserInfo Retrieves information about the current user
-func (c *Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
+func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 	var v CurrentUserInfoResponse
 	if err := c.requestHandler(c.baseURL+"/users/me", "GET", nil, &v); err != nil {
 		return CurrentUserInfoResponse{}, err

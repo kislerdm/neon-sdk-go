@@ -173,7 +173,7 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				},
 			},
 			want: `// ListProjects Retrieves a list of projects for the Neon account
-func (c *Client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
+func (c Client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor=" + *cursor)
@@ -205,7 +205,7 @@ qux`,
 			want: `// GetProject Retrieves information about the specified project.
 // foo bar
 // qux
-func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
+func (c Client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectsResponse{}, err
@@ -228,7 +228,7 @@ func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 				},
 			},
 			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
-func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
+func (c Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
 		return DatabasesResponse{}, err
@@ -248,7 +248,7 @@ func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (
 				RequestParametersPath: []field{{"key_id", "integer", "int64", "", true, true, false}},
 			},
 			want: `// RevokeApiKey Revokes the specified API key
-func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
+func (c Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return ApiKeyRevokeResponse{}, err
@@ -268,7 +268,7 @@ func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 				RequestParametersPath: nil,
 			},
 			want: `// CreateProject Creates a Neon project
-func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
+func (c Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
 	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
 		return CreatedProject{}, err

@@ -563,7 +563,7 @@ func (e endpointImplementation) generateMethodImplementation() string {
 	if e.Description != "" {
 		o += e.functionDescription() + "\n"
 	}
-	o += "func (c *Client) " + e.generateMethodHeader() + " {\n"
+	o += "func (c Client) " + e.generateMethodHeader() + " {\n"
 
 	reqObj := "nil"
 	if e.RequestBodyStruct != nil {
