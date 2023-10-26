@@ -2,7 +2,7 @@
 
 Find more about the service: https://neon.tech/docs/introduction.
 
-Author: dkisler.com
+Author: Dmitry Kisler <https://www.dkisler.com>
 
 */
 

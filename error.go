@@ -1,0 +1,60 @@
+package sdk
+
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
+	"strconv"
+)
+
+// Error API error.
+type Error struct {
+	HTTPCode int
+	errorResp
+}
+
+func (e Error) Error() string {
+	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
+}
+
+func (e Error) httpResp() *http.Response {
+	o, _ := json.Marshal(e.errorResp)
+	return &http.Response{
+		Status:        e.Code,
+		StatusCode:    e.HTTPCode,
+		Body:          io.NopCloser(bytes.NewReader(o)),
+		ContentLength: int64(len(o)),
+	}
+}
+
+type errorResp struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func convertErrorResponse(res *http.Response) error {
+	var v errorResp
+	buf, err := io.ReadAll(res.Body)
+	defer func() { _ = res.Body.Close() }()
+	if err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: "cannot read response bytes",
+			},
+		}
+	}
+	if err := json.Unmarshal(buf, &v); err != nil {
+		return Error{
+			HTTPCode: res.StatusCode,
+			errorResp: errorResp{
+				Message: err.Error(),
+			},
+		}
+	}
+	return Error{
+		HTTPCode:  res.StatusCode,
+		errorResp: v,
+	}
+}

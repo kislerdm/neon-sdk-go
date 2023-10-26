@@ -5,6 +5,7 @@ package sdk_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 func TestSmoke(t *testing.T) {
-	cl, err := sdk.NewClient()
+	cl, err := sdk.NewClient(sdk.Config{Key: os.Getenv("NEON_API_KEY")})
 	if err != nil {
 		t.Fatalf("cannot initialise SDK: %v", err)
 	}

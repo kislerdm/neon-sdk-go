@@ -73,12 +73,13 @@ func TestRun(t *testing.T) {
 			},
 			wantErr: false,
 			files: map[string]struct{}{
-				"go.mod":       {},
-				"doc.go":       {},
-				"sdk.go":       {},
-				"sdk_test.go":  {},
-				"mock.go":      {},
-				"mock_test.go": {},
+				"go.mod":           {},
+				"doc.go":           {},
+				"sdk.go":           {},
+				"sdk_test.go":      {},
+				"error.go":         {},
+				"mockhttp.go":      {},
+				"mockhttp_test.go": {},
 			},
 		},
 	}
@@ -171,7 +172,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 					},
 				},
 			},
-			want: `func (c *client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
+			want: `// ListProjects Retrieves a list of projects for the Neon account
+func (c *Client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor=" + *cursor)
@@ -190,15 +192,20 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 		{
 			name: "get project details",
 			fields: fields{
-				Name:                  "GetProject",
-				Method:                "GET",
-				Route:                 "/projects/{project_id}",
-				Description:           "Retrieves information about the specified project",
+				Name:   "GetProject",
+				Method: "GET",
+				Route:  "/projects/{project_id}",
+				Description: `Retrieves information about the specified project.
+foo bar
+qux`,
 				RequestBodyStruct:     nil,
 				ResponseStruct:        &model{name: "ProjectsResponse"},
 				RequestParametersPath: []field{{"project_id", "string", "", "", true, true, false}},
 			},
-			want: `func (c *client) GetProject(projectID string) (ProjectsResponse, error) {
+			want: `// GetProject Retrieves information about the specified project.
+// foo bar
+// qux
+func (c *Client) GetProject(projectID string) (ProjectsResponse, error) {
 	var v ProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectsResponse{}, err
@@ -220,7 +227,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 					{"branch_id", "string", "", "", true, true, false},
 				},
 			},
-			want: `func (c *client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
+			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
+func (c *Client) ListProjectBranchDatabases(projectID string, branchID string) (DatabasesResponse, error) {
 	var v DatabasesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases", "GET", nil, &v); err != nil {
 		return DatabasesResponse{}, err
@@ -239,7 +247,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				ResponseStruct:        &model{name: "ApiKeyRevokeResponse"},
 				RequestParametersPath: []field{{"key_id", "integer", "int64", "", true, true, false}},
 			},
-			want: `func (c *client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
+			want: `// RevokeApiKey Revokes the specified API key
+func (c *Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return ApiKeyRevokeResponse{}, err
@@ -258,7 +267,8 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 				ResponseStruct:        &model{name: "CreatedProject"},
 				RequestParametersPath: nil,
 			},
-			want: `func (c *client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
+			want: `// CreateProject Creates a Neon project
+func (c *Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
 	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
 		return CreatedProject{}, err
@@ -1415,7 +1425,7 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
@@ -1512,7 +1522,7 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}

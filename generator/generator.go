@@ -118,7 +118,6 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 
 	endpointsStr := make([]string, len(endpoints))
 	endpointsTestStr := make([]string, len(endpoints))
-	interfaceMethodsStr := make([]string, len(endpoints))
 	models := models{}
 
 	mockResponses := map[string]map[string]mockResponse{
@@ -449,7 +448,6 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
-		interfaceMethodsStr[i] = s.generateMethodDefinition()
 		endpointsTestStr[i] = s.generateMethodImplementationTest()
 
 		if _, ok := mockResponses[s.Route]; !ok {
@@ -476,7 +474,6 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 	return templateInput{
 		Info:                        spec.Info.Description,
 		ServerURL:                   spec.Servers[0].URL,
-		EndpointsInterfaceMethods:   interfaceMethodsStr,
 		EndpointsImplementation:     endpointsStr,
 		EndpointsImplementationTest: endpointsTestStr,
 		EndpointsResponseExample:    mockResponses,
@@ -522,7 +519,6 @@ type openAPISpec struct {
 type templateInput struct {
 	Info                        string
 	ServerURL                   string
-	EndpointsInterfaceMethods   []string
 	EndpointsImplementation     []string
 	EndpointsImplementationTest []string
 	Types                       []string
@@ -563,7 +559,11 @@ func (e endpointImplementation) functionDescription() string {
 }
 
 func (e endpointImplementation) generateMethodImplementation() string {
-	o := "func (c *client) " + e.generateMethodHeader() + " {\n"
+	var o string
+	if e.Description != "" {
+		o += e.functionDescription() + "\n"
+	}
+	o += "func (c *Client) " + e.generateMethodHeader() + " {\n"
 
 	reqObj := "nil"
 	if e.RequestBodyStruct != nil {
@@ -775,7 +775,7 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				c, err := NewClient(WithAPIKey(tt.apiKey), WithHTTPClient(NewMockHTTPClient()))
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
 				if err != nil {
 					panic(err)
 				}
