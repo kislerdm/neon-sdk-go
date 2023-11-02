@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 )
@@ -916,6 +915,11 @@ func (v *field) setDescription(s string) {
 }
 
 func (v field) canonicalName() string {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("objNameGoConvention(%s) panic:\n%v\n", v.k, r)
+		}
+	}()
 	return objNameGoConvention(v.k)
 }
 
@@ -933,24 +937,22 @@ func objNameGoConvention(s string) string {
 	s = strings.ToLower(s)
 
 	for i, el := range strings.Split(s, "_") {
+		el = correctSpecialTagWords(el)
 		if i > 0 {
 			el = strings.ToUpper(el[:1]) + el[1:]
 		}
 		o += el
 	}
 
-	switch o[len(o)-2:] {
-	case "id", "Id":
-		return o[:len(o)-2] + "ID"
-	}
+	return o
+}
 
-	switch o[len(o)-3:] {
-	case "url", "Url":
-		return o[:len(o)-3] + "URL"
-	case "uri", "Uri":
-		return o[:len(o)-3] + "URI"
+func correctSpecialTagWords(s string) string {
+	switch sUp := strings.ToUpper(s); sUp {
+	case "ID", "URI", "URL":
+		return sUp
 	default:
-		return o
+		return s
 	}
 }
 
@@ -969,29 +971,34 @@ func objNameGoConventionExport(s string) string {
 
 func (v field) routeElement(withPointer ...bool) string {
 	r := v.canonicalName()
-	if len(withPointer) > 0 && withPointer[0] {
-		r = "*" + r
-	}
 
 	switch v.format {
-	case "int64":
-		return "strconv.FormatInt(" + r + ", 10)"
-	case "int32":
-		return "strconv.FormatInt(int64(" + r + "), 10)"
-	case "double":
-		return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
-	case "float":
-		return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
 	case "date-time", "date":
 		return r + ".Format(time.RFC3339)"
+
 	default:
-		switch v.v {
-		case "integer":
-			return "strconv.FormatInt(int64(" + r + "), 10)"
-		case "boolean":
-			return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
+		if len(withPointer) > 0 && withPointer[0] {
+			r = "*" + r
 		}
-		return r
+
+		switch v.format {
+		case "int64":
+			return "strconv.FormatInt(" + r + ", 10)"
+		case "int32":
+			return "strconv.FormatInt(int64(" + r + "), 10)"
+		case "double":
+			return "strconv.FormatFloat(" + r + ", 'f', -1, 64)"
+		case "float":
+			return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
+		default:
+			switch v.v {
+			case "integer":
+				return "strconv.FormatInt(int64(" + r + "), 10)"
+			case "boolean":
+				return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
+			}
+			return r
+		}
 	}
 }
 
@@ -1033,7 +1040,7 @@ func (v field) generateDummy() interface{} {
 
 	switch v.format {
 	case "date-time", "date":
-		return time.Time{}
+		return "time.Time{}"
 	case "int64", "int32", "double", "float":
 		return 1
 	default:

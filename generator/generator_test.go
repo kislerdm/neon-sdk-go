@@ -1177,6 +1177,11 @@ func Test_objNameGoConventionExport(t *testing.T) {
 			args: args{"connection_uris"},
 			want: "ConnectionUris",
 		},
+		{
+			name: "to",
+			args: args{"to"},
+			want: "To",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(

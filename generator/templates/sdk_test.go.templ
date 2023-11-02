@@ -474,7 +474,7 @@ func TestTypes(t *testing.T) {
 }
 
 type dummyType interface {
-	int | int64 | int32 | bool | string | float64 | float32
+	int | int64 | int32 | bool | string | float64 | float32 | time.Time
 }
 
 func createPointer[V dummyType](v V) *V {
