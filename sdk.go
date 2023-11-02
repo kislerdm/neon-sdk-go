@@ -66,7 +66,7 @@ func setHeaders(req *http.Request, token string) {
 	}
 }
 
-func (c *Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
+func (c Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
 	var body io.Reader
 	var err error
 
@@ -600,13 +600,19 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 
 // ListProjectsConsumption This is a preview API and is subject to changes in the future.
 // Retrieves a list project consumption metrics for each project for the current billing period.
-func (c Client) ListProjectsConsumption(cursor *string, limit *int) (ListProjectsConsumptionRespObj, error) {
+func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time) (ListProjectsConsumptionRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
 	if limit != nil {
 		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
+	}
+	if from != nil {
+		queryElements = append(queryElements, "from="+from.Format(time.RFC3339))
+	}
+	if to != nil {
+		queryElements = append(queryElements, "to="+to.Format(time.RFC3339))
 	}
 	query := "?" + strings.Join(queryElements, "&")
 	var v ListProjectsConsumptionRespObj
@@ -1186,42 +1192,46 @@ type ProjectConsumption struct {
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
-	// ActiveTimeSecondsUpdatedAt The timestamp when the `active_time_seconds` value was last updated.
+	// ActiveTimeSecondsUpdatedAt Timestamp of the last update of `active_time_seconds` field
 	ActiveTimeSecondsUpdatedAt time.Time `json:"active_time_seconds_updated_at,omitempty"`
-	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
-	//
-	// Omitted when observed no actitivy for endpoints of this project.
-	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
 	// The value has some lag. The value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
-	// ComputeTimeSecondsUpdatedAt The timestamp when the `compute_time_seconds` value was last updated.
+	// ComputeTimeSecondsUpdatedAt Timestamp of the last update of `compute_time_seconds` field
 	ComputeTimeSecondsUpdatedAt time.Time `json:"compute_time_seconds_updated_at,omitempty"`
 	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
 	// The value is reset at the beginning of each billing period.
 	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
-	// DataStorageBytesHourUpdatedAt The timestamp when the `data_storage_bytes_hour` value was last updated.
+	// DataStorageBytesHourUpdatedAt Timestamp of the last update of `data_storage_bytes_hour` field
 	DataStorageBytesHourUpdatedAt time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
 	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
 	DataTransferBytes int64 `json:"data_transfer_bytes"`
-	// DataTransferBytesUpdatedAt The timestamp when the `data_transfer_bytes` value was last updated.
+	// DataTransferBytesUpdatedAt Timestamp of the last update of `data_transfer_bytes` field
 	DataTransferBytesUpdatedAt time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
-	// ID The project ID
-	ID string `json:"id"`
+	// PeriodEnd End of the consumption period
+	PeriodEnd time.Time `json:"period_end"`
+	// PeriodID Id of the consumption period, used to reference with `previous_period_id` field
+	PeriodID string `json:"period_id"`
+	// PeriodStart Start of the consumption period
+	PeriodStart time.Time `json:"period_start"`
+	// PreviousPeriodID `period_id` of the previous consumption period
+	PreviousPeriodID string `json:"previous_period_id"`
+	// ProjectID The project ID
+	ProjectID string `json:"project_id"`
 	// SyntheticStorageSize Bytes. Current space occupied by project in the storage. The value has some lag.
 	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
-	// SyntheticStorageSizeUpdatedAt The timestamp when the `synthetic_storage_size` value was last updated.
+	// SyntheticStorageSizeUpdatedAt Timestamp of the last update of `synthetic_storage_size` field
 	SyntheticStorageSizeUpdatedAt time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
-	// UpdatedAt A timestamp indicating when the project was last updated
+	// UpdatedAt A timestamp indicating when the period was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
 	// The value has some lag. The value is reset at the beginning of each billing period.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
-	// WrittenDataBytesUpdatedAt The timestamp when the `written_data_bytes` value was last updated.
+	// WrittenDataBytesUpdatedAt Timestamp of the last update of `written_data_bytes` field
 	WrittenDataBytesUpdatedAt time.Time `json:"written_data_bytes_updated_at,omitempty"`
 }
 
@@ -1358,7 +1368,8 @@ type ProjectUpdateRequestProject struct {
 }
 
 type ProjectsConsumptionResponse struct {
-	Projects []ProjectConsumption `json:"projects"`
+	PeriodsInResponse int64                `json:"periods_in_response"`
+	Projects          []ProjectConsumption `json:"projects"`
 }
 
 type ProjectsResponse struct {

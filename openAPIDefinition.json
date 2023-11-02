@@ -2626,6 +2626,24 @@
                             "default": 10,
                             "maximum": 1000
                         }
+                    },
+                    {
+                        "name": "from",
+                        "description": "Specify the start of the period to get the consumption for.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "description": "Specify the end of the period to get the consumption for.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
                     }
                 ],
                 "responses": {
@@ -3550,7 +3568,8 @@
             "ProjectsConsumptionResponse": {
                 "type": "object",
                 "required": [
-                    "projects"
+                    "projects",
+                    "periods_in_response"
                 ],
                 "properties": {
                     "projects": {
@@ -3558,25 +3577,38 @@
                         "items": {
                             "$ref": "#/components/schemas/ProjectConsumption"
                         }
+                    },
+                    "periods_in_response": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
             "ProjectConsumption": {
                 "type": "object",
                 "required": [
-                    "id",
+                    "period_id",
+                    "previous_period_id",
+                    "project_id",
                     "active_time_seconds",
                     "compute_time_seconds",
                     "written_data_bytes",
                     "data_transfer_bytes",
                     "data_storage_bytes_hour",
                     "synthetic_storage_size",
-                    "updated_at"
+                    "updated_at",
+                    "period_start",
+                    "period_end"
                 ],
                 "properties": {
-                    "id": {
-                        "description": "The project ID\n",
+                    "project_id": {
+                        "description": "The project ID",
                         "type": "string"
+                    },
+                    "period_id": {
+                        "description": "Id of the consumption period, used to reference with `previous_period_id` field",
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "data_storage_bytes_hour": {
                         "description": "Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.\nThe value is reset at the beginning of each billing period.\n",
@@ -3585,7 +3617,7 @@
                         "minimum": 0
                     },
                     "data_storage_bytes_hour_updated_at": {
-                        "description": "The timestamp when the `data_storage_bytes_hour` value was last updated.\n",
+                        "description": "Timestamp of the last update of `data_storage_bytes_hour` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3596,7 +3628,7 @@
                         "minimum": 0
                     },
                     "synthetic_storage_size_updated_at": {
-                        "description": "The timestamp when the `synthetic_storage_size` value was last updated.\n",
+                        "description": "Timestamp of the last update of `synthetic_storage_size` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3607,7 +3639,7 @@
                         "minimum": 0
                     },
                     "data_transfer_bytes_updated_at": {
-                        "description": "The timestamp when the `data_transfer_bytes` value was last updated.\n",
+                        "description": "Timestamp of the last update of `data_transfer_bytes` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3618,7 +3650,7 @@
                         "minimum": 0
                     },
                     "written_data_bytes_updated_at": {
-                        "description": "The timestamp when the `written_data_bytes` value was last updated.\n",
+                        "description": "Timestamp of the last update of `written_data_bytes` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3629,7 +3661,7 @@
                         "minimum": 0
                     },
                     "compute_time_seconds_updated_at": {
-                        "description": "The timestamp when the `compute_time_seconds` value was last updated.\n",
+                        "description": "Timestamp of the last update of `compute_time_seconds` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3640,19 +3672,31 @@
                         "minimum": 0
                     },
                     "active_time_seconds_updated_at": {
-                        "description": "The timestamp when the `active_time_seconds` value was last updated.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "compute_last_active_at": {
-                        "description": "The most recent time when any endpoint of this project was active.\n\nOmitted when observed no actitivy for endpoints of this project.\n",
+                        "description": "Timestamp of the last update of `active_time_seconds` field\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "description": "A timestamp indicating when the project was last updated\n",
+                        "description": "A timestamp indicating when the period was last updated\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "period_start": {
+                        "description": "Start of the consumption period",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "period_end": {
+                        "description": "End of the consumption period",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "previous_period_id": {
+                        "description": "`period_id` of the previous consumption period\n",
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
                     }
                 }
             },

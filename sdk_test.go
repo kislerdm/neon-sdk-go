@@ -2566,6 +2566,8 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 	type args struct {
 		cursor *string
 		limit  *int
+		from   *time.Time
+		to     *time.Time
 	}
 	tests := []struct {
 		name    string
@@ -2579,6 +2581,8 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				from:   createPointer(time.Time{}),
+				to:     createPointer(time.Time{}),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/consumption/projects"]["GET"].Content),
@@ -2589,6 +2593,8 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				from:   createPointer(time.Time{}),
+				to:     createPointer(time.Time{}),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListProjectsConsumptionRespObj{},
@@ -2602,7 +2608,7 @@ func Test_client_ListProjectsConsumption(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListProjectsConsumption(tt.args.cursor, tt.args.limit)
+				got, err := c.ListProjectsConsumption(tt.args.cursor, tt.args.limit, tt.args.from, tt.args.to)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjectsConsumption() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -2682,7 +2688,7 @@ func TestTypes(t *testing.T) {
 }
 
 type dummyType interface {
-	int | int64 | int32 | bool | string | float64 | float32
+	int | int64 | int32 | bool | string | float64 | float32 | time.Time
 }
 
 func createPointer[V dummyType](v V) *V {

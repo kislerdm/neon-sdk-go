@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.1] - 2023-11-02
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2023-11-02 13:54:20 GMT.
+
+### Added
+
+- [**BREAKING**] `ListProjectsConsumption` has the arguments "from" and "to" to filter by the billing period time now.
+- [**BREAKING**] `ProjectConsumption` contains the billing period's information including the period's start and end timestamps now.
+- `ProjectsConsumptionResponse` contains the number of billing periods `PeriodsInResponse` now.
+
+### Deleted
+
+- [**BREAKING**] `ProjectConsumption` does not contain the attributes `ComputeLastActiveAt` and `ID` now.
+
+### Fixed
+
+- [Linting] Private method `requestHandler` is assigned to the `Client` instead of a pointer to it.
+
 ## [v0.3.0] - 2023-10-26
 
 ### Changed
