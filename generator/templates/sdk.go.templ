@@ -66,7 +66,7 @@ func setHeaders(req *http.Request, token string) {
 	}
 }
 
-func (c *Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
+func (c Client) requestHandler(url string, t string, reqPayload interface{}, responsePayload interface{}) error {
 	var body io.Reader
 	var err error
 
