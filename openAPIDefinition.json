@@ -4782,7 +4782,8 @@
                     "UNKNOWN",
                     "free",
                     "pro",
-                    "direct_sales"
+                    "direct_sales",
+                    "aws_marketplace"
                 ]
             },
             "Database": {
