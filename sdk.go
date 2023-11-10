@@ -461,7 +461,7 @@ func (c Client) DeleteProjectBranchRole(projectID string, branchID string, roleN
 	return v, nil
 }
 
-// GetProjectBranchRolePassword Retrieves password of the specified role if possible.
+// GetProjectBranchRolePassword Retrieves the password for the specified role, if possible.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
 // You can obtain the `role_name` by listing the roles for a branch.
@@ -598,8 +598,8 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 	return v, nil
 }
 
-// ListProjectsConsumption This is a preview API and is subject to changes in the future.
-// Retrieves a list project consumption metrics for each project for the current billing period.
+// ListProjectsConsumption Retrieves a list consumption metrics for each project for the current billing period.
+// **Important:** This is a preview API and may be subject to changes.
 func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time) (ListProjectsConsumptionRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
@@ -622,7 +622,7 @@ func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.T
 	return v, nil
 }
 
-// GetCurrentUserInfo Retrieves information about the current user
+// GetCurrentUserInfo Retrieves information about the current Neon user account.
 func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 	var v CurrentUserInfoResponse
 	if err := c.requestHandler(c.baseURL+"/users/me", "GET", nil, &v); err != nil {
@@ -691,7 +691,7 @@ type BillingAccount struct {
 	// OrbPortalURL Orb user portal url
 	OrbPortalURL  string        `json:"orb_portal_url,omitempty"`
 	PaymentSource PaymentSource `json:"payment_source"`
-	// QuotaResetAtLast Last time when quota was reset. Defaults to current datetime when account is created.
+	// QuotaResetAtLast The last time the quota was reset. Defaults to the date-time the account is created.
 	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
 	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 }
@@ -1170,15 +1170,14 @@ type Project struct {
 	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
 	ProxyHost string `json:"proxy_host"`
 	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
-	// A timestamp indicating when the project quota resets
+	// A timestamp indicating when the project quota resets.
 	QuotaResetAt time.Time `json:"quota_reset_at,omitempty"`
 	// RegionID The region identifier
 	RegionID string              `json:"region_id"`
 	Settings ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize Experimental. Do not use this field yet.
-	// The data storage size in bytes.
+	// SyntheticStorageSize The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
@@ -1188,50 +1187,51 @@ type Project struct {
 }
 
 type ProjectConsumption struct {
-	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
-	// The value has some lag.
+	// ActiveTimeSeconds Seconds. The amount of time that compute endpoints in this project have been active.
+	// Expect some lag in the reported value.
+	//
 	// The value is reset at the beginning of each billing period.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
-	// ActiveTimeSecondsUpdatedAt Timestamp of the last update of `active_time_seconds` field
+	// ActiveTimeSecondsUpdatedAt The timestamp of the last update of the `active_time_seconds` field.
 	ActiveTimeSecondsUpdatedAt time.Time `json:"active_time_seconds_updated_at,omitempty"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
-	// The value has some lag. The value is reset at the beginning of each billing period.
+	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
-	// ComputeTimeSecondsUpdatedAt Timestamp of the last update of `compute_time_seconds` field
+	// ComputeTimeSecondsUpdatedAt The timestamp of the last update of `compute_time_seconds` field.
 	ComputeTimeSecondsUpdatedAt time.Time `json:"compute_time_seconds_updated_at,omitempty"`
-	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
+	// DataStorageBytesHour Bytes-Hour. The amount of storage the project consumed during the billing period. Expect some lag in the reported value.
 	// The value is reset at the beginning of each billing period.
 	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
-	// DataStorageBytesHourUpdatedAt Timestamp of the last update of `data_storage_bytes_hour` field
+	// DataStorageBytesHourUpdatedAt The timestamp of the last update of the `data_storage_bytes_hour` field.
 	DataStorageBytesHourUpdatedAt time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
-	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
-	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
+	// DataTransferBytes Bytes. The egress traffic from the Neon cloud to the client for the project over the billing period.
+	// Includes egress traffic for deleted endpoints. Expect some lag in the reported value. The value is reset at the beginning of each billing period.
 	DataTransferBytes int64 `json:"data_transfer_bytes"`
 	// DataTransferBytesUpdatedAt Timestamp of the last update of `data_transfer_bytes` field
 	DataTransferBytesUpdatedAt time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
-	// PeriodEnd End of the consumption period
+	// PeriodEnd The end of the consumption period.
 	PeriodEnd time.Time `json:"period_end"`
-	// PeriodID Id of the consumption period, used to reference with `previous_period_id` field
+	// PeriodID The Id of the consumption period, used to reference the `previous_period_id` field.
 	PeriodID string `json:"period_id"`
-	// PeriodStart Start of the consumption period
+	// PeriodStart The start of the consumption period.
 	PeriodStart time.Time `json:"period_start"`
-	// PreviousPeriodID `period_id` of the previous consumption period
+	// PreviousPeriodID The `period_id` of the previous consumption period.
 	PreviousPeriodID string `json:"previous_period_id"`
 	// ProjectID The project ID
 	ProjectID string `json:"project_id"`
-	// SyntheticStorageSize Bytes. Current space occupied by project in the storage. The value has some lag.
+	// SyntheticStorageSize Bytes. The current space occupied by project in storage. Expect some lag in the reported value.
 	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
-	// SyntheticStorageSizeUpdatedAt Timestamp of the last update of `synthetic_storage_size` field
+	// SyntheticStorageSizeUpdatedAt The timestamp of the last update of the `synthetic_storage_size` field.
 	SyntheticStorageSizeUpdatedAt time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
-	// UpdatedAt A timestamp indicating when the period was last updated
+	// UpdatedAt A timestamp indicating when the period was last updated.
 	UpdatedAt time.Time `json:"updated_at"`
-	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
-	// The value has some lag. The value is reset at the beginning of each billing period.
+	// WrittenDataBytes Bytes. The Amount of WAL that travelled through storage for given project for all branches.
+	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
-	// WrittenDataBytesUpdatedAt Timestamp of the last update of `written_data_bytes` field
+	// WrittenDataBytesUpdatedAt The timestamp of the last update of `written_data_bytes` field.
 	WrittenDataBytesUpdatedAt time.Time `json:"written_data_bytes_updated_at,omitempty"`
 }
 
@@ -1279,7 +1279,7 @@ type ProjectListItem struct {
 	//
 	// Omitted when observed no actitivy for endpoints of this project.
 	ComputeLastActiveAt time.Time `json:"compute_last_active_at,omitempty"`
-	// CpuUsedSec DEPRECATED, use data from the getProject endpoint instead.
+	// CpuUsedSec DEPRECATED. Use data from the getProject endpoint instead.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
 	// CreatedAt A timestamp indicating when the project was created
 	CreatedAt time.Time `json:"created_at"`
@@ -1307,8 +1307,7 @@ type ProjectListItem struct {
 	Settings ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize Experimental. Do not use this field yet.
-	// The data storage size in bytes.
+	// SyntheticStorageSize The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
