@@ -3844,6 +3844,11 @@
                         "description": "A timestamp indicating when the branch was last updated\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "last_reset_at": {
+                        "description": "A timestamp indicating when the branch was last reset\n",
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "example": {

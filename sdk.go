@@ -717,6 +717,8 @@ type Branch struct {
 	DataTransferBytes int64       `json:"data_transfer_bytes"`
 	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
 	ID string `json:"id"`
+	// LastResetAt A timestamp indicating when the branch was last reset
+	LastResetAt time.Time `json:"last_reset_at,omitempty"`
 	// LogicalSize The logical size of the branch, in bytes
 	LogicalSize int64 `json:"logical_size,omitempty"`
 	// Name The branch name
