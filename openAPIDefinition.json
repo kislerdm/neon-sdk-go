@@ -68,6 +68,96 @@
                 }
             ]
         },
+        "/projects/{project_id}/applications/polyscale/auth": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/applications/polyscale/auth/callback": {
+            "parameters": [
+                {
+                    "in": "query",
+                    "name": "code",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "description": "code for token request in oauth"
+                },
+                {
+                    "in": "query",
+                    "name": "state",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "description": "state parameter from oauth"
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches/{cache_id}": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "cache_id",
+                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches/{cache_id}/purge": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "cache_id",
+                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/applications/oauth/{client_id}": {
             "parameters": [
                 {
@@ -4092,7 +4182,7 @@
                         "$ref": "#/components/schemas/EndpointPoolerMode"
                     },
                     "disabled": {
-                        "description": "Whether to restrict connections to the compute endpoint\n",
+                        "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n",
                         "type": "boolean"
                     },
                     "passwordless_access": {
@@ -4233,7 +4323,7 @@
                             },
                             "disabled": {
                                 "type": "boolean",
-                                "description": "Whether to restrict connections to the compute endpoint\n"
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n"
                             },
                             "passwordless_access": {
                                 "type": "boolean",
@@ -4282,7 +4372,7 @@
                                 "$ref": "#/components/schemas/EndpointPoolerMode"
                             },
                             "disabled": {
-                                "description": "Whether to restrict connections to the compute endpoint\n",
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n",
                                 "type": "boolean"
                             },
                             "passwordless_access": {

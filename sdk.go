@@ -930,7 +930,11 @@ type Endpoint struct {
 	// CreationSource The compute endpoint creation source
 	CreationSource string        `json:"creation_source"`
 	CurrentState   EndpointState `json:"current_state"`
-	// Disabled Whether to restrict connections to the compute endpoint
+	// Disabled Whether to restrict connections to the compute endpoint.
+	// Enabling this option schedules a suspend compute operation.
+	// A disabled compute endpoint cannot be enabled by a connection or
+	// console action. However, the compute endpoint is periodically
+	// enabled by check_availability operations.
 	Disabled bool `json:"disabled"`
 	// Host The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
 	Host string `json:"host"`
@@ -967,7 +971,11 @@ type EndpointCreateRequestEndpoint struct {
 	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
 	// BranchID The ID of the branch the compute endpoint will be associated with
 	BranchID string `json:"branch_id"`
-	// Disabled Whether to restrict connections to the compute endpoint
+	// Disabled Whether to restrict connections to the compute endpoint.
+	// Enabling this option schedules a suspend compute operation.
+	// A disabled compute endpoint cannot be enabled by a connection or
+	// console action. However, the compute endpoint is periodically
+	// enabled by check_availability operations.
 	Disabled *bool `json:"disabled,omitempty"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
 	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
@@ -1015,7 +1023,11 @@ type EndpointUpdateRequestEndpoint struct {
 	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
 	// BranchID The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
 	BranchID *string `json:"branch_id,omitempty"`
-	// Disabled Whether to restrict connections to the compute endpoint
+	// Disabled Whether to restrict connections to the compute endpoint.
+	// Enabling this option schedules a suspend compute operation.
+	// A disabled compute endpoint cannot be enabled by a connection or
+	// console action. However, the compute endpoint is periodically
+	// enabled by check_availability operations.
 	Disabled *bool `json:"disabled,omitempty"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
 	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
