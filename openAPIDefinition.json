@@ -3631,6 +3631,9 @@
                 "properties": {
                     "quota": {
                         "$ref": "#/components/schemas/ProjectQuota"
+                    },
+                    "allowed_ips": {
+                        "$ref": "#/components/schemas/AllowedIps"
                     }
                 }
             },
@@ -3810,7 +3813,8 @@
                             "max_autoscaling_cu",
                             "cpu_seconds",
                             "max_active_endpoints",
-                            "max_read_only_endpoints"
+                            "max_read_only_endpoints",
+                            "max_allowed_ips"
                         ],
                         "properties": {
                             "active_time": {
@@ -3835,6 +3839,9 @@
                                 "type": "integer"
                             },
                             "max_read_only_endpoints": {
+                                "type": "integer"
+                            },
+                            "max_allowed_ips": {
                                 "type": "integer"
                             }
                         }
@@ -4274,6 +4281,25 @@
                 "format": "int64",
                 "minimum": -1,
                 "maximum": 604800
+            },
+            "AllowedIps": {
+                "description": "A list of IP addresses that are allowed to connect to the endpoint.\nIf the list is empty, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
+                "type": "object",
+                "required": [
+                    "ips",
+                    "primary_branch_only"
+                ],
+                "properties": {
+                    "ips": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "primary_branch_only": {
+                        "type": "boolean"
+                    }
+                }
             },
             "EndpointCreateRequest": {
                 "type": "object",

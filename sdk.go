@@ -631,6 +631,14 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 	return v, nil
 }
 
+// AllowedIps A list of IP addresses that are allowed to connect to the endpoint.
+// If the list is empty, all IP addresses are allowed.
+// If primary_branch_only is true, the list will be applied only to the primary branch.
+type AllowedIps struct {
+	Ips               []string `json:"ips"`
+	PrimaryBranchOnly bool     `json:"primary_branch_only"`
+}
+
 type ApiKeyCreateRequest struct {
 	// KeyName A user-specified API key name. This value is required when creating an API key.
 	KeyName string `json:"key_name"`
@@ -1363,7 +1371,8 @@ type ProjectResponse struct {
 }
 
 type ProjectSettingsData struct {
-	Quota ProjectQuota `json:"quota,omitempty"`
+	AllowedIps AllowedIps   `json:"allowed_ips,omitempty"`
+	Quota      ProjectQuota `json:"quota,omitempty"`
 }
 
 type ProjectUpdateRequest struct {
