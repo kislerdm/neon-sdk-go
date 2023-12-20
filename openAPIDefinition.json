@@ -7,7 +7,7 @@
     ],
     "info": {
         "title": "Neon API",
-        "description": "The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/manage/overview/).\n\nYou can run Neon API requests from this API reference using the **Try it out** feature that is provided for each method. Click **Authorize** to enter an API key.\n\nYou can create and manage API keys in the Neon Console. See [Manage API keys](https://neon.tech/docs/manage/api-keys/) for instructions.",
+        "description": "The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/manage/overview/).\n\nYou can run Neon API requests from this API reference using the **Try It** feature provided for each method. Enter your API key as a **Bearer** token in the **Authoization** section of the page.\n\nYou can create and manage API keys in the Neon Console. See [Manage API keys](https://neon.tech/docs/manage/api-keys/) for instructions.",
         "version": "v2",
         "contact": {
             "email": "support@neon.tech"
@@ -47,7 +47,11 @@
         },
         {
             "name": "Preview",
-            "description": "New API methods that are in Beta / Preview state and could be subjected to significant changes in the future."
+            "description": "New API methods that are in a Preview state and may be subject to changes."
+        },
+        {
+            "name": "Users",
+            "description": "These methods allow you to manage your Neon user account."
         }
     ],
     "paths": {
@@ -56,6 +60,96 @@
                 {
                     "name": "project_id",
                     "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/auth": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/applications/polyscale/auth/callback": {
+            "parameters": [
+                {
+                    "in": "query",
+                    "name": "code",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "description": "code for token request in oauth"
+                },
+                {
+                    "in": "query",
+                    "name": "state",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "description": "state parameter from oauth"
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches/{cache_id}": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "cache_id",
+                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/projects/{project_id}/applications/polyscale/caches/{cache_id}/purge": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "cache_id",
+                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
                     "in": "path",
                     "required": true,
                     "schema": {
@@ -1825,7 +1919,7 @@
             ],
             "get": {
                 "summary": "Get role password",
-                "description": "Retrieves password of the specified role if possible.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
+                "description": "Retrieves the password for the specified role, if possible.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -2602,7 +2696,7 @@
         "/consumption/projects": {
             "get": {
                 "summary": "Retrieves a list consumption metrics for each project",
-                "description": "This is a preview API and is subject to changes in the future.\n\nRetrieves a list project consumption metrics for each project for the current billing period.\n",
+                "description": "Retrieves a list consumption metrics for each project for the current billing period.\n**Important:** This is a preview API and may be subject to changes.\n",
                 "tags": [
                     "Preview"
                 ],
@@ -2629,7 +2723,7 @@
                     },
                     {
                         "name": "from",
-                        "description": "Specify the start of the period to get the consumption for.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
+                        "description": "Specify the start date-time for the consumption period.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -2638,7 +2732,7 @@
                     },
                     {
                         "name": "to",
-                        "description": "Specify the end of the period to get the consumption for.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
+                        "description": "Specify the end date-time period for the consumption period.\nIf `from` or `to` is not specified, only the current consumption period is returned.\n",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -2673,14 +2767,14 @@
         "/users/me": {
             "get": {
                 "summary": "Get current user details",
-                "description": "Retrieves information about the current user",
+                "description": "Retrieves information about the current Neon user account.\n",
                 "tags": [
                     "Users"
                 ],
                 "operationId": "getCurrentUserInfo",
                 "responses": {
                     "200": {
-                        "description": "Returned information about the current user\nWarning! This api is unstable and susceptible to changes\n",
+                        "description": "Returned information about the current user\n",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3187,7 +3281,7 @@
                     },
                     "cpu_used_sec": {
                         "deprecated": true,
-                        "description": "DEPRECATED, use data from the getProject endpoint instead.\n",
+                        "description": "DEPRECATED. Use data from the getProject endpoint instead.\n",
                         "type": "integer",
                         "format": "int64"
                     },
@@ -3211,7 +3305,7 @@
                         "format": "date-time"
                     },
                     "synthetic_storage_size": {
-                        "description": "Experimental. Do not use this field yet.\nThe data storage size in bytes.\n",
+                        "description": "The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.\n",
                         "type": "integer",
                         "format": "int64"
                     },
@@ -3379,7 +3473,7 @@
                         "format": "date-time"
                     },
                     "synthetic_storage_size": {
-                        "description": "Experimental. Do not use this field yet.\nThe data storage size in bytes.\n",
+                        "description": "The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.\n",
                         "type": "integer",
                         "format": "int64"
                     },
@@ -3395,7 +3489,7 @@
                     },
                     "quota_reset_at": {
                         "deprecated": true,
-                        "description": "DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.\nA timestamp indicating when the project quota resets\n",
+                        "description": "DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.\nA timestamp indicating when the project quota resets.\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3537,6 +3631,9 @@
                 "properties": {
                     "quota": {
                         "$ref": "#/components/schemas/ProjectQuota"
+                    },
+                    "allowed_ips": {
+                        "$ref": "#/components/schemas/AllowedIps"
                     }
                 }
             },
@@ -3606,34 +3703,34 @@
                         "type": "string"
                     },
                     "period_id": {
-                        "description": "Id of the consumption period, used to reference with `previous_period_id` field",
+                        "description": "The Id of the consumption period, used to reference the `previous_period_id` field.\n",
                         "type": "string",
                         "format": "uuid"
                     },
                     "data_storage_bytes_hour": {
-                        "description": "Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.\nThe value is reset at the beginning of each billing period.\n",
+                        "description": "Bytes-Hour. The amount of storage the project consumed during the billing period. Expect some lag in the reported value.\nThe value is reset at the beginning of each billing period.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
                     },
                     "data_storage_bytes_hour_updated_at": {
-                        "description": "Timestamp of the last update of `data_storage_bytes_hour` field\n",
+                        "description": "The timestamp of the last update of the `data_storage_bytes_hour` field.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "synthetic_storage_size": {
-                        "description": "Bytes. Current space occupied by project in the storage. The value has some lag.\n",
+                        "description": "Bytes. The current space occupied by project in storage. Expect some lag in the reported value.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
                     },
                     "synthetic_storage_size_updated_at": {
-                        "description": "Timestamp of the last update of `synthetic_storage_size` field\n",
+                        "description": "The timestamp of the last update of the `synthetic_storage_size` field.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "data_transfer_bytes": {
-                        "description": "Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.\nIncludes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.\n",
+                        "description": "Bytes. The egress traffic from the Neon cloud to the client for the project over the billing period.\nIncludes egress traffic for deleted endpoints. Expect some lag in the reported value. The value is reset at the beginning of each billing period.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
@@ -3644,178 +3741,56 @@
                         "format": "date-time"
                     },
                     "written_data_bytes": {
-                        "description": "Bytes. Amount of WAL that travelled through storage for given project across all branches.\nThe value has some lag. The value is reset at the beginning of each billing period.\n",
+                        "description": "Bytes. The Amount of WAL that travelled through storage for given project for all branches.\nExpect some lag in the reported value. The value is reset at the beginning of each billing period.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
                     },
                     "written_data_bytes_updated_at": {
-                        "description": "Timestamp of the last update of `written_data_bytes` field\n",
+                        "description": "The timestamp of the last update of `written_data_bytes` field.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "compute_time_seconds": {
-                        "description": "Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.\nThe value has some lag. The value is reset at the beginning of each billing period.\nExamples:\n1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.\n2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.\n",
+                        "description": "Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.\nExpect some lag in the reported value. The value is reset at the beginning of each billing period.\nExamples:\n1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.\n2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
                     },
                     "compute_time_seconds_updated_at": {
-                        "description": "Timestamp of the last update of `compute_time_seconds` field\n",
+                        "description": "The timestamp of the last update of `compute_time_seconds` field.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "active_time_seconds": {
-                        "description": "Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.\nThe value has some lag.\nThe value is reset at the beginning of each billing period.\n",
+                        "description": "Seconds. The amount of time that compute endpoints in this project have been active.\nExpect some lag in the reported value.\n\nThe value is reset at the beginning of each billing period.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
                     },
                     "active_time_seconds_updated_at": {
-                        "description": "Timestamp of the last update of `active_time_seconds` field\n",
+                        "description": "The timestamp of the last update of the `active_time_seconds` field.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "updated_at": {
-                        "description": "A timestamp indicating when the period was last updated\n",
+                        "description": "A timestamp indicating when the period was last updated.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "period_start": {
-                        "description": "Start of the consumption period",
+                        "description": "The start of the consumption period.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "period_end": {
-                        "description": "End of the consumption period",
+                        "description": "The end of the consumption period.\n",
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
                     },
                     "previous_period_id": {
-                        "description": "`period_id` of the previous consumption period\n",
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    }
-                }
-            },
-            "ProjectConsumptionNew": {
-                "type": "object",
-                "required": [
-                    "id",
-                    "period_id",
-                    "previous_period_id",
-                    "project_id",
-                    "active_time_seconds",
-                    "compute_time_seconds",
-                    "written_data_bytes",
-                    "data_transfer_bytes",
-                    "data_storage_bytes_hour",
-                    "synthetic_storage_size",
-                    "updated_at",
-                    "period_start",
-                    "period_end"
-                ],
-                "properties": {
-                    "id": {
-                        "description": "The project ID",
-                        "type": "string",
-                        "deprecated": true
-                    },
-                    "project_id": {
-                        "description": "The project ID",
-                        "type": "string"
-                    },
-                    "period_id": {
-                        "description": "Id of the consumption period, used to reference with `previous_period_id` field",
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "data_storage_bytes_hour": {
-                        "description": "Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.\nThe value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "data_storage_bytes_hour_updated_at": {
-                        "description": "Timestamp of the last update of `data_storage_bytes_hour` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "synthetic_storage_size": {
-                        "description": "Bytes. Current space occupied by project in the storage. The value has some lag.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "synthetic_storage_size_updated_at": {
-                        "description": "Timestamp of the last update of `synthetic_storage_size` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "data_transfer_bytes": {
-                        "description": "Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.\nIncludes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "data_transfer_bytes_updated_at": {
-                        "description": "Timestamp of the last update of `data_transfer_bytes` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "written_data_bytes": {
-                        "description": "Bytes. Amount of WAL that travelled through storage for given project across all branches.\nThe value has some lag. The value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "written_data_bytes_updated_at": {
-                        "description": "Timestamp of the last update of `written_data_bytes` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "compute_time_seconds": {
-                        "description": "Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.\nThe value has some lag. The value is reset at the beginning of each billing period.\nExamples:\n1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.\n2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "compute_time_seconds_updated_at": {
-                        "description": "Timestamp of the last update of `compute_time_seconds` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "active_time_seconds": {
-                        "description": "Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.\nThe value has some lag.\nThe value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "active_time_seconds_updated_at": {
-                        "description": "Timestamp of the last update of `active_time_seconds` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "description": "A timestamp indicating when the period was last updated\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "period_start": {
-                        "description": "Start of the consumption period",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "period_end": {
-                        "description": "End of the consumption period",
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "previous_period_id": {
-                        "description": "`period_id` of the previous consumption period\n",
+                        "description": "The `period_id` of the previous consumption period.\n",
                         "type": "string",
                         "format": "uuid",
                         "nullable": true
@@ -3838,7 +3813,8 @@
                             "max_autoscaling_cu",
                             "cpu_seconds",
                             "max_active_endpoints",
-                            "max_read_only_endpoints"
+                            "max_read_only_endpoints",
+                            "max_allowed_ips"
                         ],
                         "properties": {
                             "active_time": {
@@ -3863,6 +3839,9 @@
                                 "type": "integer"
                             },
                             "max_read_only_endpoints": {
+                                "type": "integer"
+                            },
+                            "max_allowed_ips": {
                                 "type": "integer"
                             }
                         }
@@ -3960,6 +3939,11 @@
                     },
                     "updated_at": {
                         "description": "A timestamp indicating when the branch was last updated\n",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_reset_at": {
+                        "description": "A timestamp indicating when the branch was last reset\n",
                         "type": "string",
                         "format": "date-time"
                     }
@@ -4205,7 +4189,7 @@
                         "$ref": "#/components/schemas/EndpointPoolerMode"
                     },
                     "disabled": {
-                        "description": "Whether to restrict connections to the compute endpoint\n",
+                        "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n",
                         "type": "boolean"
                     },
                     "passwordless_access": {
@@ -4298,6 +4282,27 @@
                 "minimum": -1,
                 "maximum": 604800
             },
+            "AllowedIps": {
+                "description": "A list of IP addresses that are allowed to connect to the endpoint.\nIf the list is empty, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
+                "type": "object",
+                "required": [
+                    "ips",
+                    "primary_branch_only"
+                ],
+                "properties": {
+                    "ips": {
+                        "description": "A list of IP addresses that are allowed to connect to the endpoint.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "primary_branch_only": {
+                        "description": "If true, the list will be applied only to the primary branch.",
+                        "type": "boolean"
+                    }
+                }
+            },
             "EndpointCreateRequest": {
                 "type": "object",
                 "required": [
@@ -4346,7 +4351,7 @@
                             },
                             "disabled": {
                                 "type": "boolean",
-                                "description": "Whether to restrict connections to the compute endpoint\n"
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n"
                             },
                             "passwordless_access": {
                                 "type": "boolean",
@@ -4395,7 +4400,7 @@
                                 "$ref": "#/components/schemas/EndpointPoolerMode"
                             },
                             "disabled": {
-                                "description": "Whether to restrict connections to the compute endpoint\n",
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n",
                                 "type": "boolean"
                             },
                             "passwordless_access": {
@@ -4709,7 +4714,7 @@
                         "$ref": "#/components/schemas/BillingSubscriptionType"
                     },
                     "quota_reset_at_last": {
-                        "description": "Last time when quota was reset. Defaults to current datetime when account is created.\n",
+                        "description": "The last time the quota was reset. Defaults to the date-time the account is created.\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -4782,7 +4787,8 @@
                     "UNKNOWN",
                     "free",
                     "pro",
-                    "direct_sales"
+                    "direct_sales",
+                    "aws_marketplace"
                 ]
             },
             "Database": {
