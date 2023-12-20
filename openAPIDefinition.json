@@ -4189,7 +4189,7 @@
                         "$ref": "#/components/schemas/EndpointPoolerMode"
                     },
                     "disabled": {
-                        "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n",
+                        "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n",
                         "type": "boolean"
                     },
                     "passwordless_access": {
@@ -4291,12 +4291,14 @@
                 ],
                 "properties": {
                     "ips": {
+                        "description": "A list of IP addresses that are allowed to connect to the endpoint.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "primary_branch_only": {
+                        "description": "If true, the list will be applied only to the primary branch.",
                         "type": "boolean"
                     }
                 }
@@ -4349,7 +4351,7 @@
                             },
                             "disabled": {
                                 "type": "boolean",
-                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n"
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n"
                             },
                             "passwordless_access": {
                                 "type": "boolean",
@@ -4398,7 +4400,7 @@
                                 "$ref": "#/components/schemas/EndpointPoolerMode"
                             },
                             "disabled": {
-                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically \nenabled by check_availability operations.\n",
+                                "description": "Whether to restrict connections to the compute endpoint.\nEnabling this option schedules a suspend compute operation.\nA disabled compute endpoint cannot be enabled by a connection or\nconsole action. However, the compute endpoint is periodically\nenabled by check_availability operations.\n",
                                 "type": "boolean"
                             },
                             "passwordless_access": {

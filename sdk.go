@@ -635,8 +635,10 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 // If the list is empty, all IP addresses are allowed.
 // If primary_branch_only is true, the list will be applied only to the primary branch.
 type AllowedIps struct {
-	Ips               []string `json:"ips"`
-	PrimaryBranchOnly bool     `json:"primary_branch_only"`
+	// Ips A list of IP addresses that are allowed to connect to the endpoint.
+	Ips []string `json:"ips"`
+	// PrimaryBranchOnly If true, the list will be applied only to the primary branch.
+	PrimaryBranchOnly bool `json:"primary_branch_only"`
 }
 
 type ApiKeyCreateRequest struct {
