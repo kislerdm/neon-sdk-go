@@ -27,7 +27,7 @@ jobs:
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic
       - name: e2e test
-        run: make testacc
+        run: TF_ACC=1 go test acc_test.go
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       - name: Upload coverage to Codecov
