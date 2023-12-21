@@ -1095,9 +1095,7 @@ func (m model) generateCode() string {
 		var pointerFlag bool
 		if !field.required {
 			omitEmpty = ",omitempty"
-			if strings.Contains(strings.ToLower(k), "request") {
-				pointerFlag = true
-			}
+			pointerFlag = true
 		}
 		tmp += objNameGoConventionExport(fieldName) + " " + field.argType(pointerFlag) + " `json:\"" + field.k + omitEmpty + "\"`\n"
 	}

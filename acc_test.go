@@ -1,11 +1,9 @@
-//go:build acctest
-// +build acctest
-
 package sdk_test
 
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -13,6 +11,10 @@ import (
 )
 
 func TestSmoke(t *testing.T) {
+	if os.Getenv("TF_ACC") != "1" {
+		t.Skip("TF_ACC must be set to 1")
+	}
+
 	cl, err := sdk.NewClient(sdk.Config{Key: os.Getenv("NEON_API_KEY")})
 	if err != nil {
 		t.Fatalf("cannot initialise SDK: %v", err)
@@ -24,19 +26,17 @@ func TestSmoke(t *testing.T) {
 		"shall create a project", func(t *testing.T) {
 			// GIVEN
 			// Project name and autoscalling limit
-
 			var wantName = fmt.Sprintf("%d", time.Now().UnixMilli())
 			var wantAutoscallingLimit sdk.ComputeUnit = 1. / 4
 
 			// WHEN
-
 			o, err := cl.CreateProject(
 				sdk.ProjectCreateRequest{
 					Project: sdk.ProjectCreateRequestProject{
 						Name: &wantName,
 						DefaultEndpointSettings: &sdk.DefaultEndpointSettings{
-							AutoscalingLimitMinCu: sdk.ComputeUnit(wantAutoscallingLimit),
-							AutoscalingLimitMaxCu: sdk.ComputeUnit(wantAutoscallingLimit),
+							AutoscalingLimitMinCu: &wantAutoscallingLimit,
+							AutoscalingLimitMaxCu: &wantAutoscallingLimit,
 						},
 					},
 				},
@@ -54,7 +54,7 @@ func TestSmoke(t *testing.T) {
 			}
 
 			gotAutoscallingLimit := project.DefaultEndpointSettings.AutoscalingLimitMaxCu
-			if gotAutoscallingLimit != wantAutoscallingLimit {
+			if *gotAutoscallingLimit != wantAutoscallingLimit {
 				t.Errorf(
 					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimit,
 					gotAutoscallingLimit,
@@ -62,11 +62,15 @@ func TestSmoke(t *testing.T) {
 			}
 
 			gotAutoscallingLimit = project.DefaultEndpointSettings.AutoscalingLimitMinCu
-			if gotAutoscallingLimit != wantAutoscallingLimit {
+			if *gotAutoscallingLimit != wantAutoscallingLimit {
 				t.Errorf(
 					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimit,
 					gotAutoscallingLimit,
 				)
+			}
+
+			if !reflect.DeepEqual(project.Settings.AllowedIps.Ips, []string{}) || project.Settings.AllowedIps.PrimaryBranchOnly {
+				t.Errorf("unexpected project's allowed IPs: %v", project.Settings.AllowedIps)
 			}
 		},
 	)
