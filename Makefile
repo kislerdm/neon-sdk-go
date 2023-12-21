@@ -34,4 +34,4 @@ build: ## Compiles the binary.
 
 .PHONY: testacc
 testacc: ## Runs smoke tests.
-	@ source .env && go test -tags=acctest
+	@ source .env && TF_ACC=1 go test acc_test.go
