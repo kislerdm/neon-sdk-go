@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-go@v5
         if: steps.diff.outputs.isNew == 'true'
         with:
-          go-version: 1.18
+          go-version-file: go.mod
       - name: Generate SDK using new spec
         id: diff_sdk
         if: steps.diff.outputs.isNew == 'true'
