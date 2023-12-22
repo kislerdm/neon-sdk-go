@@ -1373,8 +1373,12 @@ type ProjectResponse struct {
 }
 
 type ProjectSettingsData struct {
-	AllowedIps *AllowedIps   `json:"allowed_ips,omitempty"`
-	Quota      *ProjectQuota `json:"quota,omitempty"`
+	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
+	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
+	// All active endpoints will be suspended.
+	// Once enabled, logical replication cannot be disabled.
+	EnableLogicalReplication *bool         `json:"enable_logical_replication,omitempty"`
+	Quota                    *ProjectQuota `json:"quota,omitempty"`
 }
 
 type ProjectUpdateRequest struct {
