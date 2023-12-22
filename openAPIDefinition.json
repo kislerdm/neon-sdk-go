@@ -3634,6 +3634,10 @@
                     },
                     "allowed_ips": {
                         "$ref": "#/components/schemas/AllowedIps"
+                    },
+                    "enable_logical_replication": {
+                        "description": "Sets wal_level=logical for all compute endpoints in this project.\nAll active endpoints will be suspended.\nOnce enabled, logical replication cannot be disabled.\n",
+                        "type": "boolean"
                     }
                 }
             },
