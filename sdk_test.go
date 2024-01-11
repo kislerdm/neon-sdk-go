@@ -788,6 +788,66 @@ func Test_client_CreateProject(t *testing.T) {
 	}
 }
 
+func Test_client_ListSharedProjects(t *testing.T) {
+	deserializeResp := func(s string) ListSharedProjectsRespObj {
+		var v ListSharedProjectsRespObj
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cursor *string
+		limit  *int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ListSharedProjectsRespObj
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/shared"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cursor: createPointer("foo"),
+				limit:  createPointer(1),
+			},
+			apiKey:  "invalidApiKey",
+			want:    ListSharedProjectsRespObj{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListSharedProjects(tt.args.cursor, tt.args.limit)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListSharedProjects() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListSharedProjects() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetProject(t *testing.T) {
 	deserializeResp := func(s string) ProjectResponse {
 		var v ProjectResponse

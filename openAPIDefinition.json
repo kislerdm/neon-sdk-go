@@ -68,6 +68,19 @@
                 }
             ]
         },
+        "/projects/{project_id}/applications/vercel/vars": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/projects/{project_id}/applications/polyscale/auth": {
             "parameters": [
                 {
@@ -520,6 +533,99 @@
                 "responses": {
                     "201": {
                         "$ref": "#/components/responses/CreatedProject"
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/shared": {
+            "get": {
+                "summary": "Get a list of shared projects",
+                "description": "Retrieves a list of shared projects for the Neon account.\nA project is the top-level object in the Neon object hierarchy.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "listSharedProjects",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "description": "Specify the cursor value from the previous response to get the next batch of projects.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "Specify a value from 1 to 400 to limit number of projects in the response.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 10,
+                            "maximum": 400
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returned a list of shared projects for the Neon account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ProjectsResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/PaginationResponse"
+                                        }
+                                    ]
+                                },
+                                "example": {
+                                    "projects": [
+                                        {
+                                            "id": "shiny-wind-028834",
+                                            "platform_id": "aws",
+                                            "region_id": "aws-us-east-2",
+                                            "name": "shiny-wind-028834",
+                                            "provisioner": "k8s-pod",
+                                            "pg_version": 15,
+                                            "created_at": "2022-11-23T17:42:25Z",
+                                            "updated_at": "2022-11-23T17:42:25Z",
+                                            "proxy_host": "us-east-2.aws.neon.tech",
+                                            "cpu_used_sec": 0,
+                                            "branch_logical_size_limit": 0,
+                                            "owner_id": "1232111",
+                                            "creation_source": "console",
+                                            "store_passwords": true,
+                                            "branch_logical_size_limit_bytes": 10800,
+                                            "active_time": 100
+                                        },
+                                        {
+                                            "id": "winter-boat-259881",
+                                            "platform_id": "aws",
+                                            "region_id": "aws-us-east-2",
+                                            "name": "winter-boat-259881",
+                                            "provisioner": "k8s-pod",
+                                            "pg_version": 15,
+                                            "created_at": "2022-11-23T17:52:25Z",
+                                            "updated_at": "2022-11-23T17:52:25Z",
+                                            "proxy_host": "us-east-2.aws.neon.tech",
+                                            "cpu_used_sec": 0,
+                                            "branch_logical_size_limit": 0,
+                                            "owner_id": "1232111",
+                                            "creation_source": "console",
+                                            "store_passwords": true,
+                                            "branch_logical_size_limit_bytes": 10800,
+                                            "active_time": 100
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "default": {
                         "$ref": "#/components/responses/GeneralError"
@@ -5042,6 +5148,9 @@
                 "properties": {
                     "pg_settings": {
                         "$ref": "#/components/schemas/PgSettingsData"
+                    },
+                    "pgbouncer_settings": {
+                        "$ref": "#/components/schemas/PgbouncerSettingsData"
                     }
                 }
             },
@@ -5088,6 +5197,9 @@
                     "pg_settings": {
                         "$ref": "#/components/schemas/PgSettingsData"
                     },
+                    "pgbouncer_settings": {
+                        "$ref": "#/components/schemas/PgbouncerSettingsData"
+                    },
                     "autoscaling_limit_min_cu": {
                         "description": "The minimum number of Compute Units. The minimum value is `0.25`.\nSee [Compute size and Autoscaling configuration](https://neon.tech/docs/manage/endpoints#compute-size-and-autoscaling-configuration)\nfor more information.\n",
                         "$ref": "#/components/schemas/ComputeUnit"
@@ -5106,6 +5218,13 @@
             },
             "PgSettingsData": {
                 "description": "A raw representation of PostgreSQL settings",
+                "type": "object",
+                "additionalProperties": {
+                    "type": "string"
+                }
+            },
+            "PgbouncerSettingsData": {
+                "description": "A raw representation of PgBouncer settings",
                 "type": "object",
                 "additionalProperties": {
                     "type": "string"

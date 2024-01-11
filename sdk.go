@@ -190,6 +190,25 @@ func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) 
 	return v, nil
 }
 
+// ListSharedProjects Retrieves a list of shared projects for the Neon account.
+// A project is the top-level object in the Neon object hierarchy.
+// For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
+func (c Client) ListSharedProjects(cursor *string, limit *int) (ListSharedProjectsRespObj, error) {
+	var queryElements []string
+	if cursor != nil {
+		queryElements = append(queryElements, "cursor="+*cursor)
+	}
+	if limit != nil {
+		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
+	}
+	query := "?" + strings.Join(queryElements, "&")
+	var v ListSharedProjectsRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/shared"+query, "GET", nil, &v); err != nil {
+		return ListSharedProjectsRespObj{}, err
+	}
+	return v, nil
+}
+
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -927,6 +946,7 @@ type DefaultEndpointSettings struct {
 	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
 	PgSettings            *PgSettingsData        `json:"pg_settings,omitempty"`
+	PgbouncerSettings     *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
 
@@ -1014,7 +1034,8 @@ type EndpointResponse struct {
 
 // EndpointSettingsData A collection of settings for a compute endpoint
 type EndpointSettingsData struct {
-	PgSettings *PgSettingsData `json:"pg_settings,omitempty"`
+	PgSettings        *PgSettingsData        `json:"pg_settings,omitempty"`
+	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 }
 
 // EndpointState The state of the compute endpoint
@@ -1064,6 +1085,11 @@ type ListProjectsConsumptionRespObj struct {
 }
 
 type ListProjectsRespObj struct {
+	PaginationResponse
+	ProjectsResponse
+}
+
+type ListSharedProjectsRespObj struct {
 	PaginationResponse
 	ProjectsResponse
 }
@@ -1140,6 +1166,9 @@ type PgSettingsData map[string]interface{}
 
 // PgVersion The major PostgreSQL version number. Currently supported versions are `14`, `15` and `16`.
 type PgVersion int
+
+// PgbouncerSettingsData A raw representation of PgBouncer settings
+type PgbouncerSettingsData map[string]interface{}
 
 type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.

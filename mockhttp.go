@@ -153,6 +153,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/shared": {
+		"GET": mockResponse{
+			Content: `{"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
+			Code:    200,
+		},
+	},
+
 	"/projects/{project_id}": {
 		"DELETE": mockResponse{
 			Content: `{"project":{"active_time_seconds":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10500,"compute_time_seconds":100,"consumption_period_end":"2023-03-01T00:00:00Z","consumption_period_start":"2023-02-01T00:00:00Z","cpu_used_sec":23004200,"created_at":"2022-11-30T18:41:29Z","creation_source":"console","data_storage_bytes_hour":1040,"data_transfer_bytes":1000000,"history_retention_seconds":604800,"id":"bold-cloud-468218","name":"bold-cloud-468218","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-30T18:41:29Z","written_data_bytes":100800}}`,
@@ -480,8 +487,8 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 // Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
 // - 401 is returned when the string `invalidApiKey` is used as the API key;
 // - 404 is returned if either of the following:
-//		- the string value `notFound` is used as the string argument, e.g. projectID
-//		- a negative int/float value is used as the int/float argument, e.g. database ID
+//   - the string value `notFound` is used as the string argument, e.g. projectID
+//   - a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
 	u, _ := url.Parse(baseURL)
 	return mockHTTPClient{
@@ -554,6 +561,15 @@ func parsePath(s string) objPath {
 	o := ""
 	var notFoundReq bool
 	splt := strings.Split(s, "/")
+
+	switch splt[len(splt)-1] {
+	case "shared":
+		return objPath{
+			path:        "/" + s,
+			objNotFound: notFoundReq,
+		}
+	}
+
 	for i, el := range splt {
 		if len(el) == 0 {
 			continue

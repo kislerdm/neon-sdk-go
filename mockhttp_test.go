@@ -50,6 +50,11 @@ func Test_newObjectPath(t *testing.T) {
 			args: args{"/projects/notFound/branches/qux/endpoints"},
 			want: objPath{"/projects/{project_id}/branches/{branch_id}/endpoints", true},
 		},
+		{
+			name: "project shared",
+			args: args{"/projects/shared"},
+			want: objPath{"/projects/shared", false},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(

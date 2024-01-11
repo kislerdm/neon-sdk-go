@@ -97,6 +97,15 @@ func parsePath(s string) objPath {
 	o := ""
 	var notFoundReq bool
 	splt := strings.Split(s, "/")
+
+	switch splt[len(splt)-1] {
+	case "shared":
+	    return objPath{
+            path:        "/"+s,
+            objNotFound: notFoundReq,
+        }
+	}
+
 	for i, el := range splt {
 		if len(el) == 0 {
 			continue
