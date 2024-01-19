@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.3] - 2024-01-19
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-01-19 13:00:00 GMT.
+
+### Added
+
+- Added support to manage the project's permissions:
+  - List permissions: `ListProjectPermissions`;
+  - Grant project's permissions to the user: `GrantPermissionToProject`;
+  - Revoke project's permissions from the user: `RevokePermissionFromProject`.
+
+### Changed
+
+- [**BREAKING**] Changed the type of the attribute `Ips` in the struct `AllowedIps`.
+
 ## [v0.4.2] - 2024-01-11
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-01-11 05:27:00 GMT.

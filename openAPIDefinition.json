@@ -893,7 +893,65 @@
                         "type": "string"
                     }
                 }
-            ]
+            ],
+            "get": {
+                "summary": "Return project's permissions",
+                "description": "Return project's permissions",
+                "tags": [
+                    "Project",
+                    "Permissions"
+                ],
+                "operationId": "listProjectPermissions",
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned permissions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectPermissions"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Grant project permission to the user",
+                "description": "Grant project permission to the user",
+                "tags": [
+                    "Project",
+                    "Permissions"
+                ],
+                "operationId": "grantPermissionToProject",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GrantPermissionToProjectRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully granted permission to the user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectPermission"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
         },
         "/projects/{project_id}/permissions/{permission_id}": {
             "parameters": [
@@ -913,7 +971,31 @@
                         "type": "string"
                     }
                 }
-            ]
+            ],
+            "delete": {
+                "summary": "Revoke permission from the user",
+                "description": "Revoke permission from the user",
+                "tags": [
+                    "Project",
+                    "Permissions"
+                ],
+                "operationId": "revokePermissionFromProject",
+                "responses": {
+                    "200": {
+                        "description": "Successfully revoked permission from the user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectPermission"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
         },
         "/saved_queries/{saved_query_id}": {
             "parameters": [
@@ -3772,6 +3854,55 @@
                     }
                 }
             },
+            "ProjectPermission": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "granted_to_email",
+                    "granted_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "granted_to_email": {
+                        "type": "string"
+                    },
+                    "granted_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "revoked_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "ProjectPermissions": {
+                "type": "object",
+                "required": [
+                    "project_permissions"
+                ],
+                "properties": {
+                    "project_permissions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectPermission"
+                        }
+                    }
+                }
+            },
+            "GrantPermissionToProjectRequest": {
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    }
+                }
+            },
             "ProjectsConsumptionResponse": {
                 "type": "object",
                 "required": [
@@ -4393,10 +4524,9 @@
                 "maximum": 604800
             },
             "AllowedIps": {
-                "description": "A list of IP addresses that are allowed to connect to the endpoint.\nIf the list is empty, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
+                "description": "A list of IP addresses that are allowed to connect to the endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
                 "type": "object",
                 "required": [
-                    "ips",
                     "primary_branch_only"
                 ],
                 "properties": {
@@ -5271,6 +5401,13 @@
                     }
                 }
             },
+            "SubscriptionDowngradeNewType": {
+                "type": "string",
+                "enum": [
+                    "free",
+                    "free_v2"
+                ]
+            },
             "GeneralError": {
                 "type": "object",
                 "description": "General Error",
@@ -5338,6 +5475,13 @@
                     "normal",
                     "high",
                     "critical"
+                ]
+            },
+            "SubscriptionUpgradeNewType": {
+                "type": "string",
+                "enum": [
+                    "launch",
+                    "scale"
                 ]
             }
         }

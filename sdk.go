@@ -264,6 +264,33 @@ func (c Client) ListProjectOperations(projectID string, cursor *string, limit *i
 	return v, nil
 }
 
+// ListProjectPermissions Return project's permissions
+func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, error) {
+	var v ProjectPermissions
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "GET", nil, &v); err != nil {
+		return ProjectPermissions{}, err
+	}
+	return v, nil
+}
+
+// GrantPermissionToProject Grant project permission to the user
+func (c Client) GrantPermissionToProject(projectID string, cfg GrantPermissionToProjectRequest) (ProjectPermission, error) {
+	var v ProjectPermission
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "POST", cfg, &v); err != nil {
+		return ProjectPermission{}, err
+	}
+	return v, nil
+}
+
+// RevokePermissionFromProject Revoke permission from the user
+func (c Client) RevokePermissionFromProject(projectID string, permissionID string) (ProjectPermission, error) {
+	var v ProjectPermission
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions/"+permissionID, "DELETE", nil, &v); err != nil {
+		return ProjectPermission{}, err
+	}
+	return v, nil
+}
+
 // ListProjectBranches Retrieves a list of branches for the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Each Neon project has a root branch named `main`.
@@ -651,11 +678,11 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the endpoint.
-// If the list is empty, all IP addresses are allowed.
+// If the list is empty or not set, all IP addresses are allowed.
 // If primary_branch_only is true, the list will be applied only to the primary branch.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
-	Ips []string `json:"ips"`
+	Ips *[]string `json:"ips,omitempty"`
 	// PrimaryBranchOnly If true, the list will be applied only to the primary branch.
 	PrimaryBranchOnly bool `json:"primary_branch_only"`
 }
@@ -1074,6 +1101,10 @@ type EndpointsResponse struct {
 	Endpoints []Endpoint `json:"endpoints"`
 }
 
+type GrantPermissionToProjectRequest struct {
+	Email string `json:"email"`
+}
+
 type ListOperations struct {
 	OperationsResponse
 	PaginationResponse
@@ -1370,6 +1401,17 @@ type ProjectOwnerData struct {
 	BranchesLimit    int                     `json:"branches_limit"`
 	Email            string                  `json:"email"`
 	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
+}
+
+type ProjectPermission struct {
+	GrantedAt      time.Time  `json:"granted_at"`
+	GrantedToEmail string     `json:"granted_to_email"`
+	ID             string     `json:"id"`
+	RevokedAt      *time.Time `json:"revoked_at,omitempty"`
+}
+
+type ProjectPermissions struct {
+	ProjectPermissions []ProjectPermission `json:"project_permissions"`
 }
 
 // ProjectQuota Per-project consumption quota. If the quota is exceeded, all active computes

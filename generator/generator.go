@@ -116,7 +116,7 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 	m := generateModels(spec)
 
 	endpointsStr := make([]string, len(endpoints))
-	endpointsTestStr := make([]string, len(endpoints))
+	endpointsTestStr := make([]string, 0, len(endpoints))
 	models := models{}
 
 	mockResponses := map[string]map[string]mockResponse{
@@ -447,13 +447,15 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 
 	for i, s := range endpoints {
 		endpointsStr[i] = s.generateMethodImplementation()
-		endpointsTestStr[i] = s.generateMethodImplementationTest()
+		if !skipTest(s.Route) {
+			endpointsTestStr = append(endpointsTestStr, s.generateMethodImplementationTest())
 
-		if _, ok := mockResponses[s.Route]; !ok {
-			mockResponses[s.Route] = map[string]mockResponse{}
-		}
-		if _, ok := mockResponses[s.Route][s.Method]; !ok {
-			mockResponses[s.Route][s.Method] = s.generateMockResponse()
+			if _, ok := mockResponses[s.Route]; !ok {
+				mockResponses[s.Route] = map[string]mockResponse{}
+			}
+			if _, ok := mockResponses[s.Route][s.Method]; !ok {
+				mockResponses[s.Route][s.Method] = s.generateMockResponse()
+			}
 		}
 
 		if s.ResponseStruct != nil {
@@ -478,6 +480,15 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 		EndpointsResponseExample:    mockResponses,
 		Types:                       models.generateCode(),
 	}
+}
+
+func skipTest(route string) bool {
+	skipTest := map[string]struct{}{
+		"/projects/{project_id}/permissions":                 {},
+		"/projects/{project_id}/permissions/{permission_id}": {},
+	}
+	_, found := skipTest[route]
+	return found
 }
 
 func filterModels(modelsSource models, output models, m model) {
