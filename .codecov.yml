@@ -1,0 +1,14 @@
+coverage:
+  precision: 1
+  round: down
+  range: "80..100"
+  status:
+    project:
+      default:
+        threshold: 10%
+        paths:
+          - "coverage.txt"
+        branches:
+          - master
+        if_ci_failed: error
+        informational: true
