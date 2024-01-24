@@ -5028,7 +5028,10 @@
                     "free",
                     "pro",
                     "direct_sales",
-                    "aws_marketplace"
+                    "aws_marketplace",
+                    "free_v2",
+                    "launch",
+                    "scale"
                 ]
             },
             "Database": {
@@ -5401,13 +5404,6 @@
                     }
                 }
             },
-            "SubscriptionDowngradeNewType": {
-                "type": "string",
-                "enum": [
-                    "free",
-                    "free_v2"
-                ]
-            },
             "GeneralError": {
                 "type": "object",
                 "description": "General Error",
@@ -5475,13 +5471,6 @@
                     "normal",
                     "high",
                     "critical"
-                ]
-            },
-            "SubscriptionUpgradeNewType": {
-                "type": "string",
-                "enum": [
-                    "launch",
-                    "scale"
                 ]
             }
         }
