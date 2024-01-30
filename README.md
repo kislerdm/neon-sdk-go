@@ -1,5 +1,13 @@
 # Go SDK for Neon Postgres SaaS Platform
 
+-----
+
+<div align="center">
+    ⭐ The project needs your support! Please leave a star and become a GitHub sponsor! ⭐
+</div>
+
+-----
+
 [![logo](fig/logo.png)](https://neon.tech)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/kislerdm/neon-sdk-go)](https://goreportcard.com/report/github.com/kislerdm/neon-sdk-go)
