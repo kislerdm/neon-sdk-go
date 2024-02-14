@@ -898,8 +898,7 @@
                 "summary": "Return project's permissions",
                 "description": "Return project's permissions",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "listProjectPermissions",
                 "responses": {
@@ -922,8 +921,7 @@
                 "summary": "Grant project permission to the user",
                 "description": "Grant project permission to the user",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "grantPermissionToProject",
                 "requestBody": {
@@ -976,8 +974,7 @@
                 "summary": "Revoke permission from the user",
                 "description": "Revoke permission from the user",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "revokePermissionFromProject",
                 "responses": {
@@ -3380,7 +3377,9 @@
                     "tenant_reattach",
                     "replace_safekeeper",
                     "disable_maintenance",
-                    "apply_storage_config"
+                    "apply_storage_config",
+                    "prepare_secondary_pageserver",
+                    "switch_pageserver"
                 ]
             },
             "OperationStatus": {
@@ -4295,6 +4294,14 @@
                     }
                 }
             },
+            "BranchSchemaResponse": {
+                "type": "object",
+                "properties": {
+                    "sql": {
+                        "type": "string"
+                    }
+                }
+            },
             "BranchesResponse": {
                 "type": "object",
                 "required": [
@@ -4517,7 +4524,7 @@
                 ]
             },
             "SuspendTimeoutSeconds": {
-                "description": "Duration of inactivity in seconds after which the compute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
+                "description": "Duration of inactivity in seconds after which the compute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe minimum value is `60` seconds (1 minute).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
                 "type": "integer",
                 "format": "int64",
                 "minimum": -1,
@@ -5368,7 +5375,7 @@
                 "type": "integer",
                 "minimum": 14,
                 "maximum": 16,
-                "default": 15
+                "default": 16
             },
             "HealthCheck": {
                 "type": "object",
