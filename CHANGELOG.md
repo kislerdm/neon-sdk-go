@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.3] - 2024-02-18
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-02-18 11:14:00 GMT.
+
+### Added
+
+- [**BREAKING**] Added the `search` argument to the signature of the methods `ListProjects` and `ListSharedProjects`. 
+It allows to filter the search results by the project name or ID (see [more](https://api-docs.neon.tech/reference/listprojects)).
+- Added the methods [`GetCurrentUserAuthInfo`](https://api-docs.neon.tech/reference/getcurrentuserinfo) and 
+[`VerifyUserPassword`](https://api-docs.neon.tech/reference/verifyuserpassword) to query the user identity.
+
 ## [v0.4.3] - 2024-01-19
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-01-19 13:00:00 GMT.
