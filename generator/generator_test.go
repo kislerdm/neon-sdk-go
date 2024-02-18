@@ -174,14 +174,19 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 			},
 			want: `// ListProjects Retrieves a list of projects for the Neon account
 func (c Client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
-	var queryElements []string
+	var (
+		queryElements []string
+		query string
+	)
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor=" + *cursor)
 	}
 	if limit != nil {
 		queryElements = append(queryElements, "limit=" + strconv.FormatInt(int64(*limit), 10))
 	}
-	query := "?" + strings.Join(queryElements, "&")
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListProjectsResponse
 	if err := c.requestHandler(c.baseURL+"/projects" + query, "GET", nil, &v); err != nil {
 		return ListProjectsResponse{}, err

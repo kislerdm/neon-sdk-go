@@ -911,7 +911,11 @@ func (e endpointImplementation) generateQueryBuilder() string {
 		return ""
 	}
 
-	o := "\tvar queryElements []string\n"
+	o := "\tvar (\n"
+	o += "\t\tqueryElements []string\n"
+	o += "\t\tquery string\n"
+	o += "\t)\n"
+
 	for _, p := range filterRequiredParameters(e.RequestParametersQuery) {
 		queryElement := `"` + p.canonicalName() + "=\" + " + p.routeElement()
 		o += "\tqueryElements = append(queryElements, " + queryElement + ")\n"
@@ -925,8 +929,9 @@ func (e endpointImplementation) generateQueryBuilder() string {
 		o += "\t}\n"
 	}
 
-	o += "\tquery := \"?\" + strings.Join(queryElements, \"&\")\n"
-
+	o += "\tif len(queryElements) > 0 {\n"
+	o += "\t\tquery = \"?\" + strings.Join(queryElements, \"&\")\n"
+	o += "\t}\n"
 	return o
 }
 

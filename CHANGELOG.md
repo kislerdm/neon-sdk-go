@@ -16,6 +16,10 @@ It allows to filter the search results by the project name or ID (see [more](htt
 - Added the methods [`GetCurrentUserAuthInfo`](https://api-docs.neon.tech/reference/getcurrentuserinfo) and 
 [`VerifyUserPassword`](https://api-docs.neon.tech/reference/verifyuserpassword) to query the user identity.
 
+### Fixed
+
+- Trailing "?"-sign for empty request queries.
+
 ## [v0.4.3] - 2024-01-19
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-01-19 13:00:00 GMT.

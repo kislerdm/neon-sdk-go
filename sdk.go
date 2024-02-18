@@ -159,7 +159,10 @@ func (c Client) GetProjectOperation(projectID string, operationID string) (Opera
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 func (c Client) ListProjects(cursor *string, limit *int, search *string) (ListProjectsRespObj, error) {
-	var queryElements []string
+	var (
+		queryElements []string
+		query         string
+	)
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
@@ -169,7 +172,9 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string) (ListPr
 	if search != nil {
 		queryElements = append(queryElements, "search="+*search)
 	}
-	query := "?" + strings.Join(queryElements, "&")
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListProjectsRespObj
 	if err := c.requestHandler(c.baseURL+"/projects"+query, "GET", nil, &v); err != nil {
 		return ListProjectsRespObj{}, err
@@ -197,7 +202,10 @@ func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) 
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (ListSharedProjectsRespObj, error) {
-	var queryElements []string
+	var (
+		queryElements []string
+		query         string
+	)
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
@@ -207,7 +215,9 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	if search != nil {
 		queryElements = append(queryElements, "search="+*search)
 	}
-	query := "?" + strings.Join(queryElements, "&")
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListSharedProjectsRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/shared"+query, "GET", nil, &v); err != nil {
 		return ListSharedProjectsRespObj{}, err
@@ -255,14 +265,19 @@ func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
 // To paginate the response, issue an initial request with a `limit` value.
 // Then, add the `cursor` value that was returned in the response to the next request.
 func (c Client) ListProjectOperations(projectID string, cursor *string, limit *int) (ListOperations, error) {
-	var queryElements []string
+	var (
+		queryElements []string
+		query         string
+	)
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
 	if limit != nil {
 		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
 	}
-	query := "?" + strings.Join(queryElements, "&")
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/operations"+query, "GET", nil, &v); err != nil {
 		return ListOperations{}, err
@@ -653,7 +668,10 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 // ListProjectsConsumption Retrieves a list consumption metrics for each project for the current billing period.
 // **Important:** This is a preview API and may be subject to changes.
 func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time) (ListProjectsConsumptionRespObj, error) {
-	var queryElements []string
+	var (
+		queryElements []string
+		query         string
+	)
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
@@ -666,7 +684,9 @@ func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.T
 	if to != nil {
 		queryElements = append(queryElements, "to="+to.Format(time.RFC3339))
 	}
-	query := "?" + strings.Join(queryElements, "&")
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListProjectsConsumptionRespObj
 	if err := c.requestHandler(c.baseURL+"/consumption/projects"+query, "GET", nil, &v); err != nil {
 		return ListProjectsConsumptionRespObj{}, err
