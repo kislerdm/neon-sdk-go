@@ -69,7 +69,7 @@ func main() {
 		panic(err)
 	}
 
-	v, err := client.ListProjects()
+	v, err := client.ListProjects(nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -101,7 +101,7 @@ func main() {
 		panic(err)
 	}
 
-	v, err := client.ListProjects()
+	v, err := client.ListProjects(nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +129,7 @@ func main() {
 		panic(err)
 	}
 
-	v, err := client.ListProjects()
+	v, err := client.ListProjects(nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}
