@@ -682,6 +682,7 @@ func Test_client_ListProjects(t *testing.T) {
 	type args struct {
 		cursor *string
 		limit  *int
+		search *string
 	}
 	tests := []struct {
 		name    string
@@ -695,6 +696,7 @@ func Test_client_ListProjects(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				search: createPointer("foo"),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
@@ -705,6 +707,7 @@ func Test_client_ListProjects(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				search: createPointer("foo"),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListProjectsRespObj{},
@@ -718,7 +721,7 @@ func Test_client_ListProjects(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListProjects(tt.args.cursor, tt.args.limit)
+				got, err := c.ListProjects(tt.args.cursor, tt.args.limit, tt.args.search)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -799,6 +802,7 @@ func Test_client_ListSharedProjects(t *testing.T) {
 	type args struct {
 		cursor *string
 		limit  *int
+		search *string
 	}
 	tests := []struct {
 		name    string
@@ -812,6 +816,7 @@ func Test_client_ListSharedProjects(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				search: createPointer("foo"),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects/shared"]["GET"].Content),
@@ -822,6 +827,7 @@ func Test_client_ListSharedProjects(t *testing.T) {
 			args: args{
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
+				search: createPointer("foo"),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListSharedProjectsRespObj{},
@@ -835,7 +841,7 @@ func Test_client_ListSharedProjects(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListSharedProjects(tt.args.cursor, tt.args.limit)
+				got, err := c.ListSharedProjects(tt.args.cursor, tt.args.limit, tt.args.search)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListSharedProjects() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -2722,6 +2728,87 @@ func Test_client_GetCurrentUserInfo(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("GetCurrentUserInfo() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetCurrentUserAuthInfo(t *testing.T) {
+	deserializeResp := func(s string) CurrentUserInfoAuthResponse {
+		var v CurrentUserInfoAuthResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	tests := []struct {
+		name    string
+		apiKey  string
+		want    CurrentUserInfoAuthResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/users/me/auth"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			want:    CurrentUserInfoAuthResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetCurrentUserAuthInfo()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetCurrentUserAuthInfo() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetCurrentUserAuthInfo() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_VerifyUserPassword(t *testing.T) {
+	tests := []struct {
+		name    string
+		apiKey  string
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			apiKey:  "foo",
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				err = c.VerifyUserPassword()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("VerifyUserPassword() error = %v, wantErr %v", err, tt.wantErr)
+					return
 				}
 			},
 		)

@@ -158,13 +158,16 @@ func (c Client) GetProjectOperation(projectID string, operationID string) (Opera
 // ListProjects Retrieves a list of projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c Client) ListProjects(cursor *string, limit *int) (ListProjectsRespObj, error) {
+func (c Client) ListProjects(cursor *string, limit *int, search *string) (ListProjectsRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
 	if limit != nil {
 		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
+	}
+	if search != nil {
+		queryElements = append(queryElements, "search="+*search)
 	}
 	query := "?" + strings.Join(queryElements, "&")
 	var v ListProjectsRespObj
@@ -193,13 +196,16 @@ func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) 
 // ListSharedProjects Retrieves a list of shared projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c Client) ListSharedProjects(cursor *string, limit *int) (ListSharedProjectsRespObj, error) {
+func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (ListSharedProjectsRespObj, error) {
 	var queryElements []string
 	if cursor != nil {
 		queryElements = append(queryElements, "cursor="+*cursor)
 	}
 	if limit != nil {
 		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
+	}
+	if search != nil {
+		queryElements = append(queryElements, "search="+*search)
 	}
 	query := "?" + strings.Join(queryElements, "&")
 	var v ListSharedProjectsRespObj
@@ -677,6 +683,20 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 	return v, nil
 }
 
+// GetCurrentUserAuthInfo Retrieves auth information about the current Neon user account from console and Keycloak.
+func (c Client) GetCurrentUserAuthInfo() (CurrentUserInfoAuthResponse, error) {
+	var v CurrentUserInfoAuthResponse
+	if err := c.requestHandler(c.baseURL+"/users/me/auth", "GET", nil, &v); err != nil {
+		return CurrentUserInfoAuthResponse{}, err
+	}
+	return v, nil
+}
+
+// VerifyUserPassword Queries Keycloak API to verify user password
+func (c Client) VerifyUserPassword() error {
+	return c.requestHandler(c.baseURL+"/users/me/password/validate", "GET", nil, nil)
+}
+
 // AllowedIps A list of IP addresses that are allowed to connect to the endpoint.
 // If the list is empty or not set, all IP addresses are allowed.
 // If primary_branch_only is true, the list will be applied only to the primary branch.
@@ -898,6 +918,11 @@ type CurrentUserAuthAccount struct {
 	Login    string `json:"login"`
 	Name     string `json:"name"`
 	Provider string `json:"provider"`
+}
+
+type CurrentUserInfoAuthResponse struct {
+	AuthAccounts   []CurrentUserAuthAccount `json:"auth_accounts"`
+	PasswordStored bool                     `json:"password_stored"`
 }
 
 type CurrentUserInfoResponse struct {
@@ -1524,6 +1549,7 @@ type RolesResponse struct {
 // SuspendTimeoutSeconds Duration of inactivity in seconds after which the compute endpoint is
 // automatically suspended. The value `0` means use the global default.
 // The value `-1` means never suspend. The default value is `300` seconds (5 minutes).
+// The minimum value is `60` seconds (1 minute).
 // The maximum value is `604800` seconds (1 week). For more information, see
 // [Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).
 type SuspendTimeoutSeconds int64

@@ -700,6 +700,10 @@ func (e endpointImplementation) generateMockResponse() mockResponse {
 }
 
 func (e endpointImplementation) generateMethodImplementationTest() string {
+	if e.ResponseStruct == nil {
+		return e.generateMethodImplementationTestNoResponseExpected()
+	}
+
 	o := `func Test_client_` + e.Name + `(t *testing.T) {
 	deserializeResp := func(s string) ` + e.ResponseStruct.name + ` {
 		var v ` + e.ResponseStruct.name + `
@@ -796,6 +800,89 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("` + e.Name + `() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}`
+
+	return o
+}
+
+func (e endpointImplementation) generateMethodImplementationTestNoResponseExpected() string {
+	o := `func Test_client_` + e.Name + `(t *testing.T) {
+`
+
+	var (
+		argsInpt, testInpt, fnInputArgs, pointerTypeCfg string
+	)
+	inputParameters := e.RequestParametersPath
+	inputParameters = append(inputParameters, e.RequestParametersQuery...)
+	if len(inputParameters) > 0 || e.RequestBodyStruct != nil {
+		argsInpt = "\n\t\targs args"
+		testInpt = "\n\t\t\targs: args{\n"
+		o += "\ttype args struct {\n"
+		for i, v := range inputParameters {
+			prf := "\t\t" + v.canonicalName()
+			o += fmt.Sprintf("%s %v\n", prf, v.argType(!v.required))
+			dummyDate := v.generateDummy()
+			if !v.required {
+				dummyDate = wrapIntoPointerGenFn(dummyDate)
+			}
+			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, dummyDate)
+
+			if i > 0 {
+				fnInputArgs += ", "
+			}
+			fnInputArgs += "tt.args." + v.canonicalName()
+		}
+
+		if e.RequestBodyStruct != nil {
+			cfgInpt := e.RequestBodyStruct.name + "{}"
+			if !e.RequestBodyRequires {
+				pointerTypeCfg = "*"
+				cfgInpt = "nil"
+			}
+			o += "\t\tcfg " + pointerTypeCfg + e.RequestBodyStruct.name + "\n"
+			testInpt += "\t\t\t\tcfg: " + cfgInpt + ","
+
+			if fnInputArgs != "" {
+				fnInputArgs += ", "
+			}
+			fnInputArgs += "tt.args.cfg"
+		}
+
+		testInpt += "\n\t\t\t},"
+		o += "\t}\n"
+	}
+
+	o += `	tests := []struct {
+		name string` + argsInpt + `
+		apiKey string
+		wantErr bool
+	}{
+		{
+			name: "happy path",` + testInpt + `
+			apiKey: "foo",
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",` + testInpt + `
+			apiKey: "invalidApiKey",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				err = c.` + e.Name + "(" + fnInputArgs + `)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("` + e.Name + `() error = %v, wantErr %v", err, tt.wantErr)
+					return
 				}
 			},
 		)

@@ -481,6 +481,20 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 	},
+
+	"/users/me/auth": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/users/me/password/validate": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
 }
 
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
@@ -557,6 +571,13 @@ type objPath struct {
 }
 
 func parsePath(s string) objPath {
+	// pass through the user's endpoints
+	if strings.HasPrefix(s, "/users/me") {
+		return objPath{
+			path: s,
+		}
+	}
+
 	s = strings.TrimPrefix(s, "/")
 	o := ""
 	var notFoundReq bool

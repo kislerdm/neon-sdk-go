@@ -400,6 +400,14 @@
                             "default": 10,
                             "maximum": 400
                         }
+                    },
+                    {
+                        "name": "search",
+                        "description": "Search query by name or id.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -566,6 +574,14 @@
                             "minimum": 1,
                             "default": 10,
                             "maximum": 400
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "description": "Search query by name or id.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -898,8 +914,7 @@
                 "summary": "Return project's permissions",
                 "description": "Return project's permissions",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "listProjectPermissions",
                 "responses": {
@@ -922,8 +937,7 @@
                 "summary": "Grant project permission to the user",
                 "description": "Grant project permission to the user",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "grantPermissionToProject",
                 "requestBody": {
@@ -976,8 +990,7 @@
                 "summary": "Revoke permission from the user",
                 "description": "Revoke permission from the user",
                 "tags": [
-                    "Project",
-                    "Permissions"
+                    "Project"
                 ],
                 "operationId": "revokePermissionFromProject",
                 "responses": {
@@ -2976,6 +2989,49 @@
                     }
                 }
             }
+        },
+        "/users/me/auth": {
+            "get": {
+                "summary": "Get current user auth details",
+                "description": "Retrieves auth information about the current Neon user account from console and Keycloak.\n",
+                "tags": [
+                    "Users"
+                ],
+                "operationId": "getCurrentUserAuthInfo",
+                "responses": {
+                    "200": {
+                        "description": "Returned auth information about the current user\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CurrentUserInfoAuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/users/me/password/validate": {
+            "get": {
+                "summary": "Gets users password and verifies it against Keycloak",
+                "description": "Queries Keycloak API to verify user password\n",
+                "tags": [
+                    "Users"
+                ],
+                "operationId": "verifyUserPassword",
+                "responses": {
+                    "200": {
+                        "description": "User password matches\n"
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -3380,7 +3436,9 @@
                     "tenant_reattach",
                     "replace_safekeeper",
                     "disable_maintenance",
-                    "apply_storage_config"
+                    "apply_storage_config",
+                    "prepare_secondary_pageserver",
+                    "switch_pageserver"
                 ]
             },
             "OperationStatus": {
@@ -4295,6 +4353,14 @@
                     }
                 }
             },
+            "BranchSchemaResponse": {
+                "type": "object",
+                "properties": {
+                    "sql": {
+                        "type": "string"
+                    }
+                }
+            },
             "BranchesResponse": {
                 "type": "object",
                 "required": [
@@ -4517,7 +4583,7 @@
                 ]
             },
             "SuspendTimeoutSeconds": {
-                "description": "Duration of inactivity in seconds after which the compute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
+                "description": "Duration of inactivity in seconds after which the compute endpoint is\nautomatically suspended. The value `0` means use the global default.\nThe value `-1` means never suspend. The default value is `300` seconds (5 minutes).\nThe minimum value is `60` seconds (1 minute).\nThe maximum value is `604800` seconds (1 week). For more information, see\n[Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).\n",
                 "type": "integer",
                 "format": "int64",
                 "minimum": -1,
@@ -5028,7 +5094,10 @@
                     "free",
                     "pro",
                     "direct_sales",
-                    "aws_marketplace"
+                    "aws_marketplace",
+                    "free_v2",
+                    "launch",
+                    "scale"
                 ]
             },
             "Database": {
@@ -5180,8 +5249,7 @@
             "UpdateUserInfoRequest": {
                 "type": "object",
                 "required": [
-                    "id",
-                    "email"
+                    "id"
                 ],
                 "properties": {
                     "email": {
@@ -5198,6 +5266,9 @@
                         "type": "string"
                     },
                     "last_name": {
+                        "type": "string"
+                    },
+                    "password": {
                         "type": "string"
                     }
                 }
@@ -5269,6 +5340,24 @@
                     },
                     "plan": {
                         "type": "string"
+                    }
+                }
+            },
+            "CurrentUserInfoAuthResponse": {
+                "type": "object",
+                "required": [
+                    "password_stored",
+                    "auth_accounts"
+                ],
+                "properties": {
+                    "password_stored": {
+                        "type": "boolean"
+                    },
+                    "auth_accounts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CurrentUserAuthAccount"
+                        }
                     }
                 }
             },
@@ -5365,7 +5454,7 @@
                 "type": "integer",
                 "minimum": 14,
                 "maximum": 16,
-                "default": 15
+                "default": 16
             },
             "HealthCheck": {
                 "type": "object",
@@ -5400,13 +5489,6 @@
                         "$ref": "#/components/schemas/BillingSubscriptionType"
                     }
                 }
-            },
-            "SubscriptionDowngradeNewType": {
-                "type": "string",
-                "enum": [
-                    "free",
-                    "free_v2"
-                ]
             },
             "GeneralError": {
                 "type": "object",
@@ -5475,13 +5557,6 @@
                     "normal",
                     "high",
                     "critical"
-                ]
-            },
-            "SubscriptionUpgradeNewType": {
-                "type": "string",
-                "enum": [
-                    "launch",
-                    "scale"
                 ]
             }
         }
