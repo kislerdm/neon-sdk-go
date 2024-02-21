@@ -2782,18 +2782,28 @@ func Test_client_GetCurrentUserAuthInfo(t *testing.T) {
 }
 
 func Test_client_VerifyUserPassword(t *testing.T) {
+	type args struct {
+		cfg VerifyUserPasswordRequest
+	}
 	tests := []struct {
 		name    string
+		args    args
 		apiKey  string
 		wantErr bool
 	}{
 		{
-			name:    "happy path",
+			name: "happy path",
+			args: args{
+				cfg: VerifyUserPasswordRequest{},
+			},
 			apiKey:  "foo",
 			wantErr: false,
 		},
 		{
-			name:    "unhappy path",
+			name: "unhappy path",
+			args: args{
+				cfg: VerifyUserPasswordRequest{},
+			},
 			apiKey:  "invalidApiKey",
 			wantErr: true,
 		},
@@ -2805,7 +2815,7 @@ func Test_client_VerifyUserPassword(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				err = c.VerifyUserPassword()
+				err = c.VerifyUserPassword(tt.args.cfg)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("VerifyUserPassword() error = %v, wantErr %v", err, tt.wantErr)
 					return

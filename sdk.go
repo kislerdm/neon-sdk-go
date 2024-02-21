@@ -713,8 +713,8 @@ func (c Client) GetCurrentUserAuthInfo() (CurrentUserInfoAuthResponse, error) {
 }
 
 // VerifyUserPassword Queries Keycloak API to verify user password
-func (c Client) VerifyUserPassword() error {
-	return c.requestHandler(c.baseURL+"/users/me/password/validate", "GET", nil, nil)
+func (c Client) VerifyUserPassword(cfg VerifyUserPasswordRequest) error {
+	return c.requestHandler(c.baseURL+"/users/me/password/validate", "POST", cfg, nil)
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the endpoint.
@@ -1577,4 +1577,8 @@ type SuspendTimeoutSeconds int64
 type UpdateProjectRespObj struct {
 	OperationsResponse
 	ProjectResponse
+}
+
+type VerifyUserPasswordRequest struct {
+	Password string `json:"password"`
 }
