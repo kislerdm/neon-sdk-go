@@ -3016,12 +3016,22 @@
             }
         },
         "/users/me/password/validate": {
-            "get": {
+            "post": {
                 "summary": "Gets users password and verifies it against Keycloak",
                 "description": "Queries Keycloak API to verify user password\n",
                 "tags": [
                     "Users"
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyUserPasswordRequest"
+                            }
+                        }
+                    }
+                },
                 "operationId": "verifyUserPassword",
                 "responses": {
                     "200": {
@@ -5358,6 +5368,17 @@
                         "items": {
                             "$ref": "#/components/schemas/CurrentUserAuthAccount"
                         }
+                    }
+                }
+            },
+            "VerifyUserPasswordRequest": {
+                "type": "object",
+                "required": [
+                    "password"
+                ],
+                "properties": {
+                    "password": {
+                        "type": "string"
                     }
                 }
             },
