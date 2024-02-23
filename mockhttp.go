@@ -481,20 +481,6 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 	},
-
-	"/users/me/auth": {
-		"GET": mockResponse{
-			Content: `null`,
-			Code:    200,
-		},
-	},
-
-	"/users/me/password/validate": {
-		"POST": mockResponse{
-			Content: `null`,
-			Code:    200,
-		},
-	},
 }
 
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
