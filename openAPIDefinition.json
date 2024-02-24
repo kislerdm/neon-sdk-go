@@ -2989,59 +2989,6 @@
                     }
                 }
             }
-        },
-        "/users/me/auth": {
-            "get": {
-                "summary": "Get current user auth details",
-                "description": "Retrieves auth information about the current Neon user account from console and Keycloak.\n",
-                "tags": [
-                    "Users"
-                ],
-                "operationId": "getCurrentUserAuthInfo",
-                "responses": {
-                    "200": {
-                        "description": "Returned auth information about the current user\n",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/CurrentUserInfoAuthResponse"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "$ref": "#/components/responses/GeneralError"
-                    }
-                }
-            }
-        },
-        "/users/me/password/validate": {
-            "post": {
-                "summary": "Gets users password and verifies it against Keycloak",
-                "description": "Queries Keycloak API to verify user password\n",
-                "tags": [
-                    "Users"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/VerifyUserPasswordRequest"
-                            }
-                        }
-                    }
-                },
-                "operationId": "verifyUserPassword",
-                "responses": {
-                    "200": {
-                        "description": "User password matches\n"
-                    },
-                    "default": {
-                        "$ref": "#/components/responses/GeneralError"
-                    }
-                }
-            }
         }
     },
     "components": {
