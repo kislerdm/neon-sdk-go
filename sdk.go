@@ -703,20 +703,6 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 	return v, nil
 }
 
-// GetCurrentUserAuthInfo Retrieves auth information about the current Neon user account from console and Keycloak.
-func (c Client) GetCurrentUserAuthInfo() (CurrentUserInfoAuthResponse, error) {
-	var v CurrentUserInfoAuthResponse
-	if err := c.requestHandler(c.baseURL+"/users/me/auth", "GET", nil, &v); err != nil {
-		return CurrentUserInfoAuthResponse{}, err
-	}
-	return v, nil
-}
-
-// VerifyUserPassword Queries Keycloak API to verify user password
-func (c Client) VerifyUserPassword(cfg VerifyUserPasswordRequest) error {
-	return c.requestHandler(c.baseURL+"/users/me/password/validate", "POST", cfg, nil)
-}
-
 // AllowedIps A list of IP addresses that are allowed to connect to the endpoint.
 // If the list is empty or not set, all IP addresses are allowed.
 // If primary_branch_only is true, the list will be applied only to the primary branch.
@@ -938,11 +924,6 @@ type CurrentUserAuthAccount struct {
 	Login    string `json:"login"`
 	Name     string `json:"name"`
 	Provider string `json:"provider"`
-}
-
-type CurrentUserInfoAuthResponse struct {
-	AuthAccounts   []CurrentUserAuthAccount `json:"auth_accounts"`
-	PasswordStored bool                     `json:"password_stored"`
 }
 
 type CurrentUserInfoResponse struct {
@@ -1577,8 +1558,4 @@ type SuspendTimeoutSeconds int64
 type UpdateProjectRespObj struct {
 	OperationsResponse
 	ProjectResponse
-}
-
-type VerifyUserPasswordRequest struct {
-	Password string `json:"password"`
 }
