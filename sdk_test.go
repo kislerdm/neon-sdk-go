@@ -1391,6 +1391,69 @@ func Test_client_DeleteProjectBranch(t *testing.T) {
 	}
 }
 
+func Test_client_RestoreProjectBranch(t *testing.T) {
+	deserializeResp := func(s string) BranchOperations {
+		var v BranchOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		branchID  string
+		cfg       BranchRestoreRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    BranchOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       BranchRestoreRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/restore"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				branchID:  "foo",
+				cfg:       BranchRestoreRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    BranchOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.RestoreProjectBranch(tt.args.projectID, tt.args.branchID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("RestoreProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("RestoreProjectBranch() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_SetPrimaryProjectBranch(t *testing.T) {
 	deserializeResp := func(s string) BranchOperations {
 		var v BranchOperations
