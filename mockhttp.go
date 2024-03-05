@@ -316,6 +316,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/{project_id}/branches/{branch_id}/restore": {
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/projects/{project_id}/branches/{branch_id}/roles": {
 		"GET": mockResponse{
 			Content: `{"roles":[{"branch_id":"br-aged-salad-637688","created_at":"2022-11-23T17:42:25Z","name":"casey","protected":false,"updated_at":"2022-11-23T17:42:25Z"},{"branch_id":"br-aged-salad-637688","created_at":"2022-10-22T17:38:21Z","name":"thomas","protected":false,"updated_at":"2022-10-22T17:38:21Z"}]}`,

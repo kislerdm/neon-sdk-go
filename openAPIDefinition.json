@@ -81,6 +81,19 @@
                 }
             ]
         },
+        "/projects/{project_id}/applications/vercel/branches": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "description": "Neon project ID",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/projects/{project_id}/applications/polyscale/auth": {
             "parameters": [
                 {
@@ -1355,6 +1368,60 @@
                                         "creation_source": "console"
                                     },
                                     "operations": []
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/restore": {
+            "post": {
+                "tags": [
+                    "Branch"
+                ],
+                "summary": "Restore branch",
+                "operationId": "restoreProjectBranch",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "description": "The Neon project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "path",
+                        "description": "The branch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchRestoreRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated the specified branch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchOperations"
                                 }
                             }
                         }
@@ -2965,6 +3032,89 @@
                 }
             }
         },
+        "/organizations/{org_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/organizations/{org_id}/members": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/organizations/{org_id}/members/{member_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "member_id",
+                    "in": "path",
+                    "description": "The Neon organization member ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/organizations/{org_id}/invitations": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/organizations/{org_id}/invitations/{invitation_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "invitation_id",
+                    "in": "path",
+                    "description": "The Neon organization invitation ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/users/me": {
             "get": {
                 "summary": "Get current user details",
@@ -4299,6 +4449,31 @@
                     }
                 }
             },
+            "BranchRestoreRequest": {
+                "type": "object",
+                "required": [
+                    "source_branch_id"
+                ],
+                "properties": {
+                    "source_branch_id": {
+                        "type": "string",
+                        "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n"
+                    },
+                    "source_lsn": {
+                        "description": "A Log Sequence Number (LSN) on the source branch. The branch will be restored with data from this LSN.\n",
+                        "type": "string"
+                    },
+                    "source_timestamp": {
+                        "description": "A timestamp identifies a point in time on the source branch. The branch will be restored with data starting from this point in time.\n",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "preserve_under_name": {
+                        "description": "If not empty, the previous state of the branch will be saved to a branch with this name.\nIf the branch has children or the `source_branch_id` is equal to the branch id, this field is required. All existing child branches will be moved to the newly created branch under the name `preserve_under_name`.\n",
+                        "type": "string"
+                    }
+                }
+            },
             "BranchResponse": {
                 "type": "object",
                 "required": [
@@ -5176,6 +5351,256 @@
                     }
                 }
             },
+            "Invitation": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "org_id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "email": {
+                        "description": "Email of the invited user",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "org_id": {
+                        "description": "Organization uuid as it is stored in Neon",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "invited_by": {
+                        "description": "UUID for the user_id who extended the invitation",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "invited_at": {
+                        "description": "Timestamp when the invitation was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "InvitationResponse": {
+                "type": "object",
+                "required": [
+                    "invitation"
+                ],
+                "properties": {
+                    "invitation": {
+                        "$ref": "#/components/schemas/Invitation"
+                    }
+                }
+            },
+            "MemberRole": {
+                "description": "The role of the organization member",
+                "type": "string",
+                "enum": [
+                    "admin",
+                    "member"
+                ]
+            },
+            "Member": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "user_id",
+                    "org_id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "org_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "MemberResponse": {
+                "type": "object",
+                "required": [
+                    "member"
+                ],
+                "properties": {
+                    "member": {
+                        "$ref": "#/components/schemas/Member"
+                    }
+                }
+            },
+            "Organization": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "description": "The user id of the user that created the organization\n",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "A timestamp indicting when the organization was created\ntype: string\nformat: date-time\n"
+                    },
+                    "updated_at": {
+                        "description": "A timestamp indicating when the organization was updated\n",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "invitations": {
+                        "description": "List of all the invitations extended in this organization\n",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Invitation"
+                        }
+                    },
+                    "members": {
+                        "description": "List of all active members in the organization\n",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Member"
+                        }
+                    }
+                }
+            },
+            "OrganizationResponse": {
+                "type": "object",
+                "required": [
+                    "organization"
+                ],
+                "properties": {
+                    "organization": {
+                        "$ref": "#/components/schemas/Organization"
+                    }
+                }
+            },
+            "OrganizationsUpdateRequest": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "OrganizationInvitationsResponse": {
+                "type": "object",
+                "required": [
+                    "invitations"
+                ],
+                "properties": {
+                    "invitations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Invitation"
+                        }
+                    }
+                }
+            },
+            "OrganizationInviteUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "OrganizationMemberUpdateRequest": {
+                "type": "object",
+                "required": [
+                    "role"
+                ],
+                "properties": {
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "OrganizationMembersResponse": {
+                "type": "object",
+                "required": [
+                    "members"
+                ],
+                "properties": {
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Member"
+                        }
+                    }
+                }
+            },
+            "InvitationCreateRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "role"
+                ],
+                "properties": {
+                    "email": {
+                        "description": "Email to invite",
+                        "type": "string"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "OrganizationCreateRequest": {
+                "type": "object",
+                "required": [
+                    "organization",
+                    "subscription_type"
+                ],
+                "properties": {
+                    "organization": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "description": "The organization name",
+                                "type": "string"
+                            },
+                            "invitations": {
+                                "description": "Emails with roles to invite to the organization",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/InvitationCreateRequest"
+                                }
+                            }
+                        }
+                    },
+                    "subscription_type": {
+                        "$ref": "#/components/schemas/BillingSubscriptionType"
+                    }
+                }
+            },
             "CurrentUserAuthAccount": {
                 "type": "object",
                 "required": [
@@ -5226,6 +5651,9 @@
                         "type": "string"
                     },
                     "password": {
+                        "type": "string"
+                    },
+                    "new_password": {
                         "type": "string"
                     }
                 }

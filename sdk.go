@@ -386,6 +386,14 @@ func (c Client) DeleteProjectBranch(projectID string, branchID string) (BranchOp
 	return v, nil
 }
 
+func (c Client) RestoreProjectBranch(projectID string, branchID string, cfg BranchRestoreRequest) (BranchOperations, error) {
+	var v BranchOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/restore", "POST", cfg, &v); err != nil {
+		return BranchOperations{}, err
+	}
+	return v, nil
+}
+
 // SetPrimaryProjectBranch The primary mark is automatically removed from the previous primary branch.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
@@ -852,6 +860,20 @@ type BranchOperations struct {
 
 type BranchResponse struct {
 	Branch Branch `json:"branch"`
+}
+
+type BranchRestoreRequest struct {
+	// PreserveUnderName If not empty, the previous state of the branch will be saved to a branch with this name.
+	// If the branch has children or the `source_branch_id` is equal to the branch id, this field is required. All existing child branches will be moved to the newly created branch under the name `preserve_under_name`.
+	PreserveUnderName *string `json:"preserve_under_name,omitempty"`
+	// SourceBranchID The `branch_id` of the restore source branch.
+	// If `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.
+	// If `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.
+	SourceBranchID string `json:"source_branch_id"`
+	// SourceLsn A Log Sequence Number (LSN) on the source branch. The branch will be restored with data from this LSN.
+	SourceLsn *string `json:"source_lsn,omitempty"`
+	// SourceTimestamp A timestamp identifies a point in time on the source branch. The branch will be restored with data starting from this point in time.
+	SourceTimestamp *time.Time `json:"source_timestamp,omitempty"`
 }
 
 // BranchState The branch state
