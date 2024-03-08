@@ -941,11 +941,11 @@ type CreatedProject struct {
 }
 
 type CurrentUserAuthAccount struct {
-	Email    string `json:"email"`
-	Image    string `json:"image"`
-	Login    string `json:"login"`
-	Name     string `json:"name"`
-	Provider string `json:"provider"`
+	Email    string             `json:"email"`
+	Image    string             `json:"image"`
+	Login    string             `json:"login"`
+	Name     string             `json:"name"`
+	Provider IdentityProviderId `json:"provider"`
 }
 
 type CurrentUserInfoResponse struct {
@@ -1152,6 +1152,9 @@ type EndpointsResponse struct {
 type GrantPermissionToProjectRequest struct {
 	Email string `json:"email"`
 }
+
+// IdentityProviderId Identity provider id from keycloak
+type IdentityProviderId string
 
 type ListOperations struct {
 	OperationsResponse

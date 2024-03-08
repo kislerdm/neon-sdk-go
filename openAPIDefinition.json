@@ -3075,7 +3075,8 @@
                     "description": "The Neon organization member ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     }
                 }
             ]
@@ -3110,7 +3111,8 @@
                     "description": "The Neon organization invitation ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     }
                 }
             ]
@@ -5354,8 +5356,12 @@
             "Invitation": {
                 "type": "object",
                 "required": [
+                    "id",
                     "email",
-                    "org_id"
+                    "org_id",
+                    "invited_by",
+                    "invited_at",
+                    "role"
                 ],
                 "properties": {
                     "id": {
@@ -5369,8 +5375,7 @@
                     },
                     "org_id": {
                         "description": "Organization uuid as it is stored in Neon",
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "string"
                     },
                     "invited_by": {
                         "description": "UUID for the user_id who extended the invitation",
@@ -5411,7 +5416,8 @@
                 "required": [
                     "id",
                     "user_id",
-                    "org_id"
+                    "org_id",
+                    "role"
                 ],
                 "properties": {
                     "id": {
@@ -5423,11 +5429,14 @@
                         "format": "uuid"
                     },
                     "org_id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "string"
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
+                    },
+                    "joined_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 }
             },
@@ -5446,52 +5455,26 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "name"
+                    "name",
+                    "created_at",
+                    "updated_at"
                 ],
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "string"
                     },
                     "name": {
                         "type": "string"
                     },
-                    "created_by": {
-                        "description": "The user id of the user that created the organization\n",
-                        "type": "string"
-                    },
                     "created_at": {
-                        "description": "A timestamp indicting when the organization was created\ntype: string\nformat: date-time\n"
+                        "description": "A timestamp indicting when the organization was created\n",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "updated_at": {
                         "description": "A timestamp indicating when the organization was updated\n",
                         "type": "string",
                         "format": "date-time"
-                    },
-                    "invitations": {
-                        "description": "List of all the invitations extended in this organization\n",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Invitation"
-                        }
-                    },
-                    "members": {
-                        "description": "List of all active members in the organization\n",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Member"
-                        }
-                    }
-                }
-            },
-            "OrganizationResponse": {
-                "type": "object",
-                "required": [
-                    "organization"
-                ],
-                "properties": {
-                    "organization": {
-                        "$ref": "#/components/schemas/Organization"
                     }
                 }
             },
@@ -5624,7 +5607,7 @@
                         "type": "string"
                     },
                     "provider": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/IdentityProviderId"
                     }
                 }
             },
@@ -5756,6 +5739,16 @@
                         "type": "string"
                     }
                 }
+            },
+            "IdentityProviderId": {
+                "description": "Identity provider id from keycloak",
+                "type": "string",
+                "enum": [
+                    "github",
+                    "google",
+                    "hasura",
+                    "keycloak"
+                ]
             },
             "EndpointSettingsData": {
                 "type": "object",
