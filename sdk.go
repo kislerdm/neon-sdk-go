@@ -312,6 +312,38 @@ func (c Client) RevokePermissionFromProject(projectID string, permissionID strin
 	return v, nil
 }
 
+// GetConnectionURI Retrieves a Postgres connection URI.
+func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID *string, databaseName string, roleName string, pooled *bool) (ConnectionURIResponse, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	queryElements = append(queryElements, "databaseName="+databaseName)
+	queryElements = append(queryElements, "roleName="+roleName)
+	if branchID != nil {
+		queryElements = append(queryElements, "branchID="+*branchID)
+	}
+	if endpointID != nil {
+		queryElements = append(queryElements, "endpointID="+*endpointID)
+	}
+	if pooled != nil {
+		queryElements = append(queryElements, "pooled="+func(pooled bool) string {
+			if pooled {
+				return "true"
+			}
+			return "false"
+		}(*pooled))
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v ConnectionURIResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/connection_uri"+query, "GET", nil, &v); err != nil {
+		return ConnectionURIResponse{}, err
+	}
+	return v, nil
+}
+
 // ListProjectBranches Retrieves a list of branches for the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Each Neon project has a root branch named `main`.
@@ -674,7 +706,6 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 }
 
 // ListProjectsConsumption Retrieves a list consumption metrics for each project for the current billing period.
-// **Important:** This is a preview API and may be subject to changes.
 func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time) (ListProjectsConsumptionRespObj, error) {
 	var (
 		queryElements []string
@@ -824,6 +855,8 @@ type Branch struct {
 	Primary bool `json:"primary"`
 	// ProjectID The ID of the project to which the branch belongs
 	ProjectID string `json:"project_id"`
+	// Protected Whether the branch is protected
+	Protected bool `json:"protected"`
 	// UpdatedAt A timestamp indicating when the branch was last updated
 	UpdatedAt        time.Time `json:"updated_at"`
 	WrittenDataBytes int64     `json:"written_data_bytes"`
@@ -843,6 +876,8 @@ type BranchCreateRequestBranch struct {
 	ParentLsn *string `json:"parent_lsn,omitempty"`
 	// ParentTimestamp A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.
 	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
+	// Protected Whether the branch is protected
+	Protected *bool `json:"protected,omitempty"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
@@ -884,7 +919,8 @@ type BranchUpdateRequest struct {
 }
 
 type BranchUpdateRequestBranch struct {
-	Name *string `json:"name,omitempty"`
+	Name      *string `json:"name,omitempty"`
+	Protected *bool   `json:"protected,omitempty"`
 }
 
 type BranchesResponse struct {
@@ -911,6 +947,11 @@ type ConnectionParameters struct {
 	PoolerHost string `json:"pooler_host"`
 	// Role name.
 	Role string `json:"role"`
+}
+
+type ConnectionURIResponse struct {
+	// URI The postgres connection URI.
+	URI string `json:"uri"`
 }
 
 type ConnectionURIsOptionalResponse struct {

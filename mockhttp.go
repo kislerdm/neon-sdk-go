@@ -177,7 +177,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
+			Content: `{"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -252,15 +252,15 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
 			Code:    200,
 		},
 	},
@@ -361,7 +361,14 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}/set_as_primary": {
 		"POST": mockResponse{
-			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/connection_uri": {
+		"GET": mockResponse{
+			Content: `null`,
 			Code:    200,
 		},
 	},
@@ -494,8 +501,8 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 // Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
 // - 401 is returned when the string `invalidApiKey` is used as the API key;
 // - 404 is returned if either of the following:
-//		- the string value `notFound` is used as the string argument, e.g. projectID
-//		- a negative int/float value is used as the int/float argument, e.g. database ID
+//   - the string value `notFound` is used as the string argument, e.g. projectID
+//   - a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
 	u, _ := url.Parse(baseURL)
 	return mockHTTPClient{

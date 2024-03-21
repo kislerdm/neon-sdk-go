@@ -777,9 +777,10 @@ func Test_parameterPath_routeElement(t *testing.T) {
 		format string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   string
+		name        string
+		fields      fields
+		withPointer bool
+		want        string
 	}{
 		{
 			name: "int64",
@@ -826,6 +827,25 @@ func Test_parameterPath_routeElement(t *testing.T) {
 			},
 			want: "quxID.Format(time.RFC3339)",
 		},
+		{
+			name: "boolean - pointer",
+			fields: fields{
+				k:      "quxx_id",
+				v:      "boolean",
+				format: "boolean",
+			},
+			withPointer: true,
+			want:        `func (quxxID bool) string { if quxxID { return "true" }; return "false" } (*quxxID)`,
+		},
+		{
+			name: "boolean",
+			fields: fields{
+				k:      "quxx_id",
+				v:      "boolean",
+				format: "boolean",
+			},
+			want: `func (quxxID bool) string { if quxxID { return "true" }; return "false" } (quxxID)`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -835,7 +855,7 @@ func Test_parameterPath_routeElement(t *testing.T) {
 						k:      tt.fields.k,
 						v:      tt.fields.v,
 						format: tt.fields.format,
-					}.routeElement(),
+					}.routeElement(tt.withPointer),
 				)
 			},
 		)

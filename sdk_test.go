@@ -1091,6 +1091,78 @@ func Test_client_ListProjectOperations(t *testing.T) {
 	}
 }
 
+func Test_client_GetConnectionURI(t *testing.T) {
+	deserializeResp := func(s string) ConnectionURIResponse {
+		var v ConnectionURIResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID    string
+		branchID     *string
+		endpointID   *string
+		databaseName string
+		roleName     string
+		pooled       *bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ConnectionURIResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     createPointer("foo"),
+				endpointID:   createPointer("foo"),
+				databaseName: "foo",
+				roleName:     "foo",
+				pooled:       createPointer(true),
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/connection_uri"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:    "foo",
+				branchID:     createPointer("foo"),
+				endpointID:   createPointer("foo"),
+				databaseName: "foo",
+				roleName:     "foo",
+				pooled:       createPointer(true),
+			},
+			apiKey:  "invalidApiKey",
+			want:    ConnectionURIResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetConnectionURI(tt.args.projectID, tt.args.branchID, tt.args.endpointID, tt.args.databaseName, tt.args.roleName, tt.args.pooled)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetConnectionURI() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetConnectionURI() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_ListProjectBranches(t *testing.T) {
 	deserializeResp := func(s string) BranchesResponse {
 		var v BranchesResponse

@@ -1098,7 +1098,8 @@ func (v field) routeElement(withPointer ...bool) string {
 			case "integer":
 				return "strconv.FormatInt(int64(" + r + "), 10)"
 			case "boolean":
-				return "func (" + r + ` bool) string { if r { return "true" }; return "false" } (` + r + ")"
+				varName := v.canonicalName()
+				return "func (" + varName + ` bool) string { if ` + varName + ` { return "true" }; return "false" } (` + r + ")"
 			}
 			return r
 		}

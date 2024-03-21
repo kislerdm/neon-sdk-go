@@ -52,150 +52,13 @@
         {
             "name": "Users",
             "description": "These methods allow you to manage your Neon user account."
+        },
+        {
+            "name": "Consumption",
+            "description": "These methods allow you to view consumption details for your Neon account."
         }
     ],
     "paths": {
-        "/projects/{project_id}/applications/vercel": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/vercel/vars": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/vercel/branches": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/polyscale/auth": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/applications/polyscale/auth/callback": {
-            "parameters": [
-                {
-                    "in": "query",
-                    "name": "code",
-                    "schema": {
-                        "type": "string"
-                    },
-                    "description": "code for token request in oauth"
-                },
-                {
-                    "in": "query",
-                    "name": "state",
-                    "schema": {
-                        "type": "string"
-                    },
-                    "description": "state parameter from oauth"
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/polyscale/caches": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/polyscale/caches/{cache_id}": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "cache_id",
-                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/projects/{project_id}/applications/polyscale/caches/{cache_id}/purge": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "description": "Neon project ID",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "cache_id",
-                    "description": "Polyscale cache ID, from getProjectPolyscaleCaches",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/applications/oauth/{client_id}": {
-            "parameters": [
-                {
-                    "name": "client_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
         "/api_keys": {
             "get": {
                 "summary": "Get a list of API keys",
@@ -900,18 +763,6 @@
                 }
             }
         },
-        "/projects/{project_id}/saved_queries": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
         "/projects/{project_id}/permissions": {
             "parameters": [
                 {
@@ -1023,30 +874,86 @@
                 }
             }
         },
-        "/saved_queries/{saved_query_id}": {
-            "parameters": [
-                {
-                    "name": "saved_query_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "format": "int64"
+        "/projects/{project_id}/connection_uri": {
+            "get": {
+                "summary": "Get an URI",
+                "description": "Retrieves a Postgres connection URI.\n",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "getConnectionURI",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "description": "The Neon project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "description": "The branch ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "endpoint_id",
+                        "in": "query",
+                        "description": "The endpoint ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "database_name",
+                        "in": "query",
+                        "description": "The database",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role_name",
+                        "in": "query",
+                        "description": "The role name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "pooled",
+                        "in": "query",
+                        "description": "The pooler paramater",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned the connection URI",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConnectionURIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
                     }
                 }
-            ]
-        },
-        "/projects/{project_id}/query/history": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
+            }
         },
         "/projects/{project_id}/branches": {
             "parameters": [
@@ -1142,6 +1049,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "protected": false,
                                             "creation_source": "console"
                                         },
                                         {
@@ -1160,6 +1068,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "protected": false,
                                             "creation_source": "console"
                                         },
                                         {
@@ -1178,6 +1087,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "protected": false,
                                             "creation_source": "console"
                                         }
                                     ]
@@ -1242,6 +1152,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "protected": false,
                                         "creation_source": "console"
                                     }
                                 }
@@ -1283,6 +1194,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "protected": false,
                                         "creation_source": "console"
                                     },
                                     "operations": [
@@ -1365,6 +1277,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "protected": false,
                                         "creation_source": "console"
                                     },
                                     "operations": []
@@ -1484,6 +1397,7 @@
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
+                                        "protected": false,
                                         "creation_source": "console"
                                     },
                                     "operations": []
@@ -2941,32 +2855,12 @@
                 }
             }
         },
-        "/projects/{project_id}/endpoints/{endpoint_id}/passwordless_auth": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "endpoint_id",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
         "/consumption/projects": {
             "get": {
                 "summary": "Retrieves a list consumption metrics for each project",
-                "description": "Retrieves a list consumption metrics for each project for the current billing period.\n**Important:** This is a preview API and may be subject to changes.\n",
+                "description": "Retrieves a list consumption metrics for each project for the current billing period.\n",
                 "tags": [
-                    "Preview"
+                    "Consumption"
                 ],
                 "operationId": "listProjectsConsumption",
                 "parameters": [
@@ -3031,91 +2925,6 @@
                     }
                 }
             }
-        },
-        "/organizations/{org_id}": {
-            "parameters": [
-                {
-                    "name": "org_id",
-                    "in": "path",
-                    "description": "The Neon organization ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/organizations/{org_id}/members": {
-            "parameters": [
-                {
-                    "name": "org_id",
-                    "in": "path",
-                    "description": "The Neon organization ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/organizations/{org_id}/members/{member_id}": {
-            "parameters": [
-                {
-                    "name": "org_id",
-                    "in": "path",
-                    "description": "The Neon organization ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "member_id",
-                    "in": "path",
-                    "description": "The Neon organization member ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string",
-                        "format": "uuid"
-                    }
-                }
-            ]
-        },
-        "/organizations/{org_id}/invitations": {
-            "parameters": [
-                {
-                    "name": "org_id",
-                    "in": "path",
-                    "description": "The Neon organization ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/organizations/{org_id}/invitations/{invitation_id}": {
-            "parameters": [
-                {
-                    "name": "org_id",
-                    "in": "path",
-                    "description": "The Neon organization ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "invitation_id",
-                    "in": "path",
-                    "description": "The Neon organization invitation ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string",
-                        "format": "uuid"
-                    }
-                }
-            ]
         },
         "/users/me": {
             "get": {
@@ -4267,6 +4076,7 @@
                     "created_at",
                     "updated_at",
                     "primary",
+                    "protected",
                     "cpu_used_sec",
                     "active_time_seconds",
                     "compute_time_seconds",
@@ -4318,6 +4128,10 @@
                         "description": "Whether the branch is the project's primary branch\n",
                         "type": "boolean"
                     },
+                    "protected": {
+                        "description": "Whether the branch is protected\n",
+                        "type": "boolean"
+                    },
                     "cpu_used_sec": {
                         "deprecated": true,
                         "description": "CPU seconds used by all the endpoints of the branch, including deleted ones.\nThis value is reset at the beginning of each billing period.\nExamples:\n1. A branch that uses 1 CPU for 1 second is equal to `cpu_used_sec=1`.\n2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.\n",
@@ -4362,6 +4176,7 @@
                     "parent_id": "br-aged-salad-637688",
                     "parent_lsn": "0/1DE2850",
                     "name": "dev2",
+                    "protected": false,
                     "current_state": "ready",
                     "creation_source": "console",
                     "created_at": "2022-11-30T19:09:48Z",
@@ -4430,6 +4245,10 @@
                                 "description": "A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.\n",
                                 "type": "string",
                                 "format": "date-time"
+                            },
+                            "protected": {
+                                "description": "Whether the branch is protected\n",
+                                "type": "boolean"
                             }
                         }
                     }
@@ -4446,6 +4265,9 @@
                         "properties": {
                             "name": {
                                 "type": "string"
+                            },
+                            "protected": {
+                                "type": "boolean"
                             }
                         }
                     }
@@ -4554,6 +4376,18 @@
                     },
                     "connection_parameters": {
                         "$ref": "#/components/schemas/ConnectionParameters"
+                    }
+                }
+            },
+            "ConnectionURIResponse": {
+                "type": "object",
+                "required": [
+                    "uri"
+                ],
+                "properties": {
+                    "uri": {
+                        "description": "The postgres connection URI.\n",
+                        "type": "string"
                     }
                 }
             },
@@ -5611,6 +5445,25 @@
                     }
                 }
             },
+            "LinkedAuthAccount": {
+                "type": "object",
+                "required": [
+                    "provider",
+                    "provider_display_name",
+                    "username"
+                ],
+                "properties": {
+                    "provider": {
+                        "$ref": "#/components/schemas/IdentityProviderId"
+                    },
+                    "provider_display_name": {
+                        "type": "string"
+                    },
+                    "username": {
+                        "type": "string"
+                    }
+                }
+            },
             "UpdateUserInfoRequest": {
                 "type": "object",
                 "required": [
@@ -5715,7 +5568,8 @@
                 "type": "object",
                 "required": [
                     "password_stored",
-                    "auth_accounts"
+                    "auth_accounts",
+                    "linked_accounts"
                 ],
                 "properties": {
                     "password_stored": {
@@ -5725,6 +5579,12 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/CurrentUserAuthAccount"
+                        }
+                    },
+                    "linked_accounts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/LinkedAuthAccount"
                         }
                     }
                 }

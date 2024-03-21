@@ -35,3 +35,7 @@ build: ## Compiles the binary.
 .PHONY: testacc
 testacc: ## Runs smoke tests.
 	@ source .env && TF_ACC=1 go test acc_test.go
+
+.PHONY: fetch-specs
+fetch-specs: ## Downloads API specs.
+	@ curl -SLo openAPIDefinition_new.json https://neon.tech/api_spec/release/v2.json
