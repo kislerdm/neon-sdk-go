@@ -7,7 +7,7 @@
     ],
     "info": {
         "title": "Neon API",
-        "description": "The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/manage/overview/).\n\nYou can run Neon API requests from this API reference using the **Try It** feature provided for each method. Enter your API key as a **Bearer** token in the **Authoization** section of the page.\n\nYou can create and manage API keys in the Neon Console. See [Manage API keys](https://neon.tech/docs/manage/api-keys/) for instructions.",
+        "description": "The Neon API allows you to access and manage Neon programmatically. You can use the Neon API to manage API keys, projects, branches, compute endpoints, databases, roles, and operations. For information about these features, refer to the [Neon documentation](https://neon.tech/docs/manage/overview/).\n\nYou can run Neon API requests from this API reference using the **Try It** feature. Enter your API key as a **Bearer** token in the **Authoization** section of the page.\n\nYou can create and manage API keys in the Neon Console. See [Manage API keys](https://neon.tech/docs/manage/api-keys/) for instructions.",
         "version": "v2",
         "contact": {
             "email": "support@neon.tech"
@@ -351,7 +351,7 @@
             },
             "post": {
                 "summary": "Create a project",
-                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nNeon's Free plan permits one project per Neon account.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and PostgreSQL version in the request body.\nNeon currently supports PostgreSQL 14 and 15.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
+                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nNeon's Free plan permits one project per Neon account.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and Postgres version in the request body.\nNeon currently supports PostgreSQL 14, 15, and 16.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
                 "tags": [
                     "Project"
                 ],
@@ -775,15 +775,15 @@
                 }
             ],
             "get": {
-                "summary": "Return project's permissions",
-                "description": "Return project's permissions",
+                "summary": "List project access",
+                "description": "Retrieves details about users who have access to the project, including the permission `id`, the granted-to email address, and the date project access was granted.",
                 "tags": [
                     "Project"
                 ],
                 "operationId": "listProjectPermissions",
                 "responses": {
                     "200": {
-                        "description": "Successfully returned permissions",
+                        "description": "Returned project access details",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -798,8 +798,8 @@
                 }
             },
             "post": {
-                "summary": "Grant project permission to the user",
-                "description": "Grant project permission to the user",
+                "summary": "Grant project access",
+                "description": "Grants project access to the account associated with the specified email address",
                 "tags": [
                     "Project"
                 ],
@@ -816,7 +816,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Successfully granted permission to the user",
+                        "description": "Granted project access",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -851,15 +851,15 @@
                 }
             ],
             "delete": {
-                "summary": "Revoke permission from the user",
-                "description": "Revoke permission from the user",
+                "summary": "Revoke project access",
+                "description": "Revokes project access from the user associted with the specified permisison `id`. You can retrieve a user's permission `id` by listing project access.",
                 "tags": [
                     "Project"
                 ],
                 "operationId": "revokePermissionFromProject",
                 "responses": {
                     "200": {
-                        "description": "Successfully revoked permission from the user",
+                        "description": "Revoked project access",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -876,8 +876,8 @@
         },
         "/projects/{project_id}/connection_uri": {
             "get": {
-                "summary": "Get an URI",
-                "description": "Retrieves a Postgres connection URI.\n",
+                "summary": "Get a connection URI",
+                "description": "Retrieves a connection URI for the specified database.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `database_name` by listing the databases for a branch.\nYou can obtain a `role_name` by listing the roles for a branch.\n",
                 "tags": [
                     "Project"
                 ],
@@ -895,7 +895,7 @@
                     {
                         "name": "branch_id",
                         "in": "query",
-                        "description": "The branch ID",
+                        "description": "The branch ID. Defaults to your project's primary `branch_id` if not specified.",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -904,7 +904,7 @@
                     {
                         "name": "endpoint_id",
                         "in": "query",
-                        "description": "The endpoint ID",
+                        "description": "The endpoint ID. Defaults to the read-write `endpoint_id` associated with the `branch_id` if not specified.",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -913,7 +913,7 @@
                     {
                         "name": "database_name",
                         "in": "query",
-                        "description": "The database",
+                        "description": "The database name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -931,7 +931,7 @@
                     {
                         "name": "pooled",
                         "in": "query",
-                        "description": "The pooler paramater",
+                        "description": "Adds the `-pooler` option to the connection URI when set to `true`, creating a pooled connection URI.",
                         "required": false,
                         "schema": {
                             "type": "boolean"
@@ -940,7 +940,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successfully returned the connection URI",
+                        "description": "Returned the connection URI",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -969,7 +969,7 @@
             ],
             "post": {
                 "summary": "Create a branch",
-                "description": "Creates a branch in the specified project.\nYou can obtain a `project_id` by listing the projects for your Neon account.\n\nThis method does not require a request body, but you can specify one to create an endpoint for the branch or to select a non-default parent branch.\nThe default behavior is to create a branch from the project's root branch (`main`) with no endpoint, and the branch name is auto-generated.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "description": "Creates a branch in the specified project.\nYou can obtain a `project_id` by listing the projects for your Neon account.\n\nThis method does not require a request body, but you can specify one to create a compute endpoint for the branch or to select a non-default parent branch.\nThe default behavior is to create a branch from the project's primary branch with no compute endpoint, and the branch name is auto-generated.\nThere is a maximum of one read-write endpoint per branch.\nA branch can have multiple read-only endpoints.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1124,7 +1124,7 @@
             ],
             "get": {
                 "summary": "Get branch details",
-                "description": "Retrieves information about the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nA `branch_id` value has a `br-` prefix.\n\nEach Neon project has a root branch named `main`.\nA project may contain child branches that were branched from `main` or from another branch.\nA parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "description": "Retrieves information about the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nA `branch_id` value has a `br-` prefix.\n\nEach Neon project is initially created with a root and primary branch named `main`.\nA project can contain one or more branches.\nA parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1166,7 +1166,7 @@
             },
             "delete": {
                 "summary": "Delete a branch",
-                "description": "Deletes the specified branch from a project, and places\nall endpoints into an idle state, breaking existing client connections.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n\nWhen a successful response status is received, the endpoints are still active,\nand the branch is not yet deleted from storage.\nThe deletion occurs after all operations finish.\nYou cannot delete a branch if it is the only remaining branch in the project.\nA project must have at least one branch.\n",
+                "description": "Deletes the specified branch from a project, and places\nall compute endpoints into an idle state, breaking existing client connections.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n\nWhen a successful response status is received, the compute endpoints are still active,\nand the branch is not yet deleted from storage.\nThe deletion occurs after all operations finish.\nYou cannot delete a project's root or primary branch, and you cannot delete a branch that has a child branch.\nA project must have at least one branch.\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1236,7 +1236,7 @@
                     "Branch"
                 ],
                 "summary": "Update a branch",
-                "description": "Updates the specified branch. Only changing the branch name is supported.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "description": "Updates the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "operationId": "updateProjectBranch",
                 "requestBody": {
                     "content": {
@@ -1296,7 +1296,8 @@
                 "tags": [
                     "Branch"
                 ],
-                "summary": "Restore branch",
+                "summary": "Restore a branch",
+                "description": "Restores a branch to an earlier state in its own or another branch's history",
                 "operationId": "restoreProjectBranch",
                 "parameters": [
                     {
@@ -1370,8 +1371,8 @@
                 "tags": [
                     "Branch"
                 ],
-                "summary": "Set the branch as the primary branch of a project",
-                "description": "The primary mark is automatically removed from the previous primary branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "summary": "Set branch as primary",
+                "description": "Sets the specified branch as the project's primary branch.\nThe primary designation is automatically removed from the previous primary branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "operationId": "setPrimaryProjectBranch",
                 "responses": {
                     "200": {
@@ -1434,7 +1435,7 @@
             ],
             "get": {
                 "summary": "Get a list of branch endpoints",
-                "description": "Retrieves a list of endpoints for the specified branch.\nCurrently, Neon permits only one endpoint per branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\n",
+                "description": "Retrieves a list of compute endpoints for the specified branch.\nNeon permits only one read-write compute endpoint per branch.\nA branch can have multiple read-only compute endpoints.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1657,7 +1658,7 @@
             ],
             "get": {
                 "summary": "Get database details",
-                "description": "Retrieves information about the specified database.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` and `database_name` by listing branch's databases.\nFor related information, see [Manage databases](https://neon.tech/docs/manage/databases/).\n",
+                "description": "Retrieves information about the specified database.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` and `database_name` by listing the branch's databases.\nFor related information, see [Manage databases](https://neon.tech/docs/manage/databases/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1765,7 +1766,7 @@
             },
             "delete": {
                 "summary": "Delete a database",
-                "description": "Deletes the specified database from the branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` and `database_name` by listing branch's databases.\nFor related information, see [Manage databases](https://neon.tech/docs/manage/databases/).\n",
+                "description": "Deletes the specified database from the branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` and `database_name` by listing the branch's databases.\nFor related information, see [Manage databases](https://neon.tech/docs/manage/databases/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1846,7 +1847,7 @@
             ],
             "get": {
                 "summary": "Get a list of roles",
-                "description": "Retrieves a list of roles from the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
+                "description": "Retrieves a list of Postgres roles from the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1887,7 +1888,7 @@
             },
             "post": {
                 "summary": "Create a role",
-                "description": "Creates a role in the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n\nConnections established to the active compute endpoint will be dropped.\nIf the compute endpoint is idle, the endpoint becomes active for a short period of time and is suspended afterward.\n",
+                "description": "Creates a Postgres role in the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n\nConnections established to the active compute endpoint will be dropped.\nIf the compute endpoint is idle, the endpoint becomes active for a short period of time and is suspended afterward.\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1987,7 +1988,7 @@
                 "operationId": "getProjectBranchRole",
                 "responses": {
                     "200": {
-                        "description": "Successfully returned details for the specified role",
+                        "description": "Returned details for the specified role",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2012,7 +2013,7 @@
             },
             "delete": {
                 "summary": "Delete a role",
-                "description": "Deletes the specified role from the branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
+                "description": "Deletes the specified Postgres role from the branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -2101,14 +2102,14 @@
             ],
             "get": {
                 "summary": "Get role password",
-                "description": "Retrieves the password for the specified role, if possible.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
+                "description": "Retrieves the password for the specified Postgres role, if possible.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
                 "tags": [
                     "Branch"
                 ],
                 "operationId": "getProjectBranchRolePassword",
                 "responses": {
                     "200": {
-                        "description": "Successfully returned password for the specified role",
+                        "description": "Returned password for the specified role",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2178,7 +2179,7 @@
             ],
             "post": {
                 "summary": "Reset the role password",
-                "description": "Resets the password for the specified role.\nReturns a new password and operations. The new password is ready to use when the last operation finishes.\nThe old password remains valid until last operation finishes.\nConnections to the compute endpoint are dropped. If idle,\nthe compute endpoint becomes active for a short period of time.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nIn Neon, the terms \"role\" and \"user\" are synonymous.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
+                "description": "Resets the password for the specified Postgres role.\nReturns a new password and operations. The new password is ready to use when the last operation finishes.\nThe old password remains valid until last operation finishes.\nConnections to the compute endpoint are dropped. If idle,\nthe compute endpoint becomes active for a short period of time.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nYou can obtain the `role_name` by listing the roles for a branch.\nFor related information, see [Manage roles](https://neon.tech/docs/manage/roles/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -2249,8 +2250,8 @@
                 }
             ],
             "post": {
-                "summary": "Create an endpoint",
-                "description": "Creates an endpoint for the specified branch.\nAn endpoint is a Neon compute instance.\nThere is a maximum of one read-write endpoint per branch.\nIf the specified branch already has a read-write endpoint, the operation fails.\nA branch can have multiple read-only endpoints.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain `branch_id` by listing the project's branches.\nA `branch_id` has a `br-` prefix.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Create a compute endpoint",
+                "description": "Creates a compute endpoint for the specified branch.\nAn endpoint is a Neon compute instance.\nThere is a maximum of one read-write compute endpoint per branch.\nIf the specified branch already has a read-write compute endpoint, the operation fails.\nA branch can have multiple read-only compute endpoints.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain `branch_id` by listing the project's branches.\nA `branch_id` has a `br-` prefix.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\nFor more information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
@@ -2298,7 +2299,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Created an endpoint",
+                        "description": "Created a compute endpoint",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2354,8 +2355,8 @@
                 }
             },
             "get": {
-                "summary": "Get a list of endpoints",
-                "description": "Retrieves a list of endpoints for the specified project.\nAn endpoint is a Neon compute instance.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Get a list of compute endpoints",
+                "description": "Retrieves a list of compute endpoints for the specified project.\nA compute endpoint is a Neon compute instance.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
@@ -2478,8 +2479,8 @@
                 }
             ],
             "get": {
-                "summary": "Get an endpoint",
-                "description": "Retrieves information about the specified endpoint.\nAn endpoint is a Neon compute instance.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Get a compute endpoint",
+                "description": "Retrieves information about the specified compute endpoint.\nA compute endpoint is a Neon compute instance.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
@@ -2528,15 +2529,15 @@
                 }
             },
             "delete": {
-                "summary": "Delete an endpoint",
-                "description": "Delete the specified endpoint.\nAn endpoint is a Neon compute instance.\nDeleting an endpoint drops existing network connections to the endpoint.\nThe deletion is completed when last operation in the chain finishes successfully.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Delete a compute endpoint",
+                "description": "Delete the specified compute endpoint.\nA compute endpoint is a Neon compute instance.\nDeleting a compute endpoint drops existing network connections to the compute endpoint.\nThe deletion is completed when last operation in the chain finishes successfully.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
                 "operationId": "deleteProjectEndpoint",
                 "responses": {
                     "200": {
-                        "description": "Deleted the specified endpoint",
+                        "description": "Deleted the specified compute endpoint",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2595,8 +2596,8 @@
                 "tags": [
                     "Endpoint"
                 ],
-                "summary": "Update an endpoint",
-                "description": "Updates the specified endpoint. Currently, only changing the associated branch is supported.\nThe branch that you specify cannot have an existing endpoint.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` and `branch_id` by listing your project's endpoints.\nAn `endpoint_id` has an `ep-` prefix. A `branch_id` has a `br-` prefix.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n\nIf the returned list of operations is not empty, the endpoint is not ready to use.\nThe client must wait for the last operation to finish before using the endpoint.\nIf the endpoint was idle before the update, the endpoint becomes active for a short period of time,\nand the control plane suspends it again after the update.\n",
+                "summary": "Update a compute endpoint",
+                "description": "Updates the specified compute endpoint.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` and `branch_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix. A `branch_id` has a `br-` prefix.\n For more information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n\nIf the returned list of operations is not empty, the compute endpoint is not ready to use.\nThe client must wait for the last operation to finish before using the compute endpoint.\nIf the compute endpoint was idle before the update, it becomes active for a short period of time,\nand the control plane suspends it again after the update.\n",
                 "operationId": "updateProjectEndpoint",
                 "requestBody": {
                     "required": true,
@@ -2615,7 +2616,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Updated the specified endpoint",
+                        "description": "Updated the specified compute endpoint",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2685,8 +2686,8 @@
         },
         "/projects/{project_id}/endpoints/{endpoint_id}/start": {
             "post": {
-                "summary": "Start an endpoint",
-                "description": "Starts an endpoint. The endpoint is ready to use\nafter the last operation in chain finishes successfully.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Start a compute endpoint",
+                "description": "Starts a compute endpoint. The compute endpoint is ready to use\nafter the last operation in chain finishes successfully.\n\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
@@ -2713,7 +2714,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Started the specified endpoint",
+                        "description": "Started the specified compute endpoint",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2791,8 +2792,8 @@
                 }
             ],
             "post": {
-                "summary": "Suspend an endpoint",
-                "description": "Suspend the specified endpoint\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor more information about endpoints, see [Manage endpoints](https://neon.tech/docs/manage/endpoints/).\n",
+                "summary": "Suspend a compute endpoint",
+                "description": "Suspend the specified compute endpoint\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
                 "tags": [
                     "Endpoint"
                 ],
@@ -2857,8 +2858,8 @@
         },
         "/consumption/projects": {
             "get": {
-                "summary": "Retrieves a list consumption metrics for each project",
-                "description": "Retrieves a list consumption metrics for each project for the current billing period.\n",
+                "summary": "Get project consumption metrics",
+                "description": "Retrieves consumption metrics for each project for the current billing period.\nFor usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -2866,7 +2867,7 @@
                 "parameters": [
                     {
                         "name": "cursor",
-                        "description": "Specify the cursor value from the previous response to get the next batch of projects.",
+                        "description": "Specify the cursor value from the previous response to get the next batch of projects",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -2874,7 +2875,7 @@
                     },
                     {
                         "name": "limit",
-                        "description": "Specify a value from 1 to 1000 to limit number of projects in the response.",
+                        "description": "Specify a value from 1 to 1000 to limit number of projects in the response",
                         "in": "query",
                         "schema": {
                             "type": "integer",
@@ -2885,7 +2886,7 @@
                     },
                     {
                         "name": "from",
-                        "description": "Specify the start date-time for the consumption period.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
+                        "description": "Specify the start date-time for the consumption period.\nThe time value must be provided in ISO 8601 format.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -2894,7 +2895,7 @@
                     },
                     {
                         "name": "to",
-                        "description": "Specify the end date-time period for the consumption period.\nIf `from` or `to` is not specified, only the current consumption period is returned.\n",
+                        "description": "Specify the end date-time period for the consumption period.\nThe time value must be provided in ISO 8601 format.\nIf `from` or `to` is not specified, only the current consumption period is returned.\n",
                         "in": "query",
                         "schema": {
                             "type": "string",
@@ -4031,7 +4032,8 @@
                             "cpu_seconds",
                             "max_active_endpoints",
                             "max_read_only_endpoints",
-                            "max_allowed_ips"
+                            "max_allowed_ips",
+                            "max_monitoring_retention_hours"
                         ],
                         "properties": {
                             "active_time": {
@@ -4059,6 +4061,9 @@
                                 "type": "integer"
                             },
                             "max_allowed_ips": {
+                                "type": "integer"
+                            },
+                            "max_monitoring_retention_hours": {
                                 "type": "integer"
                             }
                         }
@@ -4134,7 +4139,7 @@
                     },
                     "cpu_used_sec": {
                         "deprecated": true,
-                        "description": "CPU seconds used by all the endpoints of the branch, including deleted ones.\nThis value is reset at the beginning of each billing period.\nExamples:\n1. A branch that uses 1 CPU for 1 second is equal to `cpu_used_sec=1`.\n2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.\n",
+                        "description": "CPU seconds used by all of the branch's compute endpoints, including deleted ones.\nThis value is reset at the beginning of each billing period.\nExamples:\n1. A branch that uses 1 CPU for 1 second is equal to `cpu_used_sec=1`.\n2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.\n",
                         "type": "integer",
                         "format": "int64"
                     },
@@ -4242,7 +4247,7 @@
                                 "type": "string"
                             },
                             "parent_timestamp": {
-                                "description": "A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.\n",
+                                "description": "A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.\nThe timestamp must be provided in ISO 8601 format; for example: `2024-02-26T12:00:00Z`.\n",
                                 "type": "string",
                                 "format": "date-time"
                             },
@@ -4288,7 +4293,7 @@
                         "type": "string"
                     },
                     "source_timestamp": {
-                        "description": "A timestamp identifies a point in time on the source branch. The branch will be restored with data starting from this point in time.\n",
+                        "description": "A timestamp identifying a point in time on the source branch. The branch will be restored with data starting from this point in time.\nThe timestamp must be provided in ISO 8601 format; for example: `2024-02-26T12:00:00Z`.\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -4342,23 +4347,23 @@
                 ],
                 "properties": {
                     "database": {
-                        "description": "Database name.\n",
+                        "description": "Database name\n",
                         "type": "string"
                     },
                     "password": {
-                        "description": "Password for the role.\n",
+                        "description": "Password for the role\n",
                         "type": "string"
                     },
                     "role": {
-                        "description": "Role name.\n",
+                        "description": "Role name\n",
                         "type": "string"
                     },
                     "host": {
-                        "description": "Host name.\n",
+                        "description": "Hostname\n",
                         "type": "string"
                     },
                     "pooler_host": {
-                        "description": "Pooler host name.\n",
+                        "description": "Pooler hostname\n",
                         "type": "string"
                     }
                 }
@@ -4371,7 +4376,7 @@
                 ],
                 "properties": {
                     "connection_uri": {
-                        "description": "Connection URI is same as specified in https://www.postgresql.org/docs/current/libpq-connect.html#id-1.7.3.8.3.6\nIt is a ready to use string for psql or for DATABASE_URL environment variable.\n",
+                        "description": "The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)\nThe connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable.\n",
                         "type": "string"
                     },
                     "connection_parameters": {
@@ -4386,7 +4391,7 @@
                 ],
                 "properties": {
                     "uri": {
-                        "description": "The postgres connection URI.\n",
+                        "description": "The connection URI.\n",
                         "type": "string"
                     }
                 }
@@ -4558,7 +4563,7 @@
                 "maximum": 604800
             },
             "AllowedIps": {
-                "description": "A list of IP addresses that are allowed to connect to the endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
+                "description": "A list of IP addresses that are allowed to connect to the compute endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
                 "type": "object",
                 "required": [
                     "primary_branch_only"
@@ -5226,17 +5231,6 @@
                     }
                 }
             },
-            "InvitationResponse": {
-                "type": "object",
-                "required": [
-                    "invitation"
-                ],
-                "properties": {
-                    "invitation": {
-                        "$ref": "#/components/schemas/Invitation"
-                    }
-                }
-            },
             "MemberRole": {
                 "description": "The role of the organization member",
                 "type": "string",
@@ -5274,14 +5268,37 @@
                     }
                 }
             },
-            "MemberResponse": {
+            "MemberUserInfo": {
                 "type": "object",
                 "required": [
-                    "member"
+                    "email",
+                    "name",
+                    "last_name"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MemberWithUser": {
+                "type": "object",
+                "required": [
+                    "member",
+                    "user"
                 ],
                 "properties": {
                     "member": {
                         "$ref": "#/components/schemas/Member"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/MemberUserInfo"
                     }
                 }
             },
@@ -5337,6 +5354,36 @@
                     }
                 }
             },
+            "OrganizationInviteCreateRequest": {
+                "type": "object",
+                "required": [
+                    "email",
+                    "role"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "$ref": "#/components/schemas/MemberRole"
+                    }
+                }
+            },
+            "OrganizationInvitesCreateRequest": {
+                "type": "object",
+                "required": [
+                    "invitations"
+                ],
+                "properties": {
+                    "invitations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrganizationInviteCreateRequest"
+                        }
+                    }
+                }
+            },
             "OrganizationInviteUpdateRequest": {
                 "type": "object",
                 "properties": {
@@ -5346,6 +5393,30 @@
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
+                    },
+                    "resend": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "OrganizationGuestsResponse": {
+                "description": "A list of details for guests of an organisation",
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {
+                            "type": "string"
+                        },
+                        "user_email": {
+                            "type": "string"
+                        },
+                        "project_id": {
+                            "type": "string"
+                        },
+                        "project_name": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -5369,7 +5440,7 @@
                     "members": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/Member"
+                            "$ref": "#/components/schemas/MemberWithUser"
                         }
                     }
                 }
@@ -5685,7 +5756,7 @@
                 }
             },
             "PgSettingsData": {
-                "description": "A raw representation of PostgreSQL settings",
+                "description": "A raw representation of Postgres settings",
                 "type": "object",
                 "additionalProperties": {
                     "type": "string"
@@ -5699,7 +5770,7 @@
                 }
             },
             "PgVersion": {
-                "description": "The major PostgreSQL version number. Currently supported versions are `14`, `15` and `16`.",
+                "description": "The major Postgres version number. Currently supported versions are `14`, `15`, and `16`.",
                 "type": "integer",
                 "minimum": 14,
                 "maximum": 16,
