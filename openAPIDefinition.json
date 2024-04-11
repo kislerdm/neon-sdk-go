@@ -260,7 +260,7 @@
                 "parameters": [
                     {
                         "name": "cursor",
-                        "description": "Specify the cursor value from the previous response to get the next batch of projects.",
+                        "description": "Specify the cursor value from the previous response to retrieve the next batch of projects.",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -279,7 +279,15 @@
                     },
                     {
                         "name": "search",
-                        "description": "Search query by name or id.",
+                        "description": "Search by project `name` or `id`. You can specify partial `name` or `id` values to filter results.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "org_id",
+                        "description": "Search for projects by `org_id` (Comming soon).",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -337,7 +345,8 @@
                                             "creation_source": "console",
                                             "store_passwords": true,
                                             "branch_logical_size_limit_bytes": 10800,
-                                            "active_time": 100
+                                            "active_time": 100,
+                                            "org_id": "org-morning-bread-81040908"
                                         }
                                     ]
                                 }
@@ -2856,6 +2865,104 @@
                 }
             }
         },
+        "/projects/{project_id}/endpoints/{endpoint_id}/restart": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "endpoint_id",
+                    "in": "path",
+                    "description": "The endpoint ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "post": {
+                "summary": "Restart a compute endpoint",
+                "description": "Restart the specified compute endpoint: suspend immediately followed by start operations.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain an `endpoint_id` by listing your project's compute endpoints.\nAn `endpoint_id` has an `ep-` prefix.\nFor information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).\n",
+                "tags": [
+                    "Endpoint"
+                ],
+                "operationId": "restartProjectEndpoint",
+                "responses": {
+                    "200": {
+                        "description": "Restarted endpoint",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EndpointOperations"
+                                },
+                                "example": {
+                                    "endpoint": {
+                                        "host": "ep-steep-bush-777093.us-east-2.aws.neon.tech",
+                                        "id": "ep-steep-bush-777093",
+                                        "project_id": "shiny-wind-028834",
+                                        "branch_id": "br-raspy-hill-832856",
+                                        "autoscaling_limit_min_cu": 1,
+                                        "autoscaling_limit_max_cu": 1,
+                                        "region_id": "aws-us-east-2",
+                                        "type": "read_write",
+                                        "current_state": "idle",
+                                        "settings": {
+                                            "pg_settings": {}
+                                        },
+                                        "pooler_enabled": false,
+                                        "pooler_mode": "transaction",
+                                        "disabled": false,
+                                        "passwordless_access": true,
+                                        "last_active": "2022-12-03T15:00:00Z",
+                                        "created_at": "2022-12-03T15:37:07Z",
+                                        "updated_at": "2022-12-03T15:49:10Z",
+                                        "proxy_host": "us-east-2.aws.neon.tech",
+                                        "creation_source": "console",
+                                        "provisioner": "k8s-pod",
+                                        "suspend_timeout_seconds": 10800
+                                    },
+                                    "operations": [
+                                        {
+                                            "id": "e061087e-3c99-4856-b9c8-6b7751a253af",
+                                            "project_id": "bitter-meadow-966132",
+                                            "branch_id": "br-proud-paper-090813",
+                                            "endpoint_id": "ep-shrill-thunder-454069",
+                                            "action": "suspend_compute",
+                                            "status": "running",
+                                            "failures_count": 0,
+                                            "created_at": "2022-12-03T15:51:06Z",
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
+                                        },
+                                        {
+                                            "id": "e061087e-3c99-4856-b9c8-6b7751a253af",
+                                            "project_id": "bitter-meadow-966132",
+                                            "branch_id": "br-proud-paper-090813",
+                                            "endpoint_id": "ep-shrill-thunder-454069",
+                                            "action": "start_compute",
+                                            "status": "running",
+                                            "failures_count": 0,
+                                            "created_at": "2022-12-03T15:51:06Z",
+                                            "updated_at": "2022-12-03T15:51:06Z",
+                                            "total_duration_ms": 100
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/consumption/projects": {
             "get": {
                 "summary": "Get project consumption metrics",
@@ -3067,6 +3174,82 @@
             }
         },
         "schemas": {
+            "GithubAppRepository": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the repository"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the repository"
+                    }
+                }
+            },
+            "GithubAppProjectResponse": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "The ID of the project"
+                    },
+                    "installation_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the GitHub App installation"
+                    },
+                    "repositories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GithubAppRepository"
+                        },
+                        "description": "The list of repositories associated with the GitHub App"
+                    },
+                    "current_repository": {
+                        "type": "string",
+                        "description": "The current repository associated with the GitHub App"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The timestamp when the GitHub App was created"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The timestamp when the GitHub App was last updated"
+                    },
+                    "current_repository_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "The ID of the current repository associated with the GitHub App"
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "The neon database role"
+                    },
+                    "db": {
+                        "type": "string",
+                        "description": "The neon database name"
+                    }
+                }
+            },
+            "RepositoryUpdateRequest": {
+                "type": "object",
+                "required": [
+                    "repository_id"
+                ],
+                "properties": {
+                    "repository_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 1,
+                        "description": "The ID of the GitHub repository"
+                    }
+                }
+            },
             "ComputeUnit": {
                 "type": "number",
                 "minimum": 0.25
@@ -3487,6 +3670,10 @@
                         "description": "The most recent time when any endpoint of this project was active.\n\nOmitted when observed no actitivy for endpoints of this project.\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "org_id": {
+                        "type": "string",
+                        "description": "Organization id if a project belongs to organization.\nPermissions for the project will be given to organization members as defined by the organization admins.\nThe permissions of the project do not depend on the user that created the project if a project belongs to an organization.\n"
                     }
                 },
                 "example": {
@@ -3625,7 +3812,7 @@
                     "history_retention_seconds": {
                         "description": "The number of seconds to retain point-in-time restore (PITR) backup history for this project.\n",
                         "type": "integer",
-                        "format": "int64"
+                        "format": "int32"
                     },
                     "created_at": {
                         "description": "A timestamp indicating when the project was created\n",
@@ -3668,6 +3855,9 @@
                         "description": "The most recent time when any endpoint of this project was active.\n\nOmitted when observed no actitivy for endpoints of this project.\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "org_id": {
+                        "type": "string"
                     }
                 },
                 "example": {
@@ -3687,7 +3877,8 @@
                         "email": "some@email.com",
                         "branches_limit": 10,
                         "subscription_type": "pro"
-                    }
+                    },
+                    "org_id": "org-morning-bread-81040908"
                 }
             },
             "ProjectCreateRequest": {
@@ -3753,9 +3944,13 @@
                             "history_retention_seconds": {
                                 "description": "The number of seconds to retain the point-in-time restore (PITR) backup history for this project.\nThe default is 604800 seconds (7 days).\n",
                                 "type": "integer",
-                                "format": "int64",
+                                "format": "int32",
                                 "minimum": 0,
                                 "maximum": 2592000
+                            },
+                            "org_id": {
+                                "type": "string",
+                                "description": "Organization id in case the project created belongs to an organization.\nIf not present, project is owned by a user and not by org.\n"
                             }
                         }
                     }
@@ -3783,7 +3978,7 @@
                             "history_retention_seconds": {
                                 "description": "The number of seconds to retain the point-in-time restore (PITR) backup history for this project.\nThe default is 604800 seconds (7 days).\n",
                                 "type": "integer",
-                                "format": "int64",
+                                "format": "int32",
                                 "minimum": 0,
                                 "maximum": 2592000
                             }
@@ -4504,6 +4699,10 @@
                     },
                     "provisioner": {
                         "$ref": "#/components/schemas/Provisioner"
+                    },
+                    "compute_release_version": {
+                        "description": "Attached compute's release version number.\n",
+                        "type": "string"
                     }
                 },
                 "example": {
@@ -4563,11 +4762,8 @@
                 "maximum": 604800
             },
             "AllowedIps": {
-                "description": "A list of IP addresses that are allowed to connect to the compute endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf primary_branch_only is true, the list will be applied only to the primary branch.\n",
+                "description": "A list of IP addresses that are allowed to connect to the compute endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf protected_branches_only is true, the list will be applied only to protected branches.\n",
                 "type": "object",
-                "required": [
-                    "primary_branch_only"
-                ],
                 "properties": {
                     "ips": {
                         "description": "A list of IP addresses that are allowed to connect to the endpoint.",
@@ -4575,6 +4771,10 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "protected_branches_only": {
+                        "description": "If true, the list will be applied only to protected branches.",
+                        "type": "boolean"
                     },
                     "primary_branch_only": {
                         "description": "If true, the list will be applied only to the primary branch.",
@@ -5043,6 +5243,10 @@
                             "email": {
                                 "description": "Billing email, to receive emails related to invoices and subscriptions.\n",
                                 "type": "string"
+                            },
+                            "org_id": {
+                                "type": "string",
+                                "description": "Organization id, to update the billing email of the organization account.\n"
                             }
                         }
                     }
@@ -5213,7 +5417,7 @@
                         "format": "email"
                     },
                     "org_id": {
-                        "description": "Organization uuid as it is stored in Neon",
+                        "description": "Organization id as it is stored in Neon",
                         "type": "string"
                     },
                     "invited_by": {
@@ -5307,6 +5511,7 @@
                 "required": [
                     "id",
                     "name",
+                    "handle",
                     "created_at",
                     "updated_at"
                 ],
@@ -5315,6 +5520,9 @@
                         "type": "string"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "handle": {
                         "type": "string"
                     },
                     "created_at": {
@@ -5326,6 +5534,20 @@
                         "description": "A timestamp indicating when the organization was updated\n",
                         "type": "string",
                         "format": "date-time"
+                    }
+                }
+            },
+            "OrganizationsResponse": {
+                "type": "object",
+                "required": [
+                    "organizations"
+                ],
+                "properties": {
+                    "organizations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Organization"
+                        }
                     }
                 }
             },
@@ -5400,23 +5622,33 @@
                 }
             },
             "OrganizationGuestsResponse": {
-                "description": "A list of details for guests of an organisation",
+                "description": "A list of details for guests of an organisation\n",
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "user_id": {
-                            "type": "string"
-                        },
-                        "user_email": {
-                            "type": "string"
-                        },
-                        "project_id": {
-                            "type": "string"
-                        },
-                        "project_name": {
-                            "type": "string"
-                        }
+                    "$ref": "#/components/schemas/OrganizationGuest"
+                }
+            },
+            "OrganizationGuest": {
+                "description": "Details of an organisation guest, who is not directly a member of\nan organisation but has been shared one of the projects it owns\n",
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "user_email",
+                    "project_id",
+                    "project_name"
+                ],
+                "properties": {
+                    "user_id": {
+                        "type": "string"
+                    },
+                    "user_email": {
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "type": "string"
+                    },
+                    "project_name": {
+                        "type": "string"
                     }
                 }
             },
@@ -5486,6 +5718,70 @@
                     },
                     "subscription_type": {
                         "$ref": "#/components/schemas/BillingSubscriptionType"
+                    }
+                }
+            },
+            "OrganizationLimits": {
+                "type": "object",
+                "required": [
+                    "limits"
+                ],
+                "properties": {
+                    "limits": {
+                        "type": "object",
+                        "required": [
+                            "active_time",
+                            "max_projects",
+                            "max_branches",
+                            "max_autoscaling_cu",
+                            "cpu_seconds",
+                            "max_active_endpoints",
+                            "max_read_only_endpoints",
+                            "max_allowed_ips",
+                            "max_monitoring_retention_hours",
+                            "max_history_retention_seconds",
+                            "max_compute_time_non_primary"
+                        ],
+                        "properties": {
+                            "active_time": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "max_projects": {
+                                "type": "integer"
+                            },
+                            "max_branches": {
+                                "type": "integer"
+                            },
+                            "max_autoscaling_cu": {
+                                "type": "number",
+                                "format": "float64"
+                            },
+                            "cpu_seconds": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "max_active_endpoints": {
+                                "type": "integer"
+                            },
+                            "max_read_only_endpoints": {
+                                "type": "integer"
+                            },
+                            "max_allowed_ips": {
+                                "type": "integer"
+                            },
+                            "max_monitoring_retention_hours": {
+                                "type": "integer"
+                            },
+                            "max_history_retention_seconds": {
+                                "type": "integer",
+                                "format": "int32"
+                            },
+                            "max_compute_time_non_primary": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
                     }
                 }
             },

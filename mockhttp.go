@@ -36,7 +36,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects": {
 		"GET": mockResponse{
-			Content: `{"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
+			Content: `{"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","org_id":"org-morning-bread-81040908","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -429,6 +429,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 		"PATCH": mockResponse{
 			Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"fd11748e-3c68-458f-b9e3-66d409e3eef0","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/endpoints/{endpoint_id}/restart": {
+		"POST": mockResponse{
+			Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","creation_source":"console","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"suspend_timeout_seconds":10800,"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"e061087e-3c99-4856-b9c8-6b7751a253af","project_id":"bitter-meadow-966132","status":"running","total_duration_ms":100,"updated_at":"2022-12-03T15:51:06Z"},{"action":"start_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"e061087e-3c99-4856-b9c8-6b7751a253af","project_id":"bitter-meadow-966132","status":"running","total_duration_ms":100,"updated_at":"2022-12-03T15:51:06Z"}]}`,
 			Code:    200,
 		},
 	},

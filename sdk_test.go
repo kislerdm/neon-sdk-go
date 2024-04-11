@@ -683,6 +683,7 @@ func Test_client_ListProjects(t *testing.T) {
 		cursor *string
 		limit  *int
 		search *string
+		orgID  *string
 	}
 	tests := []struct {
 		name    string
@@ -697,6 +698,7 @@ func Test_client_ListProjects(t *testing.T) {
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
 				search: createPointer("foo"),
+				orgID:  createPointer("foo"),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects"]["GET"].Content),
@@ -708,6 +710,7 @@ func Test_client_ListProjects(t *testing.T) {
 				cursor: createPointer("foo"),
 				limit:  createPointer(1),
 				search: createPointer("foo"),
+				orgID:  createPointer("foo"),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListProjectsRespObj{},
@@ -721,7 +724,7 @@ func Test_client_ListProjects(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListProjects(tt.args.cursor, tt.args.limit, tt.args.search)
+				got, err := c.ListProjects(tt.args.cursor, tt.args.limit, tt.args.search, tt.args.orgID)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjects() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -2750,6 +2753,66 @@ func Test_client_SuspendProjectEndpoint(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("SuspendProjectEndpoint() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_RestartProjectEndpoint(t *testing.T) {
+	deserializeResp := func(s string) EndpointOperations {
+		var v EndpointOperations
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID  string
+		endpointID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    EndpointOperations
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:  "foo",
+				endpointID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/endpoints/{endpoint_id}/restart"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:  "foo",
+				endpointID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    EndpointOperations{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.RestartProjectEndpoint(tt.args.projectID, tt.args.endpointID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("RestartProjectEndpoint() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("RestartProjectEndpoint() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
