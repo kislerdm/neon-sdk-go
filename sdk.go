@@ -158,7 +158,7 @@ func (c Client) GetProjectOperation(projectID string, operationID string) (Opera
 // ListProjects Retrieves a list of projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c Client) ListProjects(cursor *string, limit *int, search *string) (ListProjectsRespObj, error) {
+func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *string) (ListProjectsRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -171,6 +171,9 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string) (ListPr
 	}
 	if search != nil {
 		queryElements = append(queryElements, "search="+*search)
+	}
+	if orgID != nil {
+		queryElements = append(queryElements, "orgID="+*orgID)
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
@@ -707,6 +710,19 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 	return v, nil
 }
 
+// RestartProjectEndpoint Restart the specified compute endpoint: suspend immediately followed by start operations.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain an `endpoint_id` by listing your project's compute endpoints.
+// An `endpoint_id` has an `ep-` prefix.
+// For information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).
+func (c Client) RestartProjectEndpoint(projectID string, endpointID string) (EndpointOperations, error) {
+	var v EndpointOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/restart", "POST", nil, &v); err != nil {
+		return EndpointOperations{}, err
+	}
+	return v, nil
+}
+
 // ListProjectsConsumption Retrieves consumption metrics for each project for the current billing period.
 // For usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).
 func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time) (ListProjectsConsumptionRespObj, error) {
@@ -747,12 +763,14 @@ func (c Client) GetCurrentUserInfo() (CurrentUserInfoResponse, error) {
 
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
 // If the list is empty or not set, all IP addresses are allowed.
-// If primary_branch_only is true, the list will be applied only to the primary branch.
+// If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
 	Ips *[]string `json:"ips,omitempty"`
 	// PrimaryBranchOnly If true, the list will be applied only to the primary branch.
-	PrimaryBranchOnly bool `json:"primary_branch_only"`
+	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty"`
+	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
+	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
 }
 
 type ApiKeyCreateRequest struct {
@@ -1076,6 +1094,8 @@ type Endpoint struct {
 	AutoscalingLimitMinCu ComputeUnit `json:"autoscaling_limit_min_cu"`
 	// BranchID The ID of the branch that the compute endpoint is associated with
 	BranchID string `json:"branch_id"`
+	// ComputeReleaseVersion Attached compute's release version number.
+	ComputeReleaseVersion *string `json:"compute_release_version,omitempty"`
 	// CreatedAt A timestamp indicating when the compute endpoint was created
 	CreatedAt time.Time `json:"created_at"`
 	// CreationSource The compute endpoint creation source
@@ -1335,13 +1355,14 @@ type Project struct {
 	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain point-in-time restore (PITR) backup history for this project.
-	HistoryRetentionSeconds int64 `json:"history_retention_seconds"`
+	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
 	ID string `json:"id"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
 	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
 	// Name The project name
 	Name      string            `json:"name"`
+	OrgID     *string           `json:"org_id,omitempty"`
 	Owner     *ProjectOwnerData `json:"owner,omitempty"`
 	OwnerID   string            `json:"owner_id"`
 	PgVersion PgVersion         `json:"pg_version"`
@@ -1427,9 +1448,12 @@ type ProjectCreateRequestProject struct {
 	DefaultEndpointSettings *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
 	// The default is 604800 seconds (7 days).
-	HistoryRetentionSeconds *int64 `json:"history_retention_seconds,omitempty"`
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// Name The project name
-	Name        *string      `json:"name,omitempty"`
+	Name *string `json:"name,omitempty"`
+	// OrgID Organization id in case the project created belongs to an organization.
+	// If not present, project is owned by a user and not by org.
+	OrgID       *string      `json:"org_id,omitempty"`
 	PgVersion   *PgVersion   `json:"pg_version,omitempty"`
 	Provisioner *Provisioner `json:"provisioner,omitempty"`
 	// RegionID The region identifier. Refer to our [Regions](https://neon.tech/docs/introduction/regions) documentation for supported regions. Values are specified in this format: `aws-us-east-1`
@@ -1472,7 +1496,11 @@ type ProjectListItem struct {
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
 	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
 	// Name The project name
-	Name      string    `json:"name"`
+	Name string `json:"name"`
+	// OrgID Organization id if a project belongs to organization.
+	// Permissions for the project will be given to organization members as defined by the organization admins.
+	// The permissions of the project do not depend on the user that created the project if a project belongs to an organization.
+	OrgID     *string   `json:"org_id,omitempty"`
 	OwnerID   string    `json:"owner_id"`
 	PgVersion PgVersion `json:"pg_version"`
 	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
@@ -1557,7 +1585,7 @@ type ProjectUpdateRequestProject struct {
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
 	// The default is 604800 seconds (7 days).
-	HistoryRetentionSeconds *int64 `json:"history_retention_seconds,omitempty"`
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// Name The project name
 	Name     *string              `json:"name,omitempty"`
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
