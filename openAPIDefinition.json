@@ -4223,6 +4223,7 @@
                             "active_time",
                             "max_projects",
                             "max_branches",
+                            "max_protected_branches",
                             "max_autoscaling_cu",
                             "cpu_seconds",
                             "max_active_endpoints",
@@ -4239,6 +4240,9 @@
                                 "type": "integer"
                             },
                             "max_branches": {
+                                "type": "integer"
+                            },
+                            "max_protected_branches": {
                                 "type": "integer"
                             },
                             "max_autoscaling_cu": {
@@ -5632,13 +5636,13 @@
                 "description": "Details of an organisation guest, who is not directly a member of\nan organisation but has been shared one of the projects it owns\n",
                 "type": "object",
                 "required": [
-                    "user_id",
+                    "permission_id",
                     "user_email",
                     "project_id",
                     "project_name"
                 ],
                 "properties": {
-                    "user_id": {
+                    "permission_id": {
                         "type": "string"
                     },
                     "user_email": {
