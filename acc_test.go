@@ -67,7 +67,7 @@ func TestSmoke(t *testing.T) {
 				)
 			}
 
-			if !reflect.DeepEqual(*project.Settings.AllowedIps.Ips, []string{}) || project.Settings.AllowedIps.PrimaryBranchOnly {
+			if !reflect.DeepEqual(*project.Settings.AllowedIps.Ips, []string{}) || *project.Settings.AllowedIps.PrimaryBranchOnly {
 				t.Errorf("unexpected project's allowed IPs: %v", *project.Settings.AllowedIps.Ips)
 			}
 		},
