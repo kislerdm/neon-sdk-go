@@ -104,6 +104,11 @@ func Run(cfg Config) error {
 			return err
 		}
 	}
+
+	if os.Getenv("SKIP_TEST") == "1" {
+		return nil
+	}
+
 	return testGeneratedCode(cfg.PathOutput)
 }
 
@@ -917,14 +922,14 @@ func (e endpointImplementation) generateQueryBuilder() string {
 	o += "\t)\n"
 
 	for _, p := range filterRequiredParameters(e.RequestParametersQuery) {
-		queryElement := `"` + p.canonicalName() + "=\" + " + p.routeElement()
+		queryElement := `"` + p.name() + "=\"+" + p.routeElement()
 		o += "\tqueryElements = append(queryElements, " + queryElement + ")\n"
 	}
 
 	for _, p := range filterOptionalParameters(e.RequestParametersQuery) {
 		optionalCondition := p.canonicalName() + " != nil "
 		ifStatement := "\tif " + optionalCondition + "{\n"
-		queryElement := `"` + p.canonicalName() + "=\" + " + p.routeElement(true)
+		queryElement := `"` + p.name() + "=\"+" + p.routeElement(true)
 		o += ifStatement + "\t\tqueryElements = append(queryElements, " + queryElement + ")\n"
 		o += "\t}\n"
 	}
@@ -1015,6 +1020,10 @@ func (v *field) setRequired(b bool) {
 
 func (v *field) setDescription(s string) {
 	v.description = s
+}
+
+func (v field) name() string {
+	return v.k
 }
 
 func (v field) canonicalName() string {

@@ -170,19 +170,30 @@ func Test_endpointImplementation_generateMethodImplementation(t *testing.T) {
 						isInPath:    false,
 						isInQuery:   true,
 					},
+					{
+						k:           "org_id",
+						v:           "string",
+						description: "Search for projects by org_id",
+						required:    false,
+						isInPath:    false,
+						isInQuery:   true,
+					},
 				},
 			},
 			want: `// ListProjects Retrieves a list of projects for the Neon account
-func (c Client) ListProjects(cursor *string, limit *int) (ListProjectsResponse, error) {
+func (c Client) ListProjects(cursor *string, limit *int, orgID *string) (ListProjectsResponse, error) {
 	var (
 		queryElements []string
 		query string
 	)
 	if cursor != nil {
-		queryElements = append(queryElements, "cursor=" + *cursor)
+		queryElements = append(queryElements, "cursor="+*cursor)
 	}
 	if limit != nil {
-		queryElements = append(queryElements, "limit=" + strconv.FormatInt(int64(*limit), 10))
+		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
+	}
+	if orgID != nil {
+		queryElements = append(queryElements, "org_id="+*orgID)
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")

@@ -28,7 +28,7 @@
         - [Custom HTTP Client](#custom-http-client)
         - [Mock](#mock)
 - [Development](#development)
-  + [Commands](#commands)
+    + [Commands](#commands)
 - [Contribution](#contribution)
 
 The SDK to manage [Neon Platform](https://neon.tech) programmatically.
@@ -66,7 +66,7 @@ Where `{{.Ver}}` is the release version.
 
 ### Default HTTP Client
 
-The following snippet demonstrates how to initialize SDK which will use default HTTP client. 
+The following snippet demonstrates how to initialize SDK which will use default HTTP client.
 
 ```go
 package main
@@ -176,6 +176,12 @@ file [`openAPIDefinition.json`](openAPIDefinition.json):
 
 ```commandline
 make generate-sdk
+```
+
+Set the flag `SKIP_TEST=1` to generate the codebase without running the unit tests afterward:
+
+```commandline
+SKIP_TEST=1 make generate-sdk
 ```
 
 Run to customise the locations:
