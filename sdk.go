@@ -173,7 +173,7 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 		queryElements = append(queryElements, "search="+*search)
 	}
 	if orgID != nil {
-		queryElements = append(queryElements, "orgID="+*orgID)
+		queryElements = append(queryElements, "org_id="+*orgID)
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
@@ -324,13 +324,13 @@ func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID 
 		queryElements []string
 		query         string
 	)
-	queryElements = append(queryElements, "databaseName="+databaseName)
-	queryElements = append(queryElements, "roleName="+roleName)
+	queryElements = append(queryElements, "database_name="+databaseName)
+	queryElements = append(queryElements, "role_name="+roleName)
 	if branchID != nil {
-		queryElements = append(queryElements, "branchID="+*branchID)
+		queryElements = append(queryElements, "branch_id="+*branchID)
 	}
 	if endpointID != nil {
-		queryElements = append(queryElements, "endpointID="+*endpointID)
+		queryElements = append(queryElements, "endpoint_id="+*endpointID)
 	}
 	if pooled != nil {
 		queryElements = append(queryElements, "pooled="+func(pooled bool) string {
