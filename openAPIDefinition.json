@@ -3547,10 +3547,14 @@
                 "description": "The status of the operation",
                 "type": "string",
                 "enum": [
+                    "scheduling",
                     "running",
                     "finished",
                     "failed",
-                    "scheduling"
+                    "error",
+                    "cancelling",
+                    "cancelled",
+                    "skipped"
                 ]
             },
             "ProjectListItem": {
@@ -4229,7 +4233,8 @@
                             "max_active_endpoints",
                             "max_read_only_endpoints",
                             "max_allowed_ips",
-                            "max_monitoring_retention_hours"
+                            "max_monitoring_retention_hours",
+                            "min_autosuspend_seconds"
                         ],
                         "properties": {
                             "active_time": {
@@ -4263,6 +4268,9 @@
                                 "type": "integer"
                             },
                             "max_monitoring_retention_hours": {
+                                "type": "integer"
+                            },
+                            "min_autosuspend_seconds": {
                                 "type": "integer"
                             }
                         }
