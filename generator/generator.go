@@ -117,8 +117,8 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 		panic("no server spec found")
 	}
 
-	endpoints := generateEndpointsImplementationMethods(spec, orderedEndpointRoutes)
 	m := generateModels(spec)
+	endpoints := generateEndpointsImplementationMethods(spec, orderedEndpointRoutes)
 
 	endpointsStr := make([]string, len(endpoints))
 	endpointsTestStr := make([]string, 0, len(endpoints))
@@ -1173,6 +1173,7 @@ type model struct {
 	primitive         fieldType
 	name, description string
 	generated         bool
+	isEnum            bool
 }
 
 func (m *model) setPrimitiveType(t fieldType) {
@@ -1184,6 +1185,10 @@ func (m *model) setDescription(s string) {
 }
 
 func (m model) generateCode() string {
+	if m.isEnum {
+		return m.generateCodeEnum()
+	}
+
 	k := m.name
 	if m.primitive.name != "" {
 		return m.docString() + "type " + k + " " + m.primitive.argType()
@@ -1247,6 +1252,17 @@ func (m model) orderedFieldNames() []string {
 	return o
 }
 
+func (m model) generateCodeEnum() string {
+	tmp := m.docString() + "type " + m.name + " string\n\n"
+	tmp += "const (\n"
+	for child, _ := range m.children {
+		enumOption := strings.ToUpper(child[:1]) + child[1:]
+		tmp += m.name + enumOption + " " + m.name + " = \"" + child + "\"\n"
+	}
+	tmp += ")"
+	return tmp
+}
+
 func docString(name string, description string) string {
 	o := ""
 	for i, s := range strings.Split(strings.TrimRight(description, "\n"), "\n") {
@@ -1302,7 +1318,6 @@ func generateEndpointsImplementationMethods(
 				Route:       route,
 				Description: ops.Description,
 			}
-
 			// read common parameters for all methods
 			pp := p.Parameters
 			pp = append(pp, ops.Parameters...)
@@ -1359,12 +1374,20 @@ func extractParameters(params openapi3.Parameters) []field {
 	for i, p := range params {
 		o[i] = field{
 			k:           p.Value.Name,
-			v:           p.Value.Schema.Value.Type,
 			description: p.Value.Description,
-			format:      p.Value.Schema.Value.Format,
 			required:    p.Value.Required,
 			isInPath:    p.Value.In == openapi3.ParameterInPath,
 			isInQuery:   p.Value.In == openapi3.ParameterInQuery,
+		}
+		if p.Value.Schema != nil {
+			o[i] = field{
+				v:      p.Value.Schema.Value.Type,
+				format: p.Value.Schema.Value.Format,
+			}
+		} else {
+			//	read from schema
+			//	TODO: implement schema as part of the models
+
 		}
 	}
 	return o

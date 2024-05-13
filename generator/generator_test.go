@@ -292,6 +292,58 @@ func (c Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error)
 	return v, nil
 }`,
 		},
+		{
+			name: "shall generate a method with generics to accept enums",
+			fields: fields{
+				Name:           "GetConsumptionHistoryPerAccount",
+				Method:         "GET",
+				Route:          "/consumption_history/account",
+				Description:    "Retrieves consumption metrics for Scale plan accounts. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+				ResponseStruct: &model{name: "ConsumptionHistoryPerAccountResponse"},
+				RequestParametersQuery: []field{
+					{
+						k:         "from",
+						v:         "string",
+						format:    "date-time",
+						required:  true,
+						isInQuery: true,
+					},
+					{
+						k:         "to",
+						v:         "string",
+						format:    "date-time",
+						required:  true,
+						isInQuery: true,
+					},
+					{
+						k:           "granularity",
+						v:           "ConsumptionHistoryGranularity",
+						description: "Specify the granularity of consumption metrics.\nHourly, daily, and monthly metrics are available for the last 168 hours, 60 days,\nand 1 year, respectively.\n",
+						required:    true,
+						isInQuery:   true,
+					},
+				},
+			},
+			want: `// GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale plan accounts. History begins at the time of upgrade.
+// Available for Scale plan users only.
+func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, granularity ConsumptionHistoryGranularity) (ConsumptionHistoryPerAccountResponse, error) {
+	var (
+		queryElements []string
+		query string
+	)
+	queryElements = append(queryElements, "from="+from.Format(time.RFC3339))
+	queryElements = append(queryElements, "to="+to.Format(time.RFC3339))
+	queryElements = append(queryElements, "granularity="+granularity)
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v ConsumptionHistoryPerAccountResponse
+	if err := c.requestHandler(c.baseURL+"/consumption_history/account" + query, "GET", nil, &v); err != nil {
+		return ConsumptionHistoryPerAccountResponse{}, err
+	}
+	return v, nil
+}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -1164,6 +1216,30 @@ FooResponse
 // bar
 // qux
 type Foo string`,
+			},
+		},
+		{
+			name: "shall generate an enum",
+			v: models{
+				"ConsumptionHistoryGranularity": {
+					children: map[string]struct{}{
+						"hourly": {}, "daily": {}, "monthly": {},
+					},
+					primitive: fieldType{
+						name: "string",
+					},
+					name:   "ConsumptionHistoryGranularity",
+					isEnum: true,
+				},
+			},
+			want: []string{
+				`type ConsumptionHistoryGranularity string
+
+const (
+ConsumptionHistoryGranularityHourly ConsumptionHistoryGranularity = "hourly"
+ConsumptionHistoryGranularityDaily ConsumptionHistoryGranularity = "daily"
+ConsumptionHistoryGranularityMonthly ConsumptionHistoryGranularity = "monthly"
+)`,
 			},
 		},
 	}
