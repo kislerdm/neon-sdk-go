@@ -1132,6 +1132,38 @@ EndpointResponse
 				},
 			},
 		},
+		{
+			name: "shall extract enum",
+			args: args{
+				spec: openAPISpec{
+					T: openapi3.T{
+						OpenAPI: "3.0.3",
+						Components: openapi3.Components{
+							Schemas: openapi3.Schemas{
+								"ConsumptionHistoryGranularity": &openapi3.SchemaRef{
+									Value: &openapi3.Schema{
+										Type: "string",
+										Enum: []interface{}{
+											"hourly",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: map[string]model{
+				"ConsumptionHistoryGranularity": {
+					children: map[string]struct{}{
+						"hourly": {},
+					},
+					primitive: fieldType{name: "string"},
+					name:      "ConsumptionHistoryGranularity",
+					isEnum:    true,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -1223,7 +1255,7 @@ type Foo string`,
 			v: models{
 				"ConsumptionHistoryGranularity": {
 					children: map[string]struct{}{
-						"hourly": {}, "daily": {}, "monthly": {},
+						"hourly": {},
 					},
 					primitive: fieldType{
 						name: "string",
@@ -1237,8 +1269,6 @@ type Foo string`,
 
 const (
 ConsumptionHistoryGranularityHourly ConsumptionHistoryGranularity = "hourly"
-ConsumptionHistoryGranularityDaily ConsumptionHistoryGranularity = "daily"
-ConsumptionHistoryGranularityMonthly ConsumptionHistoryGranularity = "monthly"
 )`,
 			},
 		},

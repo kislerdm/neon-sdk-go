@@ -1380,14 +1380,11 @@ func extractParameters(params openapi3.Parameters) []field {
 			isInQuery:   p.Value.In == openapi3.ParameterInQuery,
 		}
 		if p.Value.Schema != nil {
-			o[i] = field{
-				v:      p.Value.Schema.Value.Type,
-				format: p.Value.Schema.Value.Format,
-			}
+			o[i].v = p.Value.Schema.Value.Type
+			o[i].format = p.Value.Schema.Value.Format
 		} else {
 			//	read from schema
 			//	TODO: implement schema as part of the models
-
 		}
 	}
 	return o
@@ -1524,6 +1521,17 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 			},
 		)
 		tmp.setDescription(v.Description)
+
+		if len(v.Enum) > 0 {
+			tmp.isEnum = true
+
+			tmp.children = make(map[string]struct{}, len(v.Enum))
+			for _, el := range v.Enum {
+				child := fmt.Sprintf("%v", el)
+				tmp.children[child] = struct{}{}
+			}
+		}
+
 		m[k] = tmp
 	}
 }
