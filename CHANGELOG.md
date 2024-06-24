@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.5.0] - 2024-06-24
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-06-24 22:03:00 GMT.
+
+### Added
+
+- Added support of the following ENUMs as type aliases:
+  - The type `BillingSubscriptionType` as the attribute of the response of the method `GetCurrentUserInfo`.
+  - The type `BranchState` as attributes of the response of the method `GetProjectBranch`.
+  - The type `ConsumptionHistoryGranularity` as the argument of the method `GetConsumptionHistoryPerAccount` and `GetConsumptionHistoryPerProject`.
+  - The types `EndpointPoolerMode`, `EndpointState` as the attributes of the struct `Endpoint`, which defines the 
+    response of the method `GetProjectEndpoint`.
+  - The type `EndpointType` as the attribute which defines the endpoint's type to create an endpoint, or define the 
+    options of the branch's endpoints.
+  - The type `IdentityProviderId` as the attribute of the struct `CurrentUserAuthAccount` which defines the response
+    of the method `GetCurrentUserInfo`.
+  - The types `OperationAction` and `OperationStatus` as the attributes of the struct `Operation` which defines the 
+    response of several endpoints which include the operations.
+  - The type `Provisioner` which defines the Neon compute provisioner's type.
+- Added the method `GetProjectBranchSchema` to retrieve the database schema, see details [here](https://api-docs.neon.tech/reference/getprojectbranchschema).
+- Added the methods to retrieve the consumption metrics: 
+  - `GetConsumptionHistoryPerAccount` allows to read the account's consumption history, see details [here](https://api-docs.neon.tech/reference/getconsumptionhistoryperaccount).
+  - `GetConsumptionHistoryPerProject` allows to read the consumption history for a list of projects, see details [here](https://api-docs.neon.tech/reference/getconsumptionhistoryperproject).
+- Added the method `GetCurrentUserOrganizations` to read all organization which a given user belongs to.
+- Added support of the organization ID (`orgID` argument) when using the following methods:
+  - `ListProjectsConsumption`, see details [here](https://api-docs.neon.tech/reference/listprojectsconsumption).
+- Added the name, the address and the tax information to the billing details of the account: `BillingAccount` struct.
+
+### Changed
+
+- All arguments which end with the suffices Id/Ids, Url/Urls, Uri/Uris will follow the Go convention. For example,
+  the query parameter `project_ids` will correspond to the method's argument `projectIDs`.
+
+### Deprecated
+
+- The method `SetPrimaryProjectBranch` is deprecated, please use the method `SetDefaultProjectBranch` instead.
+- The label "primary" branch and the attributes `Primary` is deprecated for the label "default" and the respective
+  attribute `Default`. See the struct `Branch` for example.
+- The attribute `ProxyHost` of the struct `Endpoint` is deprecated, please use the attribute `Host` instead.
+- The attribute `CpuUsedSec` of the structs `Project` and `ProjectListItem` is deprecated, 
+  please use the attribute `ComputeTimeSeconds` instead.
+- The attribute `QuotaResetAt` of the structs `Project` and `ProjectListItem` is deprecated, 
+  please use the attribute `ConsumptionPeriodEnd` instead.
+
 ## [v0.4.9] - 2024-04-13
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-04-13 11:00:00 GMT.
