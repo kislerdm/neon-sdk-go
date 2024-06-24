@@ -214,9 +214,11 @@ func (c Client) ListProjects(cursor *string, limit *int, orgID *string) (ListPro
 				Description: `Retrieves information about the specified project.
 foo bar
 qux`,
-				RequestBodyStruct:     nil,
-				ResponseStruct:        &model{name: "ProjectsResponse"},
-				RequestParametersPath: []field{{"project_id", "string", "", "", true, true, false}},
+				RequestBodyStruct: nil,
+				ResponseStruct:    &model{name: "ProjectsResponse"},
+				RequestParametersPath: []field{{"project_id", "string",
+					"", "",
+					false, true, true, false}},
 			},
 			want: `// GetProject Retrieves information about the specified project.
 // foo bar
@@ -239,8 +241,8 @@ func (c Client) GetProject(projectID string) (ProjectsResponse, error) {
 				RequestBodyStruct: nil,
 				ResponseStruct:    &model{name: "DatabasesResponse"},
 				RequestParametersPath: []field{
-					{"project_id", "string", "", "", true, true, false},
-					{"branch_id", "string", "", "", true, true, false},
+					{"project_id", "string", "", "", false, true, true, false},
+					{"branch_id", "string", "", "", false, true, true, false},
 				},
 			},
 			want: `// ListProjectBranchDatabases Retrieves a list of databases for the specified branch
@@ -261,7 +263,7 @@ func (c Client) ListProjectBranchDatabases(projectID string, branchID string) (D
 				Description:           "Revokes the specified API key",
 				RequestBodyStruct:     nil,
 				ResponseStruct:        &model{name: "ApiKeyRevokeResponse"},
-				RequestParametersPath: []field{{"key_id", "integer", "int64", "", true, true, false}},
+				RequestParametersPath: []field{{"key_id", "integer", "int64", "", false, true, true, false}},
 			},
 			want: `// RevokeApiKey Revokes the specified API key
 func (c Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
@@ -293,7 +295,7 @@ func (c Client) CreateProject(cfg *ProjectCreateRequest) (CreatedProject, error)
 }`,
 		},
 		{
-			name: "shall generate a method with generics to accept enums",
+			name: "shall generate a method to accept string enums",
 			fields: fields{
 				Name:           "GetConsumptionHistoryPerAccount",
 				Method:         "GET",
@@ -333,13 +335,64 @@ func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, gr
 	)
 	queryElements = append(queryElements, "from="+from.Format(time.RFC3339))
 	queryElements = append(queryElements, "to="+to.Format(time.RFC3339))
-	queryElements = append(queryElements, "granularity="+granularity)
+	queryElements = append(queryElements, "granularity="+string(granularity))
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
 	}
 	var v ConsumptionHistoryPerAccountResponse
 	if err := c.requestHandler(c.baseURL+"/consumption_history/account" + query, "GET", nil, &v); err != nil {
 		return ConsumptionHistoryPerAccountResponse{}, err
+	}
+	return v, nil
+}`,
+		},
+		{
+			name: "shall generate a method to accept array query attributes: []string and []int64",
+			fields: fields{
+				Name:           "GetConsumptionHistoryPerProject",
+				Method:         "GET",
+				Route:          "/consumption_history/projects",
+				Description:    "Retrieves consumption metrics for Scale plan projects. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+				ResponseStruct: &model{name: "ConsumptionHistoryPerProjectResponse"},
+				RequestParametersQuery: []field{
+					{
+						k:         "project_ids",
+						v:         "string",
+						isArray:   true,
+						isInQuery: true,
+					},
+					{
+						k:         "v",
+						v:         "integer",
+						format:    "int64",
+						isArray:   true,
+						isInQuery: true,
+					},
+				},
+			},
+			want: `// GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale plan projects. History begins at the time of upgrade.
+// Available for Scale plan users only.
+func (c Client) GetConsumptionHistoryPerProject(projectIDs []string, v []int64) (ConsumptionHistoryPerProjectResponse, error) {
+	var (
+		queryElements []string
+		query string
+	)
+	if len(projectIDs) > 0 {
+		queryElements = append(queryElements, "project_ids="+strings.Join(projectIDs, ","))
+	}
+	if len(v) > 0 {
+		var vTmp = make([]string, len(v))
+		for i, el := range v {
+			vTmp[i] = fmt.Sprintf("%v", el)
+		}
+		queryElements = append(queryElements, "v="+strings.Join(vTmp, ","))
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v ConsumptionHistoryPerProjectResponse
+	if err := c.requestHandler(c.baseURL+"/consumption_history/projects" + query, "GET", nil, &v); err != nil {
+		return ConsumptionHistoryPerProjectResponse{}, err
 	}
 	return v, nil
 }`,
@@ -909,6 +962,14 @@ func Test_parameterPath_routeElement(t *testing.T) {
 			},
 			want: `func (quxxID bool) string { if quxxID { return "true" }; return "false" } (quxxID)`,
 		},
+		{
+			name: "reference to a string enum model",
+			fields: fields{
+				k: "foo_id",
+				v: "Foo",
+			},
+			want: "string(fooID)",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -1272,6 +1333,50 @@ ConsumptionHistoryGranularityHourly ConsumptionHistoryGranularity = "hourly"
 )`,
 			},
 		},
+		{
+			name: "shall generate an enum with dash",
+			v: models{
+				"Foo": {
+					children: map[string]struct{}{
+						"foo-bar": {},
+					},
+					primitive: fieldType{
+						name: "string",
+					},
+					name:   "Foo",
+					isEnum: true,
+				},
+			},
+			want: []string{
+				`type Foo string
+
+const (
+FooFooBar Foo = "foo-bar"
+)`,
+			},
+		},
+		{
+			name: "shall generate an enum with underscore",
+			v: models{
+				"Foo": {
+					children: map[string]struct{}{
+						"aws_v2": {},
+					},
+					primitive: fieldType{
+						name: "string",
+					},
+					name:   "Foo",
+					isEnum: true,
+				},
+			},
+			want: []string{
+				`type Foo string
+
+const (
+FooAwsV2 Foo = "aws_v2"
+)`,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(
@@ -1317,7 +1422,7 @@ func Test_objNameGoConventionExport(t *testing.T) {
 		{
 			name: "connection_uris",
 			args: args{"connection_uris"},
-			want: "ConnectionUris",
+			want: "ConnectionURIs",
 		},
 		{
 			name: "to",
@@ -1706,5 +1811,168 @@ func Test_endpointImplementation_generateMethodImplementationTest(t *testing.T) 
 				assert.Equalf(t, tt.want, e.generateMethodImplementationTest(), "generateMethodImplementationTest()")
 			},
 		)
+	}
+}
+
+func Test_extractParameters(t *testing.T) {
+	type args struct {
+		params openapi3.Parameters
+	}
+	tests := []struct {
+		name string
+		args args
+		want []field
+	}{
+		{
+			name: "shall extract two required query parameters, one of which refers to schemas",
+			args: args{
+				params: openapi3.Parameters{
+					{
+						Value: &openapi3.Parameter{
+							Name:        "from",
+							In:          openapi3.ParameterInQuery,
+							Description: "Specify the start `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified `granularity`.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified granularity:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the past year.\n\nThe consumption history is available starting from `March 1, 2024, at 00:00:00 UTC`.\n",
+							Required:    true,
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type:   "string",
+									Format: "date-time",
+								},
+							},
+						},
+					},
+					{
+						Value: &openapi3.Parameter{
+							Name:        "granularity",
+							In:          openapi3.ParameterInQuery,
+							Description: "Specify the granularity of consumption metrics.\nHourly, daily, and monthly metrics are available for the last 168 hours, 60 days,\nand 1 year, respectively.\n",
+							Required:    true,
+							Schema: &openapi3.SchemaRef{
+								Ref: "#/components/schemas/ConsumptionHistoryGranularity",
+							},
+						},
+					},
+				},
+			},
+			want: []field{
+				{
+					k:           "from",
+					v:           "string",
+					format:      "date-time",
+					description: "Specify the start `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified `granularity`.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified granularity:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the past year.\n\nThe consumption history is available starting from `March 1, 2024, at 00:00:00 UTC`.\n",
+					required:    true,
+					isInQuery:   true,
+				},
+				{
+					k:           "granularity",
+					v:           "ConsumptionHistoryGranularity",
+					description: "Specify the granularity of consumption metrics.\nHourly, daily, and monthly metrics are available for the last 168 hours, 60 days,\nand 1 year, respectively.\n",
+					required:    true,
+					isInQuery:   true,
+				},
+			},
+		},
+		{
+			name: "shall parameter of the type array of strings",
+			args: args{
+				params: openapi3.Parameters{
+					{
+						Value: &openapi3.Parameter{
+							Name:     "project_ids",
+							In:       openapi3.ParameterInQuery,
+							Required: true,
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: "array",
+									Items: &openapi3.SchemaRef{
+										Value: &openapi3.Schema{Type: "string"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []field{
+				{
+					k:         "project_ids",
+					v:         "string",
+					isArray:   true,
+					required:  true,
+					isInQuery: true,
+				},
+			},
+		},
+		{
+			name: "shall parameter of the type array of int64",
+			args: args{
+				params: openapi3.Parameters{
+					{
+						Value: &openapi3.Parameter{
+							Name:     "foo",
+							In:       openapi3.ParameterInQuery,
+							Required: true,
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: "array",
+									Items: &openapi3.SchemaRef{
+										Value: &openapi3.Schema{
+											Type:   "integer",
+											Format: "int64",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []field{
+				{
+					k:         "foo",
+					v:         "integer",
+					format:    "int64",
+					isArray:   true,
+					required:  true,
+					isInQuery: true,
+				},
+			},
+		},
+		{
+			name: "shall parameter of the type array of custom type",
+			args: args{
+				params: openapi3.Parameters{
+					{
+						Value: &openapi3.Parameter{
+							Name:     "foo",
+							In:       openapi3.ParameterInQuery,
+							Required: true,
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									Type: "array",
+									Items: &openapi3.SchemaRef{
+										Ref: "#/components/schema/Bar",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []field{
+				{
+					k:         "foo",
+					v:         "Bar",
+					isArray:   true,
+					required:  true,
+					isInQuery: true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, extractParameters(tt.args.params), "extractParameters(%v)", tt.args.params)
+		})
 	}
 }

@@ -1,3 +1,4 @@
+{{ define "mockhttp.go" }}
 package sdk
 
 import (
@@ -160,3 +161,4 @@ func authErrorResp(req *http.Request) *http.Response {
 	}
 	return nil
 }
+{{end}}

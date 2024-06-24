@@ -1,18 +1,17 @@
 package generator
 
 import (
-	"bytes"
 	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/format"
 	"io"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
+	"slices"
 	"sort"
 	"strings"
 	"text/template"
@@ -20,36 +19,14 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
+//go:embed templates
+var templatesFS embed.FS
+
 var (
-	//go:embed templates
-	templates   embed.FS
-	templateGen map[string]*template.Template
+	templateNameSDK    = []string{"sdk.go", "sdk_test.go"}
+	templateNameMock   = []string{"mockhttp.go", "mockhttp_test.go"}
+	templateNameStatic = []string{"go.mod", "doc.go", "error.go"}
 )
-
-// read and parse templates
-func init() {
-	tmplFiles, err := fs.ReadDir(templates, "templates")
-	if err != nil {
-		panic(err)
-	}
-
-	if templateGen == nil {
-		templateGen = make(map[string]*template.Template, len(tmplFiles))
-	}
-
-	for _, tmpl := range tmplFiles {
-		if tmpl.IsDir() {
-			continue
-		}
-
-		pt, err := template.ParseFS(templates, "templates/"+tmpl.Name())
-		if err != nil {
-			panic(err)
-		}
-
-		templateGen[tmpl.Name()] = pt
-	}
-}
 
 // Config generator configurations.
 type Config struct {
@@ -62,6 +39,8 @@ type Config struct {
 
 // Run executes code generation using the OpenAPI spec.
 func Run(cfg Config) error {
+	templates := template.Must(template.ParseFS(templatesFS, "templates/*"))
+
 	specBytes, err := io.ReadAll(cfg.OpenAPIReader)
 	if err != nil {
 		return errors.New("cannot read OpenAPI spec: " + err.Error())
@@ -76,33 +55,18 @@ func Run(cfg Config) error {
 	if err != nil {
 		return errors.New("cannot extract ordered list of endpoints from the OpenAPI spec: " + err.Error())
 	}
-	tempInput := extractSpecs(spec, orderedEndpointRoutes)
+	tempInputSDK, tempInputMock := extractSpecs(spec, orderedEndpointRoutes)
 
-	var f io.WriteCloser
-	defer func() { _ = f.Close() }()
+	if err := generateFiles(templates, templateNameSDK, tempInputSDK, cfg.PathOutput); err != nil {
+		return fmt.Errorf("could not generate sdk files: %w", err)
+	}
 
-	for fName, temp := range templateGen {
-		fName = strings.Replace(fName, ".templ", "", -1)
-		if f, err = os.Create(cfg.PathOutput + "/" + fName); err != nil {
-			return err
-		}
+	if err := generateFiles(templates, templateNameMock, tempInputMock, cfg.PathOutput); err != nil {
+		return fmt.Errorf("could not generate mock files: %w", err)
+	}
 
-		var buf bytes.Buffer
-		if err := temp.Execute(&buf, &tempInput); err != nil {
-			return err
-		}
-
-		o := buf.Bytes()
-		if strings.HasSuffix(fName, ".go") {
-			o, err = format.Source(buf.Bytes())
-			if err != nil {
-				return err
-			}
-		}
-
-		if _, err := f.Write(o); err != nil {
-			return err
-		}
+	if err := generateFiles(templates, templateNameStatic, nil, cfg.PathOutput); err != nil {
+		return fmt.Errorf("could not generate static files: %w", err)
 	}
 
 	if os.Getenv("SKIP_TEST") == "1" {
@@ -112,7 +76,23 @@ func Run(cfg Config) error {
 	return testGeneratedCode(cfg.PathOutput)
 }
 
-func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInput {
+func generateFiles(t *template.Template, templateNames []string, data any, p string) error {
+	for _, templateName := range templateNames {
+		filePath := path.Join(p, templateName)
+		f, err := os.Create(filePath)
+		defer func() { _ = f.Close() }()
+		if err != nil {
+			return fmt.Errorf("could not open file: %s. %w", filePath, err)
+		}
+
+		if err := t.ExecuteTemplate(f, templateName, data); err != nil {
+			return fmt.Errorf("could not generate a file %s. %w", filePath, err)
+		}
+	}
+	return nil
+}
+
+func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) (templateInputSDK, templateInputMock) {
 	if len(spec.Servers) < 1 {
 		panic("no server spec found")
 	}
@@ -475,16 +455,24 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) templateInpu
 			}
 			filterModels(m, models, *s.RequestBodyStruct)
 		}
+
+		// filter models based on the parameters
+		for _, param := range slices.Concat(s.RequestParametersPath, s.RequestParametersQuery) {
+			mm, ok := m[param.v]
+			if ok {
+				filterModels(m, models, mm)
+			}
+		}
 	}
 
-	return templateInput{
-		Info:                        spec.Info.Description,
-		ServerURL:                   spec.Servers[0].URL,
-		EndpointsImplementation:     endpointsStr,
-		EndpointsImplementationTest: endpointsTestStr,
-		EndpointsResponseExample:    mockResponses,
-		Types:                       models.generateCode(),
-	}
+	return templateInputSDK{
+			ServerURL:                   spec.Servers[0].URL,
+			EndpointsImplementation:     endpointsStr,
+			Types:                       models.generateCode(),
+			EndpointsImplementationTest: endpointsTestStr,
+		}, templateInputMock{
+			EndpointsResponseExample: mockResponses,
+		}
 }
 
 func skipTest(route string) bool {
@@ -531,13 +519,15 @@ type openAPISpec struct {
 	openapi3.T
 }
 
-type templateInput struct {
-	Info                        string
+type templateInputSDK struct {
 	ServerURL                   string
 	EndpointsImplementation     []string
-	EndpointsImplementationTest []string
 	Types                       []string
-	EndpointsResponseExample    map[string]map[string]mockResponse
+	EndpointsImplementationTest []string
+}
+
+type templateInputMock struct {
+	EndpointsResponseExample map[string]map[string]mockResponse
 }
 
 type endpointImplementation struct {
@@ -927,10 +917,37 @@ func (e endpointImplementation) generateQueryBuilder() string {
 	}
 
 	for _, p := range filterOptionalParameters(e.RequestParametersQuery) {
-		optionalCondition := p.canonicalName() + " != nil "
-		ifStatement := "\tif " + optionalCondition + "{\n"
-		queryElement := `"` + p.name() + "=\"+" + p.routeElement(true)
-		o += ifStatement + "\t\tqueryElements = append(queryElements, " + queryElement + ")\n"
+		var (
+			ifStatement  string
+			queryElement string
+			tmpArrayDef  string
+		)
+
+		switch p.isArray {
+		case false:
+			optionalCondition := p.canonicalName() + " != nil "
+			ifStatement = "\tif " + optionalCondition + "{\n"
+			queryElement = `"` + p.name() + "=\"+" + p.routeElement(true)
+
+		case true:
+			optionalCondition := "len(" + p.canonicalName() + ") > 0 "
+			ifStatement = "\tif " + optionalCondition + "{\n"
+
+			switch p.v {
+			case "string":
+				queryElement = `"` + p.name() + "=\"+strings.Join(" + p.canonicalName() + `, ",")`
+
+			default:
+				tmpArrName := p.canonicalName() + "Tmp"
+				tmpArrayDef = "\t\tvar " + tmpArrName + " = make([]string, len(" + p.canonicalName() + "))\n"
+				tmpArrayDef += "\t\tfor i, el := range " + p.canonicalName() + " {\n"
+				tmpArrayDef += "\t\t\t" + tmpArrName + "[i] = fmt.Sprintf(\"%v\", el)\n"
+				tmpArrayDef += "\t\t}\n"
+				queryElement = `"` + p.name() + "=\"+strings.Join(" + tmpArrName + `, ",")`
+			}
+		}
+
+		o += ifStatement + tmpArrayDef + "\t\tqueryElements = append(queryElements, " + queryElement + ")\n"
 		o += "\t}\n"
 	}
 
@@ -1009,6 +1026,7 @@ func (v fieldType) argType() string {
 type field struct {
 	k, v, format string
 	description  string
+	isArray      bool
 	required     bool
 	isInPath     bool
 	isInQuery    bool
@@ -1063,6 +1081,8 @@ func correctSpecialTagWords(s string) string {
 	switch sUp := strings.ToUpper(s); sUp {
 	case "ID", "URI", "URL":
 		return sUp
+	case "IDS", "URIS", "URLS":
+		return sUp[:len(sUp)-1] + strings.ToLower(sUp[len(sUp)-1:])
 	default:
 		return s
 	}
@@ -1082,18 +1102,16 @@ func objNameGoConventionExport(s string) string {
 }
 
 func (v field) routeElement(withPointer ...bool) string {
-	r := v.canonicalName()
+	base := func() string {
+		r := v.canonicalName()
 
-	switch v.format {
-	case "date-time", "date":
-		return r + ".Format(time.RFC3339)"
-
-	default:
-		if len(withPointer) > 0 && withPointer[0] {
+		if len(withPointer) > 0 && withPointer[0] && v.format != "date-time" && v.format != "date" {
 			r = "*" + r
 		}
 
 		switch v.format {
+		case "date-time", "date":
+			return r + ".Format(time.RFC3339)"
 		case "int64":
 			return "strconv.FormatInt(" + r + ", 10)"
 		case "int32":
@@ -1103,54 +1121,82 @@ func (v field) routeElement(withPointer ...bool) string {
 		case "float":
 			return "strconv.FormatFloat(" + r + ", 'f', -1, 32)"
 		default:
-			switch v.v {
-			case "integer":
+			switch {
+			case v.v == "integer":
 				return "strconv.FormatInt(int64(" + r + "), 10)"
-			case "boolean":
+			case v.v == "boolean":
 				varName := v.canonicalName()
 				return "func (" + varName + ` bool) string { if ` + varName + ` { return "true" }; return "false" } (` + r + ")"
+			// enum case
+			case startsWithNumber(v.v) || startsWithCapitalLetter(v.v):
+				return "string(" + r + ")"
 			}
+
 			return r
 		}
 	}
+
+	return base()
+}
+
+// see the ascii table https://www.asciitable.com/
+func startsWithCapitalLetter(v string) bool {
+	return v[0] > 64 && v[0] < 91
+}
+
+// see the ascii table https://www.asciitable.com/
+func startsWithNumber(v string) bool {
+	return v[0] > 47 && v[0] < 58
 }
 
 func (v field) argType(withPointer ...bool) string {
-	baseType := func() string {
-		switch v.format {
-		case "date-time", "date":
-			return "time.Time"
-		case "int64", "int32":
-			return v.format
-		case "double", "number":
+	switch {
+	// DECISION: do not use pointers for 'optional' slices
+	//  rationale: slice is a pointer to an array already
+	case v.isArray:
+		return "[]" + v.argItemType()
+	case len(withPointer) > 0 && withPointer[0]:
+		return "*" + v.argItemType()
+	default:
+		return v.argItemType()
+	}
+}
+
+func (v field) argItemType() string {
+	switch v.format {
+	case "date-time", "date":
+		return "time.Time"
+	case "int64", "int32":
+		return v.format
+	case "double", "number":
+		return "float64"
+	case "float":
+		return "float32"
+	default:
+		switch v.v {
+		case "integer":
+			return "int"
+		case "boolean":
+			return "bool"
+		case "number":
 			return "float64"
-		case "float":
-			return "float32"
-		default:
-			switch v.v {
-			case "integer":
-				return "int"
-			case "boolean":
-				return "bool"
-			case "number":
-				return "float64"
-			}
-			return v.v
 		}
+		return v.v
 	}
-
-	if len(withPointer) > 0 && withPointer[0] {
-		return "*" + baseType()
-	}
-
-	return baseType()
 }
 
 func (v field) generateDummy() interface{} {
-	if v.v[:2] == "[]" {
-		return []interface{}{field{v: v.v[2:], format: v.format}.generateDummy()}
+	switch {
+	case v.v[:2] == "[]":
+		return []interface{}{field{v: v.v[2:], format: v.format}.generateDummyElement()}
+	case v.isArray:
+		return []interface{}{field{v: v.v, format: v.format}.generateDummyElement()}
+	default:
+		return v.generateDummyElement()
 	}
+}
 
+func (v field) generateDummyElement() interface{} {
 	switch v.format {
 	case "date-time", "date":
 		return "time.Time{}"
@@ -1257,10 +1303,25 @@ func (m model) generateCodeEnum() string {
 	tmp += "const (\n"
 	for child, _ := range m.children {
 		enumOption := strings.ToUpper(child[:1]) + child[1:]
+
+		enumOption = removeSpecialCharAndMakeCamelCase(enumOption, "-")
+		enumOption = removeSpecialCharAndMakeCamelCase(enumOption, "_")
+
 		tmp += m.name + enumOption + " " + m.name + " = \"" + child + "\"\n"
 	}
 	tmp += ")"
 	return tmp
+}
+
+func removeSpecialCharAndMakeCamelCase(s string, specialChar string) string {
+	els := strings.Split(s, specialChar)
+	s = els[0]
+	if len(els) > 1 {
+		for _, el := range els[1:] {
+			s += strings.ToUpper(el[:1]) + el[1:]
+		}
+	}
+	return s
 }
 
 func docString(name string, description string) string {
@@ -1306,9 +1367,8 @@ func generateEndpointsImplementationMethods(
 
 		operations := p.Operations()
 
-		for _, httpMethod := range httpMethods {
-			ops, ok := operations[httpMethod]
-			if !ok {
+		for httpMethod, ops := range operations {
+			if !slices.Contains(httpMethods, httpMethod) {
 				continue
 			}
 
@@ -1379,13 +1439,34 @@ func extractParameters(params openapi3.Parameters) []field {
 			isInPath:    p.Value.In == openapi3.ParameterInPath,
 			isInQuery:   p.Value.In == openapi3.ParameterInQuery,
 		}
-		if p.Value.Schema != nil {
-			o[i].v = p.Value.Schema.Value.Type
-			o[i].format = p.Value.Schema.Value.Format
+
+		if p.Value.Schema.Value != nil {
+			tmp := extractItemFromRef(p.Value.Schema)
+			o[i].v = tmp.v
+			o[i].format = tmp.format
+
+			if p.Value.Schema.Value.Type == "array" {
+				item := extractItemFromRef(p.Value.Schema.Value.Items)
+				o[i].v = item.v
+				o[i].format = item.format
+				o[i].isArray = true
+			}
+
 		} else {
-			//	read from schema
-			//	TODO: implement schema as part of the models
+			o[i].v = modelNameFromRef(p.Value.Schema.Ref)
 		}
+	}
+	return o
+}
+
+func extractItemFromRef(v *openapi3.SchemaRef) field {
+	var o field
+	switch {
+	case v.Value != nil:
+		o.v = v.Value.Type
+		o.format = v.Value.Format
+	default:
+		o.v = modelNameFromRef(v.Ref)
 	}
 	return o
 }

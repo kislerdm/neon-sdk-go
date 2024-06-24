@@ -1,3 +1,4 @@
+{{ define "sdk_test.go" }}
 package sdk
 
 import (
@@ -480,3 +481,4 @@ type dummyType interface {
 func createPointer[V dummyType](v V) *V {
 	return &v
 }
+{{end}}

@@ -1,3 +1,4 @@
+{{ define "sdk.go" }}
 package sdk
 
 import (
@@ -111,3 +112,4 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 {{ range .Types }}
 {{.}}
 {{ end }}
+{{end}}
