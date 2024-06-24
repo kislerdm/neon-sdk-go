@@ -287,7 +287,7 @@
                     },
                     {
                         "name": "org_id",
-                        "description": "Search for projects by `org_id` (Comming soon).",
+                        "description": "Search for projects by `org_id`.",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -579,7 +579,7 @@
                                         "owner": {
                                             "email": "some@email.com",
                                             "branches_limit": 10,
-                                            "subscription_type": "pro"
+                                            "subscription_type": "scale"
                                         },
                                         "creation_source": "console",
                                         "store_passwords": true,
@@ -904,7 +904,7 @@
                     {
                         "name": "branch_id",
                         "in": "query",
-                        "description": "The branch ID. Defaults to your project's primary `branch_id` if not specified.",
+                        "description": "The branch ID. Defaults to your project's default `branch_id` if not specified.",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -978,7 +978,7 @@
             ],
             "post": {
                 "summary": "Create a branch",
-                "description": "Creates a branch in the specified project.\nYou can obtain a `project_id` by listing the projects for your Neon account.\n\nThis method does not require a request body, but you can specify one to create a compute endpoint for the branch or to select a non-default parent branch.\nThe default behavior is to create a branch from the project's primary branch with no compute endpoint, and the branch name is auto-generated.\nThere is a maximum of one read-write endpoint per branch.\nA branch can have multiple read-only endpoints.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "description": "Creates a branch in the specified project.\nYou can obtain a `project_id` by listing the projects for your Neon account.\n\nThis method does not require a request body, but you can specify one to create a compute endpoint for the branch or to select a non-default parent branch.\nThe default behavior is to create a branch from the project's default branch with no compute endpoint, and the branch name is auto-generated.\nThere is a maximum of one read-write endpoint per branch.\nA branch can have multiple read-only endpoints.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1058,6 +1058,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "default": true,
                                             "protected": false,
                                             "creation_source": "console"
                                         },
@@ -1077,6 +1078,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "default": true,
                                             "protected": false,
                                             "creation_source": "console"
                                         },
@@ -1096,6 +1098,7 @@
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
                                             "primary": true,
+                                            "default": true,
                                             "protected": false,
                                             "creation_source": "console"
                                         }
@@ -1133,7 +1136,7 @@
             ],
             "get": {
                 "summary": "Get branch details",
-                "description": "Retrieves information about the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nA `branch_id` value has a `br-` prefix.\n\nEach Neon project is initially created with a root and primary branch named `main`.\nA project can contain one or more branches.\nA parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "description": "Retrieves information about the specified branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nA `branch_id` value has a `br-` prefix.\n\nEach Neon project is initially created with a root and default branch named `main`.\nA project can contain one or more branches.\nA parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1161,6 +1164,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "default": true,
                                         "protected": false,
                                         "creation_source": "console"
                                     }
@@ -1175,7 +1179,7 @@
             },
             "delete": {
                 "summary": "Delete a branch",
-                "description": "Deletes the specified branch from a project, and places\nall compute endpoints into an idle state, breaking existing client connections.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n\nWhen a successful response status is received, the compute endpoints are still active,\nand the branch is not yet deleted from storage.\nThe deletion occurs after all operations finish.\nYou cannot delete a project's root or primary branch, and you cannot delete a branch that has a child branch.\nA project must have at least one branch.\n",
+                "description": "Deletes the specified branch from a project, and places\nall compute endpoints into an idle state, breaking existing client connections.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain a `branch_id` by listing the project's branches.\nFor related information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n\nWhen a successful response status is received, the compute endpoints are still active,\nand the branch is not yet deleted from storage.\nThe deletion occurs after all operations finish.\nYou cannot delete a project's root or default branch, and you cannot delete a branch that has a child branch.\nA project must have at least one branch.\n",
                 "tags": [
                     "Branch"
                 ],
@@ -1203,6 +1207,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "default": true,
                                         "protected": false,
                                         "creation_source": "console"
                                     },
@@ -1286,6 +1291,7 @@
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
                                         "primary": true,
+                                        "default": true,
                                         "protected": false,
                                         "creation_source": "console"
                                     },
@@ -1355,6 +1361,86 @@
                 }
             }
         },
+        "/projects/{project_id}/branches/{branch_id}/schema": {
+            "get": {
+                "tags": [
+                    "Branch"
+                ],
+                "summary": "Get the database schema",
+                "description": "Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head .",
+                "operationId": "getProjectBranchSchema",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "description": "The Neon project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "path",
+                        "description": "The branch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "The role on whose behalf the schema is retrieved",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "db_name",
+                        "in": "query",
+                        "description": "Name of the database for which the schema is retrieved",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lsn",
+                        "in": "query",
+                        "description": "The Log Sequence Number (LSN) for which the schema is retrieved\n",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "timestamp",
+                        "in": "query",
+                        "description": "The point in time for which the schema is retrieved\n",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Schema definition",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchSchemaResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/branches/{branch_id}/set_as_primary": {
             "parameters": [
                 {
@@ -1381,7 +1467,8 @@
                     "Branch"
                 ],
                 "summary": "Set branch as primary",
-                "description": "Sets the specified branch as the project's primary branch.\nThe primary designation is automatically removed from the previous primary branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "deprecated": true,
+                "description": "DEPRECATED. Use `/set_as_default` endpoint.\nSets the specified branch as the project's primary branch.\nThe primary designation is automatically removed from the previous primary branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
                 "operationId": "setPrimaryProjectBranch",
                 "responses": {
                     "200": {
@@ -1407,6 +1494,74 @@
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
+                                        "default": true,
+                                        "protected": false,
+                                        "creation_source": "console"
+                                    },
+                                    "operations": []
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/set_as_default": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "post": {
+                "tags": [
+                    "Branch"
+                ],
+                "summary": "Set branch as default",
+                "description": "Sets the specified branch as the project's default branch.\nThe default designation is automatically removed from the previous default branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
+                "operationId": "setDefaultProjectBranch",
+                "responses": {
+                    "200": {
+                        "description": "Updated the specified branch",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchOperations"
+                                },
+                                "example": {
+                                    "branch": {
+                                        "cpu_used_sec": 1,
+                                        "active_time_seconds": 1,
+                                        "compute_time_seconds": 1,
+                                        "written_data_bytes": 100,
+                                        "data_transfer_bytes": 100,
+                                        "id": "br-icy-dream-250089",
+                                        "project_id": "shiny-wind-028834",
+                                        "parent_id": "br-aged-salad-637688",
+                                        "parent_lsn": "0/1E19478",
+                                        "name": "mybranch",
+                                        "current_state": "ready",
+                                        "created_at": "2022-11-23T17:42:25Z",
+                                        "updated_at": "2022-11-23T17:42:26Z",
+                                        "primary": true,
+                                        "default": true,
                                         "protected": false,
                                         "creation_source": "console"
                                     },
@@ -2963,6 +3118,269 @@
                 }
             }
         },
+        "/consumption_history/account": {
+            "get": {
+                "summary": "Get account consumption metrics",
+                "description": "Retrieves consumption metrics for Scale plan accounts. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+                "tags": [
+                    "Consumption"
+                ],
+                "operationId": "getConsumptionHistoryPerAccount",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "description": "Specify the start `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified `granularity`.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified granularity:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the past year.\n\nThe consumption history is available starting from `March 1, 2024, at 00:00:00 UTC`.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "to",
+                        "description": "Specify the end `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified granularity.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified granularity:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the past year.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "granularity",
+                        "description": "Specify the granularity of consumption metrics.\nHourly, daily, and monthly metrics are available for the last 168 hours, 60 days,\nand 1 year, respectively.\n",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryGranularity"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "org_id",
+                        "description": "Specify the organization for which the consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the\nauthenticated user's account.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "include_v1_metrics",
+                        "description": "Include metrics utilized in previous pricing models.\n- **data_storage_bytes_hour**: The sum of the maximum observed storage values for each hour\n  for each project, which never decreases.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returned consumption metrics for the Neon account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsumptionHistoryPerAccountResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "This endpoint is not available. It is only supported with Scale plan accounts.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account is not a member of the organization specified by `org_id`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "The specified `date-time` range is outside the boundaries of the specified `granularity`.\nAdjust your `from` and `to` values or select a different `granularity`.\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/consumption_history/projects": {
+            "get": {
+                "summary": "Get consumption metrics for each project",
+                "description": "Retrieves consumption metrics for Scale plan projects. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+                "tags": [
+                    "Consumption"
+                ],
+                "operationId": "getConsumptionHistoryPerProject",
+                "parameters": [
+                    {
+                        "name": "cursor",
+                        "description": "Specify the cursor value from the previous response to get the next batch of projects.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "description": "Specify a value from 1 to 100 to limit number of projects in the response.",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 10,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "project_ids",
+                        "description": "Specify a list of project IDs to filter the response.\nIf omitted, the response will contain all projects.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 0,
+                            "maxItems": 100
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "description": "Specify the start `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified `granularity`.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified `granularity`:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the last year.\n\nThe consumption history is available starting from `March 1, 2024, at 00:00:00 UTC`.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "to",
+                        "description": "Specify the end `date-time` for the consumption period.\nThe `date-time` value is rounded according to the specified granularity.\nFor example, `2024-03-15T15:30:00Z` for `daily` granularity will be rounded to `2024-03-15T00:00:00Z`.\nThe specified `date-time` value must respect the specified `granularity`:\n- For `hourly`, consumption metrics are limited to the last 168 hours.\n- For `daily`, consumption metrics are limited to the last 60 days.\n- For `monthly`, consumption metrics are limited to the last year.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "granularity",
+                        "description": "Specify the granularity of consumption metrics.\nHourly, daily, and monthly metrics are available for the last 168 hours, 60 days,\nand 1 year, respectively.\n",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryGranularity"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "org_id",
+                        "description": "Specify the organization for which the project consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the\nauthenticated user's projects.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "include_v1_metrics",
+                        "description": "Include metrics utilized in previous pricing models.\n- **data_storage_bytes_hour**: The sum of the maximum observed storage values for each hour,\n  which never decreases.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returned project consumption metrics for the Neon account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ConsumptionHistoryPerProjectResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/PaginationResponse"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "This endpoint is not available. It is only supported with Scale plan accounts.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account is not a member of the organization specified by `org_id`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "The specified `date-time` range is outside the boundaries of the specified `granularity`.\nAdjust your `from` and `to` values or select a different `granularity`.\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/consumption/projects": {
             "get": {
                 "summary": "Get project consumption metrics",
@@ -3008,6 +3426,14 @@
                             "type": "string",
                             "format": "date-time"
                         }
+                    },
+                    {
+                        "name": "org_id",
+                        "description": "Specify the organization for which the project consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the authenticated\nuser's projects.\n",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -3024,6 +3450,16 @@
                                             "$ref": "#/components/schemas/PaginationResponse"
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Account is not a member of the organization specified by `org_id`.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
                                 }
                             }
                         }
@@ -3049,6 +3485,28 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/CurrentUserInfoResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/users/me/organizations": {
+            "get": {
+                "summary": "Get current user organizations list",
+                "description": "Retrieves information about the current Neon user's organizations\n",
+                "operationId": "getCurrentUserOrganizations",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about the current user organizations\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationsResponse"
                                 }
                             }
                         }
@@ -3174,80 +3632,10 @@
             }
         },
         "schemas": {
-            "GithubAppRepository": {
+            "Features": {
                 "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "The ID of the repository"
-                    },
-                    "name": {
-                        "type": "string",
-                        "description": "The name of the repository"
-                    }
-                }
-            },
-            "GithubAppProjectResponse": {
-                "type": "object",
-                "properties": {
-                    "project_id": {
-                        "type": "string",
-                        "description": "The ID of the project"
-                    },
-                    "installation_id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "The ID of the GitHub App installation"
-                    },
-                    "repositories": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/GithubAppRepository"
-                        },
-                        "description": "The list of repositories associated with the GitHub App"
-                    },
-                    "current_repository": {
-                        "type": "string",
-                        "description": "The current repository associated with the GitHub App"
-                    },
-                    "created_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "The timestamp when the GitHub App was created"
-                    },
-                    "updated_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "The timestamp when the GitHub App was last updated"
-                    },
-                    "current_repository_id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "The ID of the current repository associated with the GitHub App"
-                    },
-                    "role": {
-                        "type": "string",
-                        "description": "The neon database role"
-                    },
-                    "db": {
-                        "type": "string",
-                        "description": "The neon database name"
-                    }
-                }
-            },
-            "RepositoryUpdateRequest": {
-                "type": "object",
-                "required": [
-                    "repository_id"
-                ],
-                "properties": {
-                    "repository_id": {
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 1,
-                        "description": "The ID of the GitHub repository"
-                    }
+                "additionalProperties": {
+                    "type": "boolean"
                 }
             },
             "ComputeUnit": {
@@ -3880,7 +4268,7 @@
                     "owner": {
                         "email": "some@email.com",
                         "branches_limit": 10,
-                        "subscription_type": "pro"
+                        "subscription_type": "scale"
                     },
                     "org_id": "org-morning-bread-81040908"
                 }
@@ -4079,6 +4467,141 @@
                     }
                 }
             },
+            "ConsumptionHistoryPerAccountResponse": {
+                "type": "object",
+                "properties": {
+                    "periods": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryPerPeriod"
+                        }
+                    }
+                },
+                "required": [
+                    "periods"
+                ]
+            },
+            "ConsumptionHistoryPerProjectResponse": {
+                "type": "object",
+                "properties": {
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryPerProject"
+                        }
+                    }
+                },
+                "required": [
+                    "projects"
+                ]
+            },
+            "ConsumptionHistoryPerProject": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string"
+                    },
+                    "periods": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryPerPeriod"
+                        }
+                    }
+                },
+                "required": [
+                    "project_id",
+                    "periods"
+                ]
+            },
+            "ConsumptionHistoryPerPeriod": {
+                "type": "object",
+                "properties": {
+                    "period_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "consumption": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConsumptionHistoryPerTimeframe"
+                        }
+                    }
+                },
+                "required": [
+                    "period_id",
+                    "consumption"
+                ],
+                "example": {
+                    "period_id": "79ec829f-1828-4006-ac82-9f1828a0067d",
+                    "consumption": [
+                        {
+                            "timeframe_start": "2024-03-22T00:00:00Z",
+                            "timeframe_end": "2024-03-23T00:00:00Z",
+                            "active_time_seconds": 27853,
+                            "compute_time_seconds": 18346,
+                            "written_data_bytes": 1073741824,
+                            "synthetic_storage_size_bytes": 5368709120
+                        },
+                        {
+                            "timeframe_start": "2024-03-23T00:00:00Z",
+                            "timeframe_end": "2024-03-24T00:00:00Z",
+                            "active_time_seconds": 17498,
+                            "compute_time_seconds": 3378,
+                            "written_data_bytes": 5741824,
+                            "synthetic_storage_size_bytes": 2370912
+                        }
+                    ]
+                }
+            },
+            "ConsumptionHistoryPerTimeframe": {
+                "type": "object",
+                "properties": {
+                    "timeframe_start": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "timeframe_end": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "active_time_seconds": {
+                        "type": "integer",
+                        "format": "uint64"
+                    },
+                    "compute_time_seconds": {
+                        "type": "integer",
+                        "format": "uint64"
+                    },
+                    "written_data_bytes": {
+                        "type": "integer",
+                        "format": "uint64"
+                    },
+                    "synthetic_storage_size_bytes": {
+                        "type": "integer",
+                        "format": "uint64"
+                    },
+                    "data_storage_bytes_hour": {
+                        "type": "integer",
+                        "format": "uint64"
+                    }
+                },
+                "required": [
+                    "timeframe_start",
+                    "timeframe_end",
+                    "active_time_seconds",
+                    "compute_time_seconds",
+                    "written_data_bytes",
+                    "synthetic_storage_size_bytes"
+                ]
+            },
+            "ConsumptionHistoryGranularity": {
+                "type": "string",
+                "enum": [
+                    "hourly",
+                    "daily",
+                    "monthly"
+                ]
+            },
             "ProjectsConsumptionResponse": {
                 "type": "object",
                 "required": [
@@ -4216,9 +4739,9 @@
             },
             "ProjectLimits": {
                 "type": "object",
-                "additionalProperties": true,
                 "required": [
-                    "limits"
+                    "limits",
+                    "features"
                 ],
                 "properties": {
                     "limits": {
@@ -4230,11 +4753,13 @@
                             "max_protected_branches",
                             "max_autoscaling_cu",
                             "cpu_seconds",
+                            "max_compute_time_non_primary",
                             "max_active_endpoints",
                             "max_read_only_endpoints",
                             "max_allowed_ips",
                             "max_monitoring_retention_hours",
-                            "min_autosuspend_seconds"
+                            "min_autosuspend_seconds",
+                            "max_data_transfer"
                         ],
                         "properties": {
                             "active_time": {
@@ -4258,6 +4783,10 @@
                                 "type": "integer",
                                 "format": "int64"
                             },
+                            "max_compute_time_non_primary": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
                             "max_active_endpoints": {
                                 "type": "integer"
                             },
@@ -4272,8 +4801,15 @@
                             },
                             "min_autosuspend_seconds": {
                                 "type": "integer"
+                            },
+                            "max_data_transfer": {
+                                "type": "integer",
+                                "format": "int64"
                             }
                         }
+                    },
+                    "features": {
+                        "$ref": "#/components/schemas/Features"
                     }
                 }
             },
@@ -4288,6 +4824,7 @@
                     "created_at",
                     "updated_at",
                     "primary",
+                    "default",
                     "protected",
                     "cpu_used_sec",
                     "active_time_seconds",
@@ -4337,7 +4874,12 @@
                         "type": "string"
                     },
                     "primary": {
-                        "description": "Whether the branch is the project's primary branch\n",
+                        "deprecated": true,
+                        "description": "DEPRECATED. Use `default` field.\nWhether the branch is the project's primary branch\n",
+                        "type": "boolean"
+                    },
+                    "default": {
+                        "description": "Whether the branch is the project's default branch\n",
                         "type": "boolean"
                     },
                     "protected": {
@@ -4393,7 +4935,8 @@
                     "creation_source": "console",
                     "created_at": "2022-11-30T19:09:48Z",
                     "updated_at": "2022-12-01T19:53:05Z",
-                    "primary": true
+                    "primary": true,
+                    "default": true
                 }
             },
             "BranchState": {
@@ -4442,7 +4985,7 @@
                         "type": "object",
                         "properties": {
                             "parent_id": {
-                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's primary branch.\n",
+                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n",
                                 "type": "string"
                             },
                             "name": {
@@ -4789,7 +5332,7 @@
                         "type": "boolean"
                     },
                     "primary_branch_only": {
-                        "description": "If true, the list will be applied only to the primary branch.",
+                        "description": "If true, the list will be applied only to the default branch.",
                         "type": "boolean"
                     }
                 }
@@ -5189,6 +5732,7 @@
                     "payment_source",
                     "subscription_type",
                     "quota_reset_at_last",
+                    "name",
                     "email",
                     "address_city",
                     "address_country",
@@ -5209,6 +5753,10 @@
                         "type": "string",
                         "format": "date-time"
                     },
+                    "name": {
+                        "description": "The full name of the individual or entity that owns the billing account. This name appears on invoices.",
+                        "type": "string"
+                    },
                     "email": {
                         "description": "Billing email, to receive emails related to invoices and subscriptions.\n",
                         "type": "string"
@@ -5218,7 +5766,11 @@
                         "type": "string"
                     },
                     "address_country": {
-                        "description": "Billing address country.\n",
+                        "description": "Billing address country code defined by ISO 3166-1 alpha-2.\n",
+                        "type": "string"
+                    },
+                    "address_country_name": {
+                        "description": "Billing address country name.\n",
                         "type": "string"
                     },
                     "address_line1": {
@@ -5240,38 +5792,14 @@
                     "orb_portal_url": {
                         "description": "Orb user portal url\n",
                         "type": "string"
-                    }
-                }
-            },
-            "BillingAccountUpdateRequest": {
-                "type": "object",
-                "required": [
-                    "billing_account"
-                ],
-                "properties": {
-                    "billing_account": {
-                        "type": "object",
-                        "properties": {
-                            "email": {
-                                "description": "Billing email, to receive emails related to invoices and subscriptions.\n",
-                                "type": "string"
-                            },
-                            "org_id": {
-                                "type": "string",
-                                "description": "Organization id, to update the billing email of the organization account.\n"
-                            }
-                        }
-                    }
-                }
-            },
-            "BillingAccountResponse": {
-                "type": "object",
-                "required": [
-                    "billing_account"
-                ],
-                "properties": {
-                    "billing_account": {
-                        "$ref": "#/components/schemas/BillingAccount"
+                    },
+                    "tax_id": {
+                        "description": "The tax identification number for the billing account, displayed on invoices.\n",
+                        "type": "string"
+                    },
+                    "tax_id_type": {
+                        "description": "The type of the tax identification number based on the country.\n",
+                        "type": "string"
                     }
                 }
             },
@@ -5280,8 +5808,6 @@
                 "description": "Type of subscription to Neon Cloud.\nNotice that for users without billing account this will be \"UNKNOWN\"\n",
                 "enum": [
                     "UNKNOWN",
-                    "free",
-                    "pro",
                     "direct_sales",
                     "aws_marketplace",
                     "free_v2",
@@ -5736,7 +6262,8 @@
             "OrganizationLimits": {
                 "type": "object",
                 "required": [
-                    "limits"
+                    "limits",
+                    "features"
                 ],
                 "properties": {
                     "limits": {
@@ -5752,7 +6279,8 @@
                             "max_allowed_ips",
                             "max_monitoring_retention_hours",
                             "max_history_retention_seconds",
-                            "max_compute_time_non_primary"
+                            "max_compute_time_non_primary",
+                            "min_autosuspend_seconds"
                         ],
                         "properties": {
                             "active_time": {
@@ -5792,8 +6320,14 @@
                             "max_compute_time_non_primary": {
                                 "type": "integer",
                                 "format": "int64"
+                            },
+                            "min_autosuspend_seconds": {
+                                "type": "integer"
                             }
                         }
+                    },
+                    "features": {
+                        "$ref": "#/components/schemas/Features"
                     }
                 }
             },

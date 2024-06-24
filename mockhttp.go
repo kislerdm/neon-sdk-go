@@ -34,6 +34,20 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/consumption_history/account": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/consumption_history/projects": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/projects": {
 		"GET": mockResponse{
 			Content: `{"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","org_id":"org-morning-bread-81040908","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
@@ -166,7 +180,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"project":{"active_time_seconds":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10500,"compute_time_seconds":100,"consumption_period_end":"2023-03-01T00:00:00Z","consumption_period_start":"2023-02-01T00:00:00Z","cpu_used_sec":10,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","data_storage_bytes_hour":1040,"data_transfer_bytes":1000000,"history_retention_seconds":604800,"id":"shiny-wind-028834","name":"shiny-wind-028834","owner":{"branches_limit":10,"email":"some@email.com","subscription_type":"pro"},"owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z","written_data_bytes":100800}}`,
+			Content: `{"project":{"active_time_seconds":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10500,"compute_time_seconds":100,"consumption_period_end":"2023-03-01T00:00:00Z","consumption_period_start":"2023-02-01T00:00:00Z","cpu_used_sec":10,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","data_storage_bytes_hour":1040,"data_transfer_bytes":1000000,"history_retention_seconds":604800,"id":"shiny-wind-028834","name":"shiny-wind-028834","owner":{"branches_limit":10,"email":"some@email.com","subscription_type":"scale"},"owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
@@ -177,7 +191,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
+			Content: `{"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -252,15 +266,15 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
 			Code:    200,
 		},
 	},
@@ -359,9 +373,23 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/{project_id}/branches/{branch_id}/schema": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/branches/{branch_id}/set_as_default": {
+		"POST": mockResponse{
+			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Code:    200,
+		},
+	},
+
 	"/projects/{project_id}/branches/{branch_id}/set_as_primary": {
 		"POST": mockResponse{
-			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
 			Code:    200,
 		},
 	},
@@ -502,14 +530,21 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 	},
+
+	"/users/me/organizations": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
 }
 
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
 // Mock client return the response as per API spec, except for the errors: 404 and 401 status codes are covered only.
 // - 401 is returned when the string `invalidApiKey` is used as the API key;
 // - 404 is returned if either of the following:
-//		- the string value `notFound` is used as the string argument, e.g. projectID
-//		- a negative int/float value is used as the int/float argument, e.g. database ID
+//   - the string value `notFound` is used as the string argument, e.g. projectID
+//   - a negative int/float value is used as the int/float argument, e.g. database ID
 func NewMockHTTPClient() HTTPClient {
 	u, _ := url.Parse(baseURL)
 	return mockHTTPClient{
@@ -578,8 +613,11 @@ type objPath struct {
 }
 
 func parsePath(s string) objPath {
-	// pass through the user's endpoints
-	if strings.HasPrefix(s, "/users/me") {
+	switch s {
+	// pass through
+	case "/user/me",
+		"/consumption_history/account",
+		"/consumption_history/projects":
 		return objPath{
 			path: s,
 		}
