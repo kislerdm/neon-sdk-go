@@ -1,4 +1,3 @@
-{{ define "error.go" }}
 package sdk
 
 import (
@@ -59,5 +58,3 @@ func convertErrorResponse(res *http.Response) error {
 		errorResp: v,
 	}
 }
-
-{{end}}

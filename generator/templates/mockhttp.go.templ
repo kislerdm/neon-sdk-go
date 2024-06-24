@@ -1,4 +1,3 @@
-{{ define "mockhttp.go" }}
 package sdk
 
 import (
@@ -94,12 +93,15 @@ type objPath struct {
 }
 
 func parsePath(s string) objPath {
-	// pass through the user's endpoints
-	if strings.HasPrefix(s, "/users/me") {
-	    return objPath{
-	        path: s,
-	    }
-	}
+	switch s {
+    // pass through
+    case "/user/me",
+        "/consumption_history/account",
+        "/consumption_history/projects":
+        return objPath{
+            path: s,
+        }
+    }
 
 	s = strings.TrimPrefix(s, "/")
 	o := ""
@@ -161,4 +163,3 @@ func authErrorResp(req *http.Request) *http.Response {
 	}
 	return nil
 }
-{{end}}
