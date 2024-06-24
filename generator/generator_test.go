@@ -1976,3 +1976,54 @@ func Test_extractParameters(t *testing.T) {
 		})
 	}
 }
+
+func Test_field_generateDummy(t *testing.T) {
+	type fields struct {
+		k           string
+		v           string
+		format      string
+		description string
+		isArray     bool
+		required    bool
+		isInPath    bool
+		isInQuery   bool
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   interface{}
+	}{
+		{
+			name: "shall generate a dummy array of strings",
+			fields: fields{
+				v:       "string",
+				isArray: true,
+			},
+			want: "[]string{\"foo\"}",
+		},
+		{
+			name: "shall generate a dummy array of int64",
+			fields: fields{
+				v:       "integer",
+				format:  "int64",
+				isArray: true,
+			},
+			want: "[]int64{1}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := field{
+				k:           tt.fields.k,
+				v:           tt.fields.v,
+				format:      tt.fields.format,
+				description: tt.fields.description,
+				isArray:     tt.fields.isArray,
+				required:    tt.fields.required,
+				isInPath:    tt.fields.isInPath,
+				isInQuery:   tt.fields.isInQuery,
+			}
+			assert.Equalf(t, tt.want, v.generateDummy(), "generateDummy()")
+		})
+	}
+}

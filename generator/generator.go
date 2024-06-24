@@ -23,9 +23,9 @@ import (
 var templatesFS embed.FS
 
 var (
-	templateNameSDK    = []string{"sdk.go", "sdk_test.go"}
-	templateNameMock   = []string{"mockhttp.go", "mockhttp_test.go"}
-	templateNameStatic = []string{"go.mod", "doc.go", "error.go"}
+	templateNameSDK    = []string{"sdk.go.templ", "sdk_test.go.templ"}
+	templateNameMock   = []string{"mockhttp.go.templ", "mockhttp_test.go.templ"}
+	templateNameStatic = []string{"go.mod.templ", "doc.go.templ", "error.go.templ"}
 )
 
 // Config generator configurations.
@@ -78,7 +78,8 @@ func Run(cfg Config) error {
 
 func generateFiles(t *template.Template, templateNames []string, data any, p string) error {
 	for _, templateName := range templateNames {
-		filePath := path.Join(p, templateName)
+		outputFileName := strings.TrimSuffix(templateName, ".templ")
+		filePath := path.Join(p, outputFileName)
 		f, err := os.Create(filePath)
 		defer func() { _ = f.Close() }()
 		if err != nil {
@@ -722,7 +723,7 @@ func (e endpointImplementation) generateMethodImplementationTest() string {
 			prf := "\t\t" + v.canonicalName()
 			o += fmt.Sprintf("%s %v\n", prf, v.argType(!v.required))
 			dummyDate := v.generateDummy()
-			if !v.required {
+			if !v.required && !v.isArray {
 				dummyDate = wrapIntoPointerGenFn(dummyDate)
 			}
 			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, dummyDate)
@@ -821,7 +822,7 @@ func (e endpointImplementation) generateMethodImplementationTestNoResponseExpect
 			prf := "\t\t" + v.canonicalName()
 			o += fmt.Sprintf("%s %v\n", prf, v.argType(!v.required))
 			dummyDate := v.generateDummy()
-			if !v.required {
+			if !v.required && !v.isArray {
 				dummyDate = wrapIntoPointerGenFn(dummyDate)
 			}
 			testInpt += fmt.Sprintf("\t\t%s: %v,\n", prf, dummyDate)
@@ -1187,10 +1188,9 @@ func (v field) argItemType() string {
 
 func (v field) generateDummy() interface{} {
 	switch {
-	case v.v[:2] == "[]":
-		return []interface{}{field{v: v.v[2:], format: v.format}.generateDummyElement()}
 	case v.isArray:
-		return []interface{}{field{v: v.v, format: v.format}.generateDummyElement()}
+		el := field{v: v.v, format: v.format}
+		return "[]" + el.argItemType() + "{" + fmt.Sprintf("%v", el.generateDummyElement()) + "}"
 	default:
 		return v.generateDummyElement()
 	}
