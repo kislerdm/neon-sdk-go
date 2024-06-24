@@ -13,6 +13,7 @@ import (
 	"path"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -69,11 +70,28 @@ func Run(cfg Config) error {
 		return fmt.Errorf("could not generate static files: %w", err)
 	}
 
-	if os.Getenv("SKIP_TEST") == "1" {
-		return nil
+	var e error
+	if v, _ := strconv.ParseBool(os.Getenv("SKIP_TEST")); !v {
+		e = testGeneratedCode(cfg.PathOutput)
 	}
 
-	return testGeneratedCode(cfg.PathOutput)
+	if v, _ := strconv.ParseBool(os.Getenv("SKIP_FORMATTING")); !v {
+		e = errors.Join(e, formatGeneratedCode(cfg.PathOutput))
+	}
+
+	return e
+}
+
+func formatGeneratedCode(p string) error {
+	cmd := exec.Command("go", "fmt", ".")
+	cmd.Dir = p
+	if err := cmd.Start(); err != nil {
+		panic(err)
+	}
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("failed to run go fmt: %w", err)
+	}
+	return nil
 }
 
 func generateFiles(t *template.Template, templateNames []string, data any, p string) error {
@@ -511,7 +529,7 @@ func testGeneratedCode(p string) error {
 		panic(err)
 	}
 	if err := cmd.Wait(); err != nil {
-		return errors.New("failed test")
+		return fmt.Errorf("failed test: %w", err)
 	}
 	return nil
 }
