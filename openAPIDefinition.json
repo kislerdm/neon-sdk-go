@@ -4758,6 +4758,7 @@
                             "max_read_only_endpoints",
                             "max_allowed_ips",
                             "max_monitoring_retention_hours",
+                            "max_history_retention_seconds",
                             "min_autosuspend_seconds",
                             "max_data_transfer"
                         ],
@@ -4798,6 +4799,10 @@
                             },
                             "max_monitoring_retention_hours": {
                                 "type": "integer"
+                            },
+                            "max_history_retention_seconds": {
+                                "type": "integer",
+                                "format": "int32"
                             },
                             "min_autosuspend_seconds": {
                                 "type": "integer"
