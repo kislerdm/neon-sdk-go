@@ -155,22 +155,6 @@ func (c Client) GetProjectOperation(projectID string, operationID string) (Opera
 	return v, nil
 }
 
-// CreateProject Creates a Neon project.
-// A project is the top-level object in the Neon object hierarchy.
-// Plan limits define how many projects you can create.
-// Neon's Free plan permits one project per Neon account.
-// For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-// You can specify a region and Postgres version in the request body.
-// Neon currently supports PostgreSQL 14, 15, and 16.
-// For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
-func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
-	var v CreatedProject
-	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
-		return CreatedProject{}, err
-	}
-	return v, nil
-}
-
 // ListProjects Retrieves a list of projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
@@ -197,6 +181,22 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 	var v ListProjectsRespObj
 	if err := c.requestHandler(c.baseURL+"/projects"+query, "GET", nil, &v); err != nil {
 		return ListProjectsRespObj{}, err
+	}
+	return v, nil
+}
+
+// CreateProject Creates a Neon project.
+// A project is the top-level object in the Neon object hierarchy.
+// Plan limits define how many projects you can create.
+// Neon's Free plan permits one project per Neon account.
+// For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
+// You can specify a region and Postgres version in the request body.
+// Neon currently supports PostgreSQL 14, 15, and 16.
+// For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
+func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
+	var v CreatedProject
+	if err := c.requestHandler(c.baseURL+"/projects", "POST", cfg, &v); err != nil {
+		return CreatedProject{}, err
 	}
 	return v, nil
 }
@@ -228,18 +228,6 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	return v, nil
 }
 
-// DeleteProject Deletes the specified project.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// Deleting a project is a permanent action.
-// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
-func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
-	var v ProjectResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
-		return ProjectResponse{}, err
-	}
-	return v, nil
-}
-
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -258,6 +246,18 @@ func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (Updat
 	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
 		return UpdateProjectRespObj{}, err
+	}
+	return v, nil
+}
+
+// DeleteProject Deletes the specified project.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// Deleting a project is a permanent action.
+// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
+func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
+	var v ProjectResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
+		return ProjectResponse{}, err
 	}
 	return v, nil
 }
@@ -525,6 +525,18 @@ func (c Client) CreateProjectBranchDatabase(projectID string, branchID string, c
 	return v, nil
 }
 
+// UpdateProjectBranchDatabase Updates the specified database in the branch.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
+// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
+func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
+	var v DatabaseOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
+		return DatabaseOperations{}, err
+	}
+	return v, nil
+}
+
 // DeleteProjectBranchDatabase Deletes the specified database from the branch.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing the branch's databases.
@@ -545,18 +557,6 @@ func (c Client) GetProjectBranchDatabase(projectID string, branchID string, data
 	var v DatabaseResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
 		return DatabaseResponse{}, err
-	}
-	return v, nil
-}
-
-// UpdateProjectBranchDatabase Updates the specified database in the branch.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
-// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
-	var v DatabaseOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
-		return DatabaseOperations{}, err
 	}
 	return v, nil
 }
@@ -587,6 +587,19 @@ func (c Client) CreateProjectBranchRole(projectID string, branchID string, cfg R
 	return v, nil
 }
 
+// DeleteProjectBranchRole Deletes the specified Postgres role from the branch.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain the `branch_id` by listing the project's branches.
+// You can obtain the `role_name` by listing the roles for a branch.
+// For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
+func (c Client) DeleteProjectBranchRole(projectID string, branchID string, roleName string) (RoleOperations, error) {
+	var v RoleOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "DELETE", nil, &v); err != nil {
+		return RoleOperations{}, err
+	}
+	return v, nil
+}
+
 // GetProjectBranchRole Retrieves details about the specified role.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` by listing the project's branches.
@@ -597,19 +610,6 @@ func (c Client) GetProjectBranchRole(projectID string, branchID string, roleName
 	var v RoleResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "GET", nil, &v); err != nil {
 		return RoleResponse{}, err
-	}
-	return v, nil
-}
-
-// DeleteProjectBranchRole Deletes the specified Postgres role from the branch.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` by listing the project's branches.
-// You can obtain the `role_name` by listing the roles for a branch.
-// For related information, see [Manage roles](https://neon.tech/docs/manage/roles/).
-func (c Client) DeleteProjectBranchRole(projectID string, branchID string, roleName string) (RoleOperations, error) {
-	var v RoleOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/roles/"+roleName, "DELETE", nil, &v); err != nil {
-		return RoleOperations{}, err
 	}
 	return v, nil
 }
@@ -972,12 +972,12 @@ type BillingAccount struct {
 type BillingSubscriptionType string
 
 const (
+	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
-	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 )
 
 type Branch struct {
@@ -1138,9 +1138,9 @@ type ConnectionURIsResponse struct {
 type ConsumptionHistoryGranularity string
 
 const (
+	ConsumptionHistoryGranularityHourly  ConsumptionHistoryGranularity = "hourly"
 	ConsumptionHistoryGranularityDaily   ConsumptionHistoryGranularity = "daily"
 	ConsumptionHistoryGranularityMonthly ConsumptionHistoryGranularity = "monthly"
-	ConsumptionHistoryGranularityHourly  ConsumptionHistoryGranularity = "hourly"
 )
 
 type ConsumptionHistoryPerAccountResponse struct {
@@ -1484,22 +1484,22 @@ type Operation struct {
 type OperationAction string
 
 const (
-	OperationActionCheckAvailability          OperationAction = "check_availability"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
-	OperationActionCreateTimeline             OperationAction = "create_timeline"
-	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
 	OperationActionSuspendCompute             OperationAction = "suspend_compute"
+	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
+	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
+	OperationActionTenantDetach               OperationAction = "tenant_detach"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionCreateCompute              OperationAction = "create_compute"
 	OperationActionApplyConfig                OperationAction = "apply_config"
 	OperationActionCreateBranch               OperationAction = "create_branch"
-	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
-	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionCreateCompute              OperationAction = "create_compute"
-	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionTenantAttach               OperationAction = "tenant_attach"
-	OperationActionTenantDetach               OperationAction = "tenant_detach"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
 	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionCreateTimeline             OperationAction = "create_timeline"
+	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
+	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionStartCompute               OperationAction = "start_compute"
+	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionTenantAttach               OperationAction = "tenant_attach"
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
 )
 
@@ -1511,7 +1511,6 @@ type OperationResponse struct {
 type OperationStatus string
 
 const (
-	OperationStatusScheduling OperationStatus = "scheduling"
 	OperationStatusRunning    OperationStatus = "running"
 	OperationStatusFinished   OperationStatus = "finished"
 	OperationStatusFailed     OperationStatus = "failed"
@@ -1519,6 +1518,7 @@ const (
 	OperationStatusCancelling OperationStatus = "cancelling"
 	OperationStatusCancelled  OperationStatus = "cancelled"
 	OperationStatusSkipped    OperationStatus = "skipped"
+	OperationStatusScheduling OperationStatus = "scheduling"
 )
 
 type OperationsResponse struct {
