@@ -3500,6 +3500,9 @@
                 "summary": "Get current user organizations list",
                 "description": "Retrieves information about the current Neon user's organizations\n",
                 "operationId": "getCurrentUserOrganizations",
+                "tags": [
+                    "Users"
+                ],
                 "responses": {
                     "200": {
                         "description": "Returned information about the current user organizations\n",
@@ -5337,7 +5340,8 @@
                         "type": "boolean"
                     },
                     "primary_branch_only": {
-                        "description": "If true, the list will be applied only to the default branch.",
+                        "deprecated": true,
+                        "description": "DEPRECATED: Use `protected_branches_only`.\nIf true, the list will be applied only to the default branch.\n",
                         "type": "boolean"
                     }
                 }

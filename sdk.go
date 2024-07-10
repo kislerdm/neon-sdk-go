@@ -104,18 +104,6 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
-// ListApiKeys Retrieves the API keys for your Neon account.
-// The response does not include API key tokens. A token is only provided when creating an API key.
-// API keys can also be managed in the Neon Console.
-// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
-	var v []ApiKeysListResponseItem
-	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
-		return nil, err
-	}
-	return v, nil
-}
-
 // CreateApiKey Creates an API key.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -125,6 +113,18 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
+	}
+	return v, nil
+}
+
+// ListApiKeys Retrieves the API keys for your Neon account.
+// The response does not include API key tokens. A token is only provided when creating an API key.
+// API keys can also be managed in the Neon Console.
+// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
+	var v []ApiKeysListResponseItem
+	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
+		return nil, err
 	}
 	return v, nil
 }
@@ -525,18 +525,6 @@ func (c Client) CreateProjectBranchDatabase(projectID string, branchID string, c
 	return v, nil
 }
 
-// UpdateProjectBranchDatabase Updates the specified database in the branch.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
-// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
-	var v DatabaseOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
-		return DatabaseOperations{}, err
-	}
-	return v, nil
-}
-
 // DeleteProjectBranchDatabase Deletes the specified database from the branch.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing the branch's databases.
@@ -557,6 +545,18 @@ func (c Client) GetProjectBranchDatabase(projectID string, branchID string, data
 	var v DatabaseResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
 		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProjectBranchDatabase Updates the specified database in the branch.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
+// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
+func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
+	var v DatabaseOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
+		return DatabaseOperations{}, err
 	}
 	return v, nil
 }
@@ -888,7 +888,8 @@ func (c Client) GetCurrentUserOrganizations() (OrganizationsResponse, error) {
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
 	Ips *[]string `json:"ips,omitempty"`
-	// PrimaryBranchOnly If true, the list will be applied only to the default branch.
+	// PrimaryBranchOnly DEPRECATED: Use `protected_branches_only`.
+	// If true, the list will be applied only to the default branch.
 	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
 	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
@@ -972,12 +973,12 @@ type BillingAccount struct {
 type BillingSubscriptionType string
 
 const (
-	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
+	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 )
 
 type Branch struct {
@@ -1484,23 +1485,23 @@ type Operation struct {
 type OperationAction string
 
 const (
-	OperationActionSuspendCompute             OperationAction = "suspend_compute"
+	OperationActionCreateCompute              OperationAction = "create_compute"
+	OperationActionStartCompute               OperationAction = "start_compute"
 	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
 	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
-	OperationActionTenantDetach               OperationAction = "tenant_detach"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionCreateCompute              OperationAction = "create_compute"
-	OperationActionApplyConfig                OperationAction = "apply_config"
-	OperationActionCreateBranch               OperationAction = "create_branch"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
 	OperationActionCreateTimeline             OperationAction = "create_timeline"
+	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
 	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
-	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionTenantAttach               OperationAction = "tenant_attach"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionApplyConfig                OperationAction = "apply_config"
+	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionCreateBranch               OperationAction = "create_branch"
+	OperationActionTenantDetach               OperationAction = "tenant_detach"
+	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
 )
 
 type OperationResponse struct {
@@ -1511,14 +1512,14 @@ type OperationResponse struct {
 type OperationStatus string
 
 const (
+	OperationStatusSkipped    OperationStatus = "skipped"
+	OperationStatusScheduling OperationStatus = "scheduling"
 	OperationStatusRunning    OperationStatus = "running"
 	OperationStatusFinished   OperationStatus = "finished"
 	OperationStatusFailed     OperationStatus = "failed"
 	OperationStatusError      OperationStatus = "error"
 	OperationStatusCancelling OperationStatus = "cancelling"
 	OperationStatusCancelled  OperationStatus = "cancelled"
-	OperationStatusSkipped    OperationStatus = "skipped"
-	OperationStatusScheduling OperationStatus = "scheduling"
 )
 
 type OperationsResponse struct {
@@ -1863,8 +1864,8 @@ type ProjectsResponse struct {
 type Provisioner string
 
 const (
-	ProvisionerK8sNeonvm Provisioner = "k8s-neonvm"
 	ProvisionerK8sPod    Provisioner = "k8s-pod"
+	ProvisionerK8sNeonvm Provisioner = "k8s-neonvm"
 )
 
 type Role struct {
