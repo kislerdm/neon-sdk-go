@@ -104,6 +104,18 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
+// ListApiKeys Retrieves the API keys for your Neon account.
+// The response does not include API key tokens. A token is only provided when creating an API key.
+// API keys can also be managed in the Neon Console.
+// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
+	var v []ApiKeysListResponseItem
+	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // CreateApiKey Creates an API key.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -113,18 +125,6 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
-	}
-	return v, nil
-}
-
-// ListApiKeys Retrieves the API keys for your Neon account.
-// The response does not include API key tokens. A token is only provided when creating an API key.
-// API keys can also be managed in the Neon Console.
-// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
-	var v []ApiKeysListResponseItem
-	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
-		return nil, err
 	}
 	return v, nil
 }
@@ -228,17 +228,6 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	return v, nil
 }
 
-// GetProject Retrieves information about the specified project.
-// A project is the top-level object in the Neon object hierarchy.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-func (c Client) GetProject(projectID string) (ProjectResponse, error) {
-	var v ProjectResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
-		return ProjectResponse{}, err
-	}
-	return v, nil
-}
-
 // UpdateProject Updates the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Neon permits updating the project name only.
@@ -257,6 +246,17 @@ func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (Updat
 func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
+		return ProjectResponse{}, err
+	}
+	return v, nil
+}
+
+// GetProject Retrieves information about the specified project.
+// A project is the top-level object in the Neon object hierarchy.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+func (c Client) GetProject(projectID string) (ProjectResponse, error) {
+	var v ProjectResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectResponse{}, err
 	}
 	return v, nil
@@ -973,12 +973,12 @@ type BillingAccount struct {
 type BillingSubscriptionType string
 
 const (
+	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
-	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 )
 
 type Branch struct {
@@ -1485,23 +1485,23 @@ type Operation struct {
 type OperationAction string
 
 const (
+	OperationActionCreateTimeline             OperationAction = "create_timeline"
+	OperationActionApplyConfig                OperationAction = "apply_config"
+	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
 	OperationActionCreateCompute              OperationAction = "create_compute"
 	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
-	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
-	OperationActionCreateTimeline             OperationAction = "create_timeline"
-	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionTenantAttach               OperationAction = "tenant_attach"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
-	OperationActionApplyConfig                OperationAction = "apply_config"
-	OperationActionCheckAvailability          OperationAction = "check_availability"
-	OperationActionCreateBranch               OperationAction = "create_branch"
-	OperationActionTenantDetach               OperationAction = "tenant_detach"
 	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
+	OperationActionTenantDetach               OperationAction = "tenant_detach"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionSuspendCompute             OperationAction = "suspend_compute"
+	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
+	OperationActionCreateBranch               OperationAction = "create_branch"
 )
 
 type OperationResponse struct {
@@ -1512,7 +1512,6 @@ type OperationResponse struct {
 type OperationStatus string
 
 const (
-	OperationStatusSkipped    OperationStatus = "skipped"
 	OperationStatusScheduling OperationStatus = "scheduling"
 	OperationStatusRunning    OperationStatus = "running"
 	OperationStatusFinished   OperationStatus = "finished"
@@ -1520,6 +1519,7 @@ const (
 	OperationStatusError      OperationStatus = "error"
 	OperationStatusCancelling OperationStatus = "cancelling"
 	OperationStatusCancelled  OperationStatus = "cancelled"
+	OperationStatusSkipped    OperationStatus = "skipped"
 )
 
 type OperationsResponse struct {
