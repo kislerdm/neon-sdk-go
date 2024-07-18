@@ -6661,6 +6661,14 @@
                     }
                 }
             },
+            "UserDeletionConditionName": {
+                "type": "string",
+                "enum": [
+                    "project_count",
+                    "org_admin_membership_count",
+                    "subscription_type"
+                ]
+            },
             "GeneralError": {
                 "type": "object",
                 "description": "General Error",

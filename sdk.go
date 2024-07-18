@@ -104,6 +104,18 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
+// ListApiKeys Retrieves the API keys for your Neon account.
+// The response does not include API key tokens. A token is only provided when creating an API key.
+// API keys can also be managed in the Neon Console.
+// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
+	var v []ApiKeysListResponseItem
+	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // CreateApiKey Creates an API key.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -113,18 +125,6 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
-	}
-	return v, nil
-}
-
-// ListApiKeys Retrieves the API keys for your Neon account.
-// The response does not include API key tokens. A token is only provided when creating an API key.
-// API keys can also be managed in the Neon Console.
-// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
-	var v []ApiKeysListResponseItem
-	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
-		return nil, err
 	}
 	return v, nil
 }
@@ -228,6 +228,18 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	return v, nil
 }
 
+// DeleteProject Deletes the specified project.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// Deleting a project is a permanent action.
+// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
+func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
+	var v ProjectResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
+		return ProjectResponse{}, err
+	}
+	return v, nil
+}
+
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -246,18 +258,6 @@ func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (Updat
 	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
 		return UpdateProjectRespObj{}, err
-	}
-	return v, nil
-}
-
-// DeleteProject Deletes the specified project.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// Deleting a project is a permanent action.
-// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
-func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
-	var v ProjectResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
-		return ProjectResponse{}, err
 	}
 	return v, nil
 }
@@ -288,20 +288,20 @@ func (c Client) ListProjectOperations(projectID string, cursor *string, limit *i
 	return v, nil
 }
 
-// ListProjectPermissions Retrieves details about users who have access to the project, including the permission `id`, the granted-to email address, and the date project access was granted.
-func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, error) {
-	var v ProjectPermissions
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "GET", nil, &v); err != nil {
-		return ProjectPermissions{}, err
-	}
-	return v, nil
-}
-
 // GrantPermissionToProject Grants project access to the account associated with the specified email address
 func (c Client) GrantPermissionToProject(projectID string, cfg GrantPermissionToProjectRequest) (ProjectPermission, error) {
 	var v ProjectPermission
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "POST", cfg, &v); err != nil {
 		return ProjectPermission{}, err
+	}
+	return v, nil
+}
+
+// ListProjectPermissions Retrieves details about users who have access to the project, including the permission `id`, the granted-to email address, and the date project access was granted.
+func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, error) {
+	var v ProjectPermissions
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "GET", nil, &v); err != nil {
+		return ProjectPermissions{}, err
 	}
 	return v, nil
 }
@@ -973,12 +973,12 @@ type BillingAccount struct {
 type BillingSubscriptionType string
 
 const (
+	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
+	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
-	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
-	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 )
 
 type Branch struct {
@@ -1374,9 +1374,9 @@ type EndpointSettingsData struct {
 type EndpointState string
 
 const (
+	EndpointStateIdle   EndpointState = "idle"
 	EndpointStateInit   EndpointState = "init"
 	EndpointStateActive EndpointState = "active"
-	EndpointStateIdle   EndpointState = "idle"
 )
 
 // EndpointType The compute endpoint type. Either `read_write` or `read_only`.
@@ -1485,23 +1485,23 @@ type Operation struct {
 type OperationAction string
 
 const (
-	OperationActionCreateCompute              OperationAction = "create_compute"
-	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
-	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
-	OperationActionCreateTimeline             OperationAction = "create_timeline"
-	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionTenantAttach               OperationAction = "tenant_attach"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionStartCompute               OperationAction = "start_compute"
 	OperationActionApplyConfig                OperationAction = "apply_config"
+	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
+	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionCheckAvailability          OperationAction = "check_availability"
 	OperationActionCreateBranch               OperationAction = "create_branch"
 	OperationActionTenantDetach               OperationAction = "tenant_detach"
-	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
+	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionCreateCompute              OperationAction = "create_compute"
+	OperationActionCreateTimeline             OperationAction = "create_timeline"
+	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
+	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
 )
 
 type OperationResponse struct {
@@ -1512,6 +1512,7 @@ type OperationResponse struct {
 type OperationStatus string
 
 const (
+	OperationStatusCancelled  OperationStatus = "cancelled"
 	OperationStatusSkipped    OperationStatus = "skipped"
 	OperationStatusScheduling OperationStatus = "scheduling"
 	OperationStatusRunning    OperationStatus = "running"
@@ -1519,7 +1520,6 @@ const (
 	OperationStatusFailed     OperationStatus = "failed"
 	OperationStatusError      OperationStatus = "error"
 	OperationStatusCancelling OperationStatus = "cancelling"
-	OperationStatusCancelled  OperationStatus = "cancelled"
 )
 
 type OperationsResponse struct {
