@@ -104,6 +104,18 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
+// ListApiKeys Retrieves the API keys for your Neon account.
+// The response does not include API key tokens. A token is only provided when creating an API key.
+// API keys can also be managed in the Neon Console.
+// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
+	var v []ApiKeysListResponseItem
+	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // CreateApiKey Creates an API key.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -113,18 +125,6 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
-	}
-	return v, nil
-}
-
-// ListApiKeys Retrieves the API keys for your Neon account.
-// The response does not include API key tokens. A token is only provided when creating an API key.
-// API keys can also be managed in the Neon Console.
-// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
-func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
-	var v []ApiKeysListResponseItem
-	if err := c.requestHandler(c.baseURL+"/api_keys", "GET", nil, &v); err != nil {
-		return nil, err
 	}
 	return v, nil
 }
@@ -288,20 +288,20 @@ func (c Client) ListProjectOperations(projectID string, cursor *string, limit *i
 	return v, nil
 }
 
-// ListProjectPermissions Retrieves details about users who have access to the project, including the permission `id`, the granted-to email address, and the date project access was granted.
-func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, error) {
-	var v ProjectPermissions
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "GET", nil, &v); err != nil {
-		return ProjectPermissions{}, err
-	}
-	return v, nil
-}
-
 // GrantPermissionToProject Grants project access to the account associated with the specified email address
 func (c Client) GrantPermissionToProject(projectID string, cfg GrantPermissionToProjectRequest) (ProjectPermission, error) {
 	var v ProjectPermission
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "POST", cfg, &v); err != nil {
 		return ProjectPermission{}, err
+	}
+	return v, nil
+}
+
+// ListProjectPermissions Retrieves details about users who have access to the project, including the permission `id`, the granted-to email address, and the date project access was granted.
+func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, error) {
+	var v ProjectPermissions
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions", "GET", nil, &v); err != nil {
+		return ProjectPermissions{}, err
 	}
 	return v, nil
 }
@@ -380,6 +380,18 @@ func (c Client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest) 
 	return v, nil
 }
 
+// UpdateProjectBranch Updates the specified branch.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain the `branch_id` by listing the project's branches.
+// For more information, see [Manage branches](https://neon.tech/docs/manage/branches/).
+func (c Client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
+	var v BranchOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "PATCH", cfg, &v); err != nil {
+		return BranchOperations{}, err
+	}
+	return v, nil
+}
+
 // DeleteProjectBranch Deletes the specified branch from a project, and places
 // all compute endpoints into an idle state, breaking existing client connections.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -410,18 +422,6 @@ func (c Client) GetProjectBranch(projectID string, branchID string) (BranchRespo
 	var v BranchResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
 		return BranchResponse{}, err
-	}
-	return v, nil
-}
-
-// UpdateProjectBranch Updates the specified branch.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` by listing the project's branches.
-// For more information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
-	var v BranchOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "PATCH", cfg, &v); err != nil {
-		return BranchOperations{}, err
 	}
 	return v, nil
 }
@@ -674,6 +674,23 @@ func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReques
 	return v, nil
 }
 
+// UpdateProjectEndpoint Updates the specified compute endpoint.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain an `endpoint_id` and `branch_id` by listing your project's compute endpoints.
+// An `endpoint_id` has an `ep-` prefix. A `branch_id` has a `br-` prefix.
+// For more information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).
+// If the returned list of operations is not empty, the compute endpoint is not ready to use.
+// The client must wait for the last operation to finish before using the compute endpoint.
+// If the compute endpoint was idle before the update, it becomes active for a short period of time,
+// and the control plane suspends it again after the update.
+func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
+	var v EndpointOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v); err != nil {
+		return EndpointOperations{}, err
+	}
+	return v, nil
+}
+
 // DeleteProjectEndpoint Delete the specified compute endpoint.
 // A compute endpoint is a Neon compute instance.
 // Deleting a compute endpoint drops existing network connections to the compute endpoint.
@@ -700,23 +717,6 @@ func (c Client) GetProjectEndpoint(projectID string, endpointID string) (Endpoin
 	var v EndpointResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "GET", nil, &v); err != nil {
 		return EndpointResponse{}, err
-	}
-	return v, nil
-}
-
-// UpdateProjectEndpoint Updates the specified compute endpoint.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain an `endpoint_id` and `branch_id` by listing your project's compute endpoints.
-// An `endpoint_id` has an `ep-` prefix. A `branch_id` has a `br-` prefix.
-// For more information about compute endpoints, see [Manage computes](https://neon.tech/docs/manage/endpoints/).
-// If the returned list of operations is not empty, the compute endpoint is not ready to use.
-// The client must wait for the last operation to finish before using the compute endpoint.
-// If the compute endpoint was idle before the update, it becomes active for a short period of time,
-// and the control plane suspends it again after the update.
-func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
-	var v EndpointOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v); err != nil {
-		return EndpointOperations{}, err
 	}
 	return v, nil
 }
@@ -973,12 +973,12 @@ type BillingAccount struct {
 type BillingSubscriptionType string
 
 const (
+	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
-	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 )
 
 type Branch struct {
@@ -1139,9 +1139,9 @@ type ConnectionURIsResponse struct {
 type ConsumptionHistoryGranularity string
 
 const (
+	ConsumptionHistoryGranularityMonthly ConsumptionHistoryGranularity = "monthly"
 	ConsumptionHistoryGranularityHourly  ConsumptionHistoryGranularity = "hourly"
 	ConsumptionHistoryGranularityDaily   ConsumptionHistoryGranularity = "daily"
-	ConsumptionHistoryGranularityMonthly ConsumptionHistoryGranularity = "monthly"
 )
 
 type ConsumptionHistoryPerAccountResponse struct {
@@ -1485,23 +1485,23 @@ type Operation struct {
 type OperationAction string
 
 const (
-	OperationActionCreateCompute              OperationAction = "create_compute"
-	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
-	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
-	OperationActionCreateTimeline             OperationAction = "create_timeline"
 	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionSuspendCompute             OperationAction = "suspend_compute"
-	OperationActionTenantAttach               OperationAction = "tenant_attach"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
 	OperationActionApplyConfig                OperationAction = "apply_config"
 	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionTenantAttach               OperationAction = "tenant_attach"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionCreateTimeline             OperationAction = "create_timeline"
+	OperationActionSuspendCompute             OperationAction = "suspend_compute"
+	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
+	OperationActionCreateCompute              OperationAction = "create_compute"
+	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
+	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
+	OperationActionStartCompute               OperationAction = "start_compute"
 	OperationActionCreateBranch               OperationAction = "create_branch"
 	OperationActionTenantDetach               OperationAction = "tenant_detach"
-	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
 )
 
 type OperationResponse struct {
@@ -1512,14 +1512,14 @@ type OperationResponse struct {
 type OperationStatus string
 
 const (
+	OperationStatusCancelling OperationStatus = "cancelling"
+	OperationStatusCancelled  OperationStatus = "cancelled"
 	OperationStatusSkipped    OperationStatus = "skipped"
 	OperationStatusScheduling OperationStatus = "scheduling"
 	OperationStatusRunning    OperationStatus = "running"
 	OperationStatusFinished   OperationStatus = "finished"
 	OperationStatusFailed     OperationStatus = "failed"
 	OperationStatusError      OperationStatus = "error"
-	OperationStatusCancelling OperationStatus = "cancelling"
-	OperationStatusCancelled  OperationStatus = "cancelled"
 )
 
 type OperationsResponse struct {
