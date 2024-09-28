@@ -119,6 +119,12 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) (templateInp
 	m := generateModels(spec)
 	endpoints := generateEndpointsImplementationMethods(spec, orderedEndpointRoutes)
 
+	var endpointNames = make([]string, 0, len(endpoints))
+	for k, _ := range endpoints {
+		endpointNames = append(endpointNames, k)
+	}
+	slices.Sort(endpointNames)
+
 	endpointsStr := make([]string, len(endpoints))
 	endpointsTestStr := make([]string, 0, len(endpoints))
 	models := models{}
@@ -449,7 +455,8 @@ func extractSpecs(spec openAPISpec, orderedEndpointRoutes []string) (templateInp
 		},
 	}
 
-	for i, s := range endpoints {
+	for i, name := range endpointNames {
+		s := endpoints[name]
 		endpointsStr[i] = s.generateMethodImplementation()
 		if !skipTest(s.Route) {
 			endpointsTestStr = append(endpointsTestStr, s.generateMethodImplementationTest())
@@ -1326,6 +1333,7 @@ func (m model) generateCodeEnum() string {
 		children[i] = c
 		i++
 	}
+	slices.Sort(children)
 
 	for _, child := range children {
 		enumOption := strings.ToUpper(child[:1]) + child[1:]
@@ -1374,7 +1382,7 @@ func implementationNameFromID(s string) string {
 
 func generateEndpointsImplementationMethods(
 	o openAPISpec, orderedEndpoints []string,
-) (endpoints []endpointImplementation) {
+) (endpoints map[string]endpointImplementation) {
 	const suffixResponseObject = "RespObj"
 	const suffixRequestObject = "ReqObj"
 
@@ -1387,6 +1395,7 @@ func generateEndpointsImplementationMethods(
 		http.MethodDelete,
 	}
 
+	endpoints = make(map[string]endpointImplementation)
 	for _, route := range orderedEndpoints {
 		p := o.Paths.Find(route)
 		if p == nil {
@@ -1454,7 +1463,7 @@ func generateEndpointsImplementationMethods(
 				}
 			}
 
-			endpoints = append(endpoints, e)
+			endpoints[e.Name] = e
 		}
 	}
 	return
