@@ -629,7 +629,7 @@ func parsePath(s string) objPath {
 		}
 	}
 
-	if strings.HasPrefix(s, "/user/me/") {
+	if strings.HasPrefix(s, "/users/me") {
 		return objPath{
 			path: s,
 		}
