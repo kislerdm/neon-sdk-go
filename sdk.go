@@ -191,7 +191,7 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 // Neon's Free plan permits one project per Neon account.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 // You can specify a region and Postgres version in the request body.
-// Neon currently supports PostgreSQL 14, 15, and 16.
+// Neon currently supports PostgreSQL 14, 15 and 16. version 17 is coming soon.
 // For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
 func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
@@ -228,6 +228,18 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	return v, nil
 }
 
+// DeleteProject Deletes the specified project.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// Deleting a project is a permanent action.
+// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
+func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
+	var v ProjectResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
+		return ProjectResponse{}, err
+	}
+	return v, nil
+}
+
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -246,18 +258,6 @@ func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (Updat
 	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
 		return UpdateProjectRespObj{}, err
-	}
-	return v, nil
-}
-
-// DeleteProject Deletes the specified project.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// Deleting a project is a permanent action.
-// Deleting a project also deletes endpoints, branches, databases, and users that belong to the project.
-func (c Client) DeleteProject(projectID string) (ProjectResponse, error) {
-	var v ProjectResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "DELETE", nil, &v); err != nil {
-		return ProjectResponse{}, err
 	}
 	return v, nil
 }
@@ -357,10 +357,10 @@ func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID 
 // A project may contain child branches that were branched from `main` or from another branch.
 // A parent branch is identified by the `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) ListProjectBranches(projectID string) (BranchesResponse, error) {
-	var v BranchesResponse
+func (c Client) ListProjectBranches(projectID string) (ListProjectBranchesRespObj, error) {
+	var v ListProjectBranchesRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "GET", nil, &v); err != nil {
-		return BranchesResponse{}, err
+		return ListProjectBranchesRespObj{}, err
 	}
 	return v, nil
 }
@@ -372,7 +372,7 @@ func (c Client) ListProjectBranches(projectID string) (BranchesResponse, error) 
 // There is a maximum of one read-write endpoint per branch.
 // A branch can have multiple read-only endpoints.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) CreateProjectBranch(projectID string, cfg *BranchCreateRequest) (CreatedBranch, error) {
+func (c Client) CreateProjectBranch(projectID string, cfg *CreateProjectBranchReqObj) (CreatedBranch, error) {
 	var v CreatedBranch
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "POST", cfg, &v); err != nil {
 		return CreatedBranch{}, err
@@ -406,10 +406,10 @@ func (c Client) DeleteProjectBranch(projectID string, branchID string) (BranchOp
 // A project can contain one or more branches.
 // A parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) GetProjectBranch(projectID string, branchID string) (BranchResponse, error) {
-	var v BranchResponse
+func (c Client) GetProjectBranch(projectID string, branchID string) (GetProjectBranchRespObj, error) {
+	var v GetProjectBranchRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
-		return BranchResponse{}, err
+		return GetProjectBranchRespObj{}, err
 	}
 	return v, nil
 }
@@ -436,12 +436,11 @@ func (c Client) RestoreProjectBranch(projectID string, branchID string, cfg Bran
 }
 
 // GetProjectBranchSchema Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head .
-func (c Client) GetProjectBranchSchema(projectID string, branchID string, role string, dbName string, lsn *string, timestamp *time.Time) (BranchSchemaResponse, error) {
+func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName string, lsn *string, timestamp *time.Time) (BranchSchemaResponse, error) {
 	var (
 		queryElements []string
 		query         string
 	)
-	queryElements = append(queryElements, "role="+role)
 	queryElements = append(queryElements, "db_name="+dbName)
 	if lsn != nil {
 		queryElements = append(queryElements, "lsn="+*lsn)
@@ -525,6 +524,18 @@ func (c Client) CreateProjectBranchDatabase(projectID string, branchID string, c
 	return v, nil
 }
 
+// GetProjectBranchDatabase Retrieves information about the specified database.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
+// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
+func (c Client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseResponse, error) {
+	var v DatabaseResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
+		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
 // UpdateProjectBranchDatabase Updates the specified database in the branch.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `branch_id` and `database_name` by listing the branch's databases.
@@ -545,18 +556,6 @@ func (c Client) DeleteProjectBranchDatabase(projectID string, branchID string, d
 	var v DatabaseOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "DELETE", nil, &v); err != nil {
 		return DatabaseOperations{}, err
-	}
-	return v, nil
-}
-
-// GetProjectBranchDatabase Retrieves information about the specified database.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` and `database_name` by listing the branch's databases.
-// For related information, see [Manage databases](https://neon.tech/docs/manage/databases/).
-func (c Client) GetProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseResponse, error) {
-	var v DatabaseResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
-		return DatabaseResponse{}, err
 	}
 	return v, nil
 }
@@ -761,8 +760,8 @@ func (c Client) RestartProjectEndpoint(projectID string, endpointID string) (End
 	return v, nil
 }
 
-// GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale plan accounts. History begins at the time of upgrade.
-// Available for Scale plan users only.
+// GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale and Business plan accounts. History begins at the time of upgrade.
+// Available for Scale and Business plan users only.
 func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (ConsumptionHistoryPerAccountResponse, error) {
 	var (
 		queryElements []string
@@ -792,8 +791,9 @@ func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, gr
 	return v, nil
 }
 
-// GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale plan projects. History begins at the time of upgrade.
-// Available for Scale plan users only.
+// GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale and Business plan projects. History begins at the time of upgrade.
+// Available for Scale and Business plan users only.
+// Issuing a call to this API does not wake a project's compute endpoint.
 func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (GetConsumptionHistoryPerProjectRespObj, error) {
 	var (
 		queryElements []string
@@ -834,6 +834,7 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, proj
 
 // ListProjectsConsumption Retrieves consumption metrics for each project for the current billing period.
 // For usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).
+// Issuing a call to this API does not wake a project's compute endpoint.
 func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time, orgID *string) (ListProjectsConsumptionRespObj, error) {
 	var (
 		queryElements []string
@@ -882,17 +883,57 @@ func (c Client) GetCurrentUserOrganizations() (OrganizationsResponse, error) {
 	return v, nil
 }
 
+// TransferProjectsFromUserToOrg Transfers selected projects, identified by their IDs, from your personal account to a specified organization.
+// This API is only available for early access users.
+func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/users/me/projects/transfer", "POST", cfg, &v); err != nil {
+		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
 // If the list is empty or not set, all IP addresses are allowed.
 // If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
 	Ips *[]string `json:"ips,omitempty"`
-	// PrimaryBranchOnly If true, the list will be applied only to the default branch.
+	// PrimaryBranchOnly DEPRECATED: Use `protected_branches_only`.
+	// If true, the list will be applied only to the default branch.
 	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
 	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
 }
+
+type AnnotationCreateValueRequest struct {
+	AnnotationValue *AnnotationValueData `json:"annotation_value,omitempty"`
+}
+
+type AnnotationData struct {
+	CreatedAt *time.Time           `json:"created_at,omitempty"`
+	Object    AnnotationObjectData `json:"object"`
+	UpdatedAt *time.Time           `json:"updated_at,omitempty"`
+	Value     AnnotationValueData  `json:"value"`
+}
+
+type AnnotationObjectData struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+type AnnotationResponse struct {
+	Annotation AnnotationData `json:"annotation"`
+}
+
+// AnnotationValueData Annotation properties.
+type AnnotationValueData map[string]interface{}
+
+type AnnotationsMapResponse struct {
+	Annotations AnnotationsMapResponseAnnotations `json:"annotations"`
+}
+
+type AnnotationsMapResponseAnnotations map[string]interface{}
 
 type ApiKeyCreateRequest struct {
 	// KeyName A user-specified API key name. This value is required when creating an API key.
@@ -956,8 +997,9 @@ type BillingAccount struct {
 	// Name The full name of the individual or entity that owns the billing account. This name appears on invoices.
 	Name string `json:"name"`
 	// OrbPortalURL Orb user portal url
-	OrbPortalURL  *string       `json:"orb_portal_url,omitempty"`
-	PaymentSource PaymentSource `json:"payment_source"`
+	OrbPortalURL  *string              `json:"orb_portal_url,omitempty"`
+	PaymentMethod BillingPaymentMethod `json:"payment_method"`
+	PaymentSource PaymentSource        `json:"payment_source"`
 	// QuotaResetAtLast The last time the quota was reset. Defaults to the date-time the account is created.
 	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
 	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
@@ -967,17 +1009,33 @@ type BillingAccount struct {
 	TaxIDType *string `json:"tax_id_type,omitempty"`
 }
 
+// BillingPaymentMethod Indicates whether and how an account makes payments.
+type BillingPaymentMethod string
+
+const (
+	BillingPaymentMethodVercelMp      BillingPaymentMethod = "vercel_mp"
+	BillingPaymentMethodSponsorship   BillingPaymentMethod = "sponsorship"
+	BillingPaymentMethodStripe        BillingPaymentMethod = "stripe"
+	BillingPaymentMethodDirectPayment BillingPaymentMethod = "direct_payment"
+	BillingPaymentMethodAwsMp         BillingPaymentMethod = "aws_mp"
+	BillingPaymentMethodStaff         BillingPaymentMethod = "staff"
+	BillingPaymentMethodTrial         BillingPaymentMethod = "trial"
+	BillingPaymentMethodUNKNOWN       BillingPaymentMethod = "UNKNOWN"
+	BillingPaymentMethodNone          BillingPaymentMethod = "none"
+)
+
 // BillingSubscriptionType Type of subscription to Neon Cloud.
 // Notice that for users without billing account this will be "UNKNOWN"
 type BillingSubscriptionType string
 
 const (
+	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
+	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
 	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
+	BillingSubscriptionTypeBusiness       BillingSubscriptionType = "business"
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
-	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
-	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
 )
 
 type Branch struct {
@@ -990,7 +1048,8 @@ type Branch struct {
 	// 2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
 	// CreatedAt A timestamp indicating when the branch was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time        `json:"created_at"`
+	CreatedBy *BranchCreatedBy `json:"created_by,omitempty"`
 	// CreationSource The branch creation source
 	CreationSource    string      `json:"creation_source"`
 	CurrentState      BranchState `json:"current_state"`
@@ -1049,6 +1108,14 @@ type BranchCreateRequestEndpointOptions struct {
 	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 	Type                  EndpointType           `json:"type"`
+}
+
+// BranchCreatedBy The resolved user model that contains details of the user/org/integration/api_key used for branch creation. This field is filled only in listing/get/create/get/update/delete methods, if it is empty when calling other handlers, it does not mean that it is empty in the system.
+type BranchCreatedBy struct {
+	// Image The URL to the user's avatar image.
+	Image *string `json:"image,omitempty"`
+	// Name The name of the user.
+	Name *string `json:"name,omitempty"`
 }
 
 type BranchOperations struct {
@@ -1171,6 +1238,11 @@ type ConsumptionHistoryPerTimeframe struct {
 	WrittenDataBytes          int       `json:"written_data_bytes"`
 }
 
+type CreateProjectBranchReqObj struct {
+	AnnotationCreateValueRequest
+	BranchCreateRequest
+}
+
 type CreatedBranch struct {
 	BranchResponse
 	ConnectionURIsOptionalResponse
@@ -1274,6 +1346,9 @@ type DefaultEndpointSettings struct {
 	PgbouncerSettings     *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
+
+// EmptyResponse Empty response.
+type EmptyResponse map[string]interface{}
 
 type Endpoint struct {
 	AutoscalingLimitMaxCu ComputeUnit `json:"autoscaling_limit_max_cu"`
@@ -1379,7 +1454,6 @@ const (
 )
 
 // EndpointType The compute endpoint type. Either `read_write` or `read_only`.
-// The `read_only` compute endpoint type is not yet supported.
 type EndpointType string
 
 const (
@@ -1421,6 +1495,11 @@ type GetConsumptionHistoryPerProjectRespObj struct {
 	PaginationResponse
 }
 
+type GetProjectBranchRespObj struct {
+	AnnotationResponse
+	BranchResponse
+}
+
 type GrantPermissionToProjectRequest struct {
 	Email string `json:"email"`
 }
@@ -1429,15 +1508,22 @@ type GrantPermissionToProjectRequest struct {
 type IdentityProviderId string
 
 const (
-	IdentityProviderIdGithub   IdentityProviderId = "github"
-	IdentityProviderIdGoogle   IdentityProviderId = "google"
-	IdentityProviderIdHasura   IdentityProviderId = "hasura"
-	IdentityProviderIdKeycloak IdentityProviderId = "keycloak"
+	IdentityProviderIdGithub    IdentityProviderId = "github"
+	IdentityProviderIdGoogle    IdentityProviderId = "google"
+	IdentityProviderIdHasura    IdentityProviderId = "hasura"
+	IdentityProviderIdMicrosoft IdentityProviderId = "microsoft"
+	IdentityProviderIdKeycloak  IdentityProviderId = "keycloak"
+	IdentityProviderIdTest      IdentityProviderId = "test"
 )
 
 type ListOperations struct {
 	OperationsResponse
 	PaginationResponse
+}
+
+type ListProjectBranchesRespObj struct {
+	AnnotationsMapResponse
+	BranchesResponse
 }
 
 type ListProjectsConsumptionRespObj struct {
@@ -1484,23 +1570,24 @@ type Operation struct {
 type OperationAction string
 
 const (
+	OperationActionStartCompute               OperationAction = "start_compute"
+	OperationActionTenantAttach               OperationAction = "tenant_attach"
+	OperationActionTenantReattach             OperationAction = "tenant_reattach"
+	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
+	OperationActionCheckAvailability          OperationAction = "check_availability"
+	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionCreateCompute              OperationAction = "create_compute"
+	OperationActionCreateTimeline             OperationAction = "create_timeline"
 	OperationActionSuspendCompute             OperationAction = "suspend_compute"
+	OperationActionCreateBranch               OperationAction = "create_branch"
+	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionApplyConfig                OperationAction = "apply_config"
 	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
 	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
 	OperationActionTenantDetach               OperationAction = "tenant_detach"
-	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
-	OperationActionCreateCompute              OperationAction = "create_compute"
-	OperationActionApplyConfig                OperationAction = "apply_config"
-	OperationActionCreateBranch               OperationAction = "create_branch"
-	OperationActionTenantReattach             OperationAction = "tenant_reattach"
-	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
-	OperationActionCreateTimeline             OperationAction = "create_timeline"
-	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
-	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
-	OperationActionStartCompute               OperationAction = "start_compute"
-	OperationActionCheckAvailability          OperationAction = "check_availability"
-	OperationActionTenantAttach               OperationAction = "tenant_attach"
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionDetachParentBranch         OperationAction = "detach_parent_branch"
 )
 
 type OperationResponse struct {
@@ -1530,7 +1617,11 @@ type Organization struct {
 	CreatedAt time.Time `json:"created_at"`
 	Handle    string    `json:"handle"`
 	ID        string    `json:"id"`
-	Name      string    `json:"name"`
+	// ManagedBy Organizations created via the Console or the API are managed by `console`.
+	// Organizations created by other methods can't be deleted via the Console or the API.
+	ManagedBy string `json:"managed_by"`
+	Name      string `json:"name"`
+	Plan      string `json:"plan"`
 	// UpdatedAt A timestamp indicating when the organization was updated
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -1570,7 +1661,7 @@ type PaymentSourceBankCard struct {
 // PgSettingsData A raw representation of Postgres settings
 type PgSettingsData map[string]interface{}
 
-// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, and `16`.
+// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, and `16`. version `17` is coming soon.
 type PgVersion int
 
 // PgbouncerSettingsData A raw representation of PgBouncer settings
@@ -1612,7 +1703,7 @@ type Project struct {
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
 	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// HistoryRetentionSeconds The number of seconds to retain point-in-time restore (PITR) backup history for this project.
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).
 	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
 	ID string `json:"id"`
@@ -1704,8 +1795,8 @@ type ProjectCreateRequestProject struct {
 	AutoscalingLimitMinCu   *ComputeUnit                       `json:"autoscaling_limit_min_cu,omitempty"`
 	Branch                  *ProjectCreateRequestProjectBranch `json:"branch,omitempty"`
 	DefaultEndpointSettings *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
-	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
-	// The default is 604800 seconds (7 days).
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
+	// The default is 1 day (86400 seconds).
 	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// Name The project name
 	Name *string `json:"name,omitempty"`
@@ -1722,11 +1813,11 @@ type ProjectCreateRequestProject struct {
 }
 
 type ProjectCreateRequestProjectBranch struct {
-	// DatabaseName The database name. If not specified, the default database name will be used.
+	// DatabaseName The database name. If not specified, the default database name, `neondb`, will be used.
 	DatabaseName *string `json:"database_name,omitempty"`
-	// Name The branch name. If not specified, the default branch name will be used.
+	// Name The default branch name. If not specified, the default branch name, `main`, will be used.
 	Name *string `json:"name,omitempty"`
-	// RoleName The role name. If not specified, the default role name will be used.
+	// RoleName The role name. If not specified, the default role name, `{database_name}_owner`, will be used.
 	RoleName *string `json:"role_name,omitempty"`
 }
 
@@ -1841,8 +1932,8 @@ type ProjectUpdateRequest struct {
 
 type ProjectUpdateRequestProject struct {
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// HistoryRetentionSeconds The number of seconds to retain the point-in-time restore (PITR) backup history for this project.
-	// The default is 604800 seconds (7 days).
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
+	// The default is 1 day (604800 seconds).
 	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// Name The project name
 	Name     *string              `json:"name,omitempty"`
@@ -1863,8 +1954,8 @@ type ProjectsResponse struct {
 type Provisioner string
 
 const (
-	ProvisionerK8sNeonvm Provisioner = "k8s-neonvm"
 	ProvisionerK8sPod    Provisioner = "k8s-pod"
+	ProvisionerK8sNeonvm Provisioner = "k8s-neonvm"
 )
 
 type Role struct {
@@ -1916,6 +2007,12 @@ type RolesResponse struct {
 // The maximum value is `604800` seconds (1 week). For more information, see
 // [Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).
 type SuspendTimeoutSeconds int64
+
+type TransferProjectsToOrganizationRequest struct {
+	OrgID string `json:"org_id"`
+	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
+	ProjectIDs []string `json:"project_ids"`
+}
 
 type UpdateProjectRespObj struct {
 	OperationsResponse

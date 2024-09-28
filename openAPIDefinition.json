@@ -22,6 +22,9 @@
         },
         {
             "CookieAuth": []
+        },
+        {
+            "TokenCookieAuth": []
         }
     ],
     "tags": [
@@ -360,7 +363,7 @@
             },
             "post": {
                 "summary": "Create a project",
-                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nNeon's Free plan permits one project per Neon account.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and Postgres version in the request body.\nNeon currently supports PostgreSQL 14, 15, and 16.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
+                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nNeon's Free plan permits one project per Neon account.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and Postgres version in the request body.\nNeon currently supports PostgreSQL 14, 15 and 16. version 17 is coming soon.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
                 "tags": [
                     "Project"
                 ],
@@ -987,7 +990,14 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/BranchCreateRequest"
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/BranchCreateRequest"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/AnnotationCreateValueRequest"
+                                    }
+                                ]
                             },
                             "examples": {
                                 "branch_only": {
@@ -1040,7 +1050,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BranchesResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/BranchesResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AnnotationsMapResponse"
+                                        }
+                                    ]
                                 },
                                 "example": {
                                     "branches": [
@@ -1102,7 +1119,20 @@
                                             "protected": false,
                                             "creation_source": "console"
                                         }
-                                    ]
+                                    ],
+                                    "annotations": {
+                                        "br-aged-salad-637688": {
+                                            "object": {
+                                                "type": "console/branch",
+                                                "id": "br-aged-salad-637688"
+                                            },
+                                            "value": {
+                                                "vercel-commit-ref": "test"
+                                            },
+                                            "created_at": "2022-11-23T17:42:25Z",
+                                            "updated_at": "2022-11-23T17:42:26Z"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1147,7 +1177,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BranchResponse"
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/BranchResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AnnotationResponse"
+                                        }
+                                    ]
                                 },
                                 "example": {
                                     "branch": {
@@ -1167,6 +1204,17 @@
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
+                                    },
+                                    "annotation": {
+                                        "object": {
+                                            "type": "console/branch",
+                                            "id": "br-aged-salad-637688"
+                                        },
+                                        "value": {
+                                            "vercel-commit-ref": "test"
+                                        },
+                                        "created_at": "2022-11-23T17:42:25Z",
+                                        "updated_at": "2022-11-23T17:42:26Z"
                                     }
                                 }
                             }
@@ -1383,15 +1431,6 @@
                         "name": "branch_id",
                         "in": "path",
                         "description": "The branch ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "role",
-                        "in": "query",
-                        "description": "The role on whose behalf the schema is retrieved",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -3121,7 +3160,7 @@
         "/consumption_history/account": {
             "get": {
                 "summary": "Get account consumption metrics",
-                "description": "Retrieves consumption metrics for Scale plan accounts. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+                "description": "Retrieves consumption metrics for Scale and Business plan accounts. History begins at the time of upgrade.\nAvailable for Scale and Business plan users only.\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -3185,7 +3224,7 @@
                         }
                     },
                     "403": {
-                        "description": "This endpoint is not available. It is only supported with Scale plan accounts.",
+                        "description": "This endpoint is not available. It is only supported for Scale and Business plan accounts.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3233,7 +3272,7 @@
         "/consumption_history/projects": {
             "get": {
                 "summary": "Get consumption metrics for each project",
-                "description": "Retrieves consumption metrics for Scale plan projects. History begins at the time of upgrade.\nAvailable for Scale plan users only.\n",
+                "description": "Retrieves consumption metrics for Scale and Business plan projects. History begins at the time of upgrade.\nAvailable for Scale and Business plan users only.\nIssuing a call to this API does not wake a project's compute endpoint.\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -3336,7 +3375,7 @@
                         }
                     },
                     "403": {
-                        "description": "This endpoint is not available. It is only supported with Scale plan accounts.",
+                        "description": "This endpoint is not available. It is only supported with Scale and Business plan accounts.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -3384,7 +3423,8 @@
         "/consumption/projects": {
             "get": {
                 "summary": "Get project consumption metrics",
-                "description": "Retrieves consumption metrics for each project for the current billing period.\nFor usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).\n",
+                "deprecated": true,
+                "description": "Retrieves consumption metrics for each project for the current billing period.\nFor usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).\nIssuing a call to this API does not wake a project's compute endpoint.\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -3500,6 +3540,9 @@
                 "summary": "Get current user organizations list",
                 "description": "Retrieves information about the current Neon user's organizations\n",
                 "operationId": "getCurrentUserOrganizations",
+                "tags": [
+                    "Users"
+                ],
                 "responses": {
                     "200": {
                         "description": "Returned information about the current user organizations\n",
@@ -3507,6 +3550,68 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OrganizationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/users/me/projects/transfer": {
+            "post": {
+                "summary": "Transfer projects from your personal account to a specified destination account",
+                "description": "Transfers selected projects, identified by their IDs, from your personal account to a specified organization.\nThis API is only available for early access users.\n",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransferProjectsToOrganizationRequest"
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Users"
+                ],
+                "operationId": "transferProjectsFromUserToOrg",
+                "responses": {
+                    "200": {
+                        "description": "Projects successfully transferred from personal account to organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmptyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "406": {
+                        "description": "Transfer failed - the organization has too many projects or its plan is incompatible with the source account. Reduce projects or upgrade the organization.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "$ref": "#/components/schemas/LimitsUnsatisfiedResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/GeneralError"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "One or more of project ids provided is linked by Github or Vercel integration. Transferring integration projects is currently not supported",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectsWithIntegrationResponse"
                                 }
                             }
                         }
@@ -3629,6 +3734,11 @@
                 "type": "apiKey",
                 "in": "cookie",
                 "name": "zenith"
+            },
+            "TokenCookieAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "keycloak_token"
             }
         },
         "schemas": {
@@ -3636,6 +3746,19 @@
                 "type": "object",
                 "additionalProperties": {
                     "type": "boolean"
+                }
+            },
+            "FeatureFlags": {
+                "type": "object",
+                "additionalProperties": {
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
                 }
             },
             "ComputeUnit": {
@@ -3679,6 +3802,102 @@
                 "type": "object",
                 "description": "Empty response.",
                 "properties": {}
+            },
+            "AddProjectJWKSRequest": {
+                "description": "Add a new JWKS to a specific endpoint of a project",
+                "type": "object",
+                "required": [
+                    "jwks_url",
+                    "provider_name"
+                ],
+                "properties": {
+                    "jwks_url": {
+                        "description": "The URL that lists the JWKS",
+                        "type": "string"
+                    },
+                    "provider_name": {
+                        "description": "The name of the authentication provider (e.g., Clerk, Stytch, Auth0)",
+                        "type": "string"
+                    },
+                    "branch_id": {
+                        "description": "Branch ID",
+                        "type": "string"
+                    },
+                    "jwt_audience": {
+                        "description": "The name of the required JWT Audience to be used",
+                        "type": "string"
+                    },
+                    "role_names": {
+                        "description": "The roles the JWKS should be mapped to",
+                        "type": "array",
+                        "maxItems": 10,
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "JWKS": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "project_id",
+                    "jwks_url",
+                    "provider_name",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "JWKS ID",
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "description": "Project ID",
+                        "type": "string"
+                    },
+                    "branch_id": {
+                        "description": "Branch ID",
+                        "type": "string"
+                    },
+                    "jwks_url": {
+                        "description": "The URL that lists the JWKS",
+                        "type": "string"
+                    },
+                    "provider_name": {
+                        "description": "The name of the authentication provider (e.g., Clerk, Stytch, Auth0)",
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "description": "The date and time when the JWKS was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "description": "The date and time when the JWKS was last modified",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "jwt_audience": {
+                        "description": "The name of the required JWT Audience to be used",
+                        "type": "string"
+                    }
+                }
+            },
+            "ProjectJWKSResponse": {
+                "description": "The list of configured JWKS definitions for a project",
+                "type": "object",
+                "required": [
+                    "jwks"
+                ],
+                "properties": {
+                    "jwks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/JWKS"
+                        }
+                    }
+                }
             },
             "ApiKeyCreateRequest": {
                 "type": "object",
@@ -3928,7 +4147,8 @@
                     "disable_maintenance",
                     "apply_storage_config",
                     "prepare_secondary_pageserver",
-                    "switch_pageserver"
+                    "switch_pageserver",
+                    "detach_parent_branch"
                 ]
             },
             "OperationStatus": {
@@ -4202,7 +4422,7 @@
                         "type": "string"
                     },
                     "history_retention_seconds": {
-                        "description": "The number of seconds to retain point-in-time restore (PITR) backup history for this project.\n",
+                        "description": "The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).\n",
                         "type": "integer",
                         "format": "int32"
                     },
@@ -4293,15 +4513,15 @@
                                 "type": "object",
                                 "properties": {
                                     "name": {
-                                        "description": "The branch name. If not specified, the default branch name will be used.\n",
+                                        "description": "The default branch name. If not specified, the default branch name, `main`, will be used.\n",
                                         "type": "string"
                                     },
                                     "role_name": {
-                                        "description": "The role name. If not specified, the default role name will be used.\n",
+                                        "description": "The role name. If not specified, the default role name, `{database_name}_owner`, will be used.\n",
                                         "type": "string"
                                     },
                                     "database_name": {
-                                        "description": "The database name. If not specified, the default database name will be used.\n",
+                                        "description": "The database name. If not specified, the default database name, `neondb`, will be used.\n",
                                         "type": "string"
                                     }
                                 }
@@ -4334,7 +4554,7 @@
                                 "type": "boolean"
                             },
                             "history_retention_seconds": {
-                                "description": "The number of seconds to retain the point-in-time restore (PITR) backup history for this project.\nThe default is 604800 seconds (7 days).\n",
+                                "description": "The number of seconds to retain the shared history for all branches in this project.\nThe default is 1 day (86400 seconds).\n",
                                 "type": "integer",
                                 "format": "int32",
                                 "minimum": 0,
@@ -4368,7 +4588,7 @@
                                 "$ref": "#/components/schemas/DefaultEndpointSettings"
                             },
                             "history_retention_seconds": {
-                                "description": "The number of seconds to retain the point-in-time restore (PITR) backup history for this project.\nThe default is 604800 seconds (7 days).\n",
+                                "description": "The number of seconds to retain the shared history for all branches in this project.\nThe default is 1 day (604800 seconds).\n",
                                 "type": "integer",
                                 "format": "int32",
                                 "minimum": 0,
@@ -4927,6 +5147,20 @@
                         "description": "A timestamp indicating when the branch was last reset\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "created_by": {
+                        "description": "The resolved user model that contains details of the user/org/integration/api_key used for branch creation. This field is filled only in listing/get/create/get/update/delete methods, if it is empty when calling other handlers, it does not mean that it is empty in the system.\n",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the user."
+                            },
+                            "image": {
+                                "type": "string",
+                                "description": "The URL to the user's avatar image."
+                            }
+                        }
                     }
                 },
                 "example": {
@@ -5300,7 +5534,7 @@
                 ]
             },
             "EndpointType": {
-                "description": "The compute endpoint type. Either `read_write` or `read_only`.\nThe `read_only` compute endpoint type is not yet supported.\n",
+                "description": "The compute endpoint type. Either `read_write` or `read_only`.\n",
                 "type": "string",
                 "enum": [
                     "read_only",
@@ -5337,7 +5571,8 @@
                         "type": "boolean"
                     },
                     "primary_branch_only": {
-                        "description": "If true, the list will be applied only to the default branch.",
+                        "deprecated": true,
+                        "description": "DEPRECATED: Use `protected_branches_only`.\nIf true, the list will be applied only to the default branch.\n",
                         "type": "boolean"
                     }
                 }
@@ -5579,6 +5814,41 @@
                     }
                 }
             },
+            "NotificationMetricType": {
+                "type": "string",
+                "description": "The metric type for a given notification\n",
+                "enum": [
+                    "database_size",
+                    "connections",
+                    "cpu",
+                    "ram",
+                    "compute_over_limit"
+                ]
+            },
+            "NotificationCategoryType": {
+                "type": "string",
+                "description": "The category type for a given notification\n",
+                "enum": [
+                    "usage",
+                    "performance"
+                ]
+            },
+            "NotificationType": {
+                "type": "string",
+                "description": "The type of the notification\n",
+                "enum": [
+                    "info",
+                    "warning"
+                ]
+            },
+            "NotificationActionType": {
+                "type": "string",
+                "description": "The action type for a given notification\n",
+                "enum": [
+                    "upgrade_plan",
+                    "upgrade_cu"
+                ]
+            },
             "Role": {
                 "type": "object",
                 "required": [
@@ -5651,6 +5921,17 @@
                 "properties": {
                     "role": {
                         "$ref": "#/components/schemas/Role"
+                    }
+                }
+            },
+            "JWKSResponse": {
+                "type": "object",
+                "required": [
+                    "jwks"
+                ],
+                "properties": {
+                    "jwks": {
+                        "$ref": "#/components/schemas/JWKS"
                     }
                 }
             },
@@ -5736,6 +6017,7 @@
                 "required": [
                     "payment_source",
                     "subscription_type",
+                    "payment_method",
                     "quota_reset_at_last",
                     "name",
                     "email",
@@ -5752,6 +6034,9 @@
                     },
                     "subscription_type": {
                         "$ref": "#/components/schemas/BillingSubscriptionType"
+                    },
+                    "payment_method": {
+                        "$ref": "#/components/schemas/BillingPaymentMethod"
                     },
                     "quota_reset_at_last": {
                         "description": "The last time the quota was reset. Defaults to the date-time the account is created.\n",
@@ -5817,7 +6102,23 @@
                     "aws_marketplace",
                     "free_v2",
                     "launch",
-                    "scale"
+                    "scale",
+                    "business"
+                ]
+            },
+            "BillingPaymentMethod": {
+                "type": "string",
+                "description": "Indicates whether and how an account makes payments.\n",
+                "enum": [
+                    "UNKNOWN",
+                    "none",
+                    "stripe",
+                    "direct_payment",
+                    "aws_mp",
+                    "vercel_mp",
+                    "staff",
+                    "trial",
+                    "sponsorship"
                 ]
             },
             "Database": {
@@ -6018,18 +6319,10 @@
             "MemberUserInfo": {
                 "type": "object",
                 "required": [
-                    "email",
-                    "name",
-                    "last_name"
+                    "email"
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "last_name": {
                         "type": "string"
                     }
                 }
@@ -6055,8 +6348,10 @@
                     "id",
                     "name",
                     "handle",
+                    "plan",
                     "created_at",
-                    "updated_at"
+                    "updated_at",
+                    "managed_by"
                 ],
                 "properties": {
                     "id": {
@@ -6068,10 +6363,17 @@
                     "handle": {
                         "type": "string"
                     },
+                    "plan": {
+                        "type": "string"
+                    },
                     "created_at": {
                         "description": "A timestamp indicting when the organization was created\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "managed_by": {
+                        "description": "Organizations created via the Console or the API are managed by `console`.\nOrganizations created by other methods can't be deleted via the Console or the API.\n",
+                        "type": "string"
                     },
                     "updated_at": {
                         "description": "A timestamp indicating when the organization was updated\n",
@@ -6507,6 +6809,27 @@
                     }
                 }
             },
+            "TransferProjectsToOrganizationRequest": {
+                "type": "object",
+                "required": [
+                    "org_id",
+                    "project_ids"
+                ],
+                "properties": {
+                    "org_id": {
+                        "type": "string"
+                    },
+                    "project_ids": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 400,
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "The list of projects ids to transfer. Maximum of 400 project ids"
+                    }
+                }
+            },
             "VerifyUserPasswordRequest": {
                 "type": "object",
                 "required": [
@@ -6525,7 +6848,9 @@
                     "github",
                     "google",
                     "hasura",
-                    "keycloak"
+                    "microsoft",
+                    "keycloak",
+                    "test"
                 ]
             },
             "EndpointSettingsData": {
@@ -6617,10 +6942,10 @@
                 }
             },
             "PgVersion": {
-                "description": "The major Postgres version number. Currently supported versions are `14`, `15`, and `16`.",
+                "description": "The major Postgres version number. Currently supported versions are `14`, `15`, and `16`. version `17` is coming soon.",
                 "type": "integer",
                 "minimum": 14,
-                "maximum": 16,
+                "maximum": 17,
                 "default": 16
             },
             "HealthCheck": {
@@ -6656,6 +6981,106 @@
                         "$ref": "#/components/schemas/BillingSubscriptionType"
                     }
                 }
+            },
+            "LimitsUnsatisfiedResponse": {
+                "type": "object",
+                "required": [
+                    "limits"
+                ],
+                "properties": {
+                    "limits": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "expected",
+                                "actual"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "expected": {
+                                    "type": "string"
+                                },
+                                "actual": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "limits": [
+                        {
+                            "name": "projects_count",
+                            "actual": "2",
+                            "expected": "1"
+                        },
+                        {
+                            "name": "subscription_type",
+                            "actual": "launch",
+                            "expected": "scale"
+                        }
+                    ]
+                }
+            },
+            "ProjectsWithIntegrationResponse": {
+                "type": "object",
+                "required": [
+                    "projects"
+                ],
+                "properties": {
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "integration"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "integration": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "projects": [
+                        {
+                            "id": "round-frog-53611540",
+                            "integration": "github"
+                        },
+                        {
+                            "id": "long-leaf-72329067",
+                            "integration": "vercel"
+                        },
+                        {
+                            "id": "shrill-bush-06966719",
+                            "integration": "outerbase"
+                        }
+                    ]
+                }
+            },
+            "UserDeletionConditionName": {
+                "type": "string",
+                "enum": [
+                    "project_count",
+                    "org_admin_membership_count",
+                    "subscription_type"
+                ]
+            },
+            "OrgDeletionConditionName": {
+                "type": "string",
+                "enum": [
+                    "project_count"
+                ]
             },
             "GeneralError": {
                 "type": "object",
@@ -6717,6 +7142,16 @@
                     }
                 ]
             },
+            "JWKSCreationOperation": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/JWKSResponse"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationsResponse"
+                    }
+                ]
+            },
             "SupportTicketSeverity": {
                 "type": "string",
                 "enum": [
@@ -6725,6 +7160,106 @@
                     "high",
                     "critical"
                 ]
+            },
+            "AnnotationData": {
+                "type": "object",
+                "x-tags": [
+                    "Branch"
+                ],
+                "required": [
+                    "object",
+                    "value"
+                ],
+                "properties": {
+                    "object": {
+                        "$ref": "#/components/schemas/AnnotationObjectData"
+                    },
+                    "value": {
+                        "$ref": "#/components/schemas/AnnotationValueData"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "AnnotationValueData": {
+                "type": "object",
+                "description": "Annotation properties.",
+                "x-tags": [
+                    "Branch"
+                ],
+                "maxProperties": 50,
+                "additionalProperties": {
+                    "type": "string",
+                    "example": {
+                        "github-commit-ref": "github-branch-name"
+                    }
+                }
+            },
+            "AnnotationObjectData": {
+                "type": "object",
+                "x-tags": [
+                    "Branch"
+                ],
+                "required": [
+                    "type",
+                    "id"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AnnotationCreateValueRequest": {
+                "type": "object",
+                "x-tags": [
+                    "Branch"
+                ],
+                "properties": {
+                    "annotation_value": {
+                        "$ref": "#/components/schemas/AnnotationValueData"
+                    }
+                }
+            },
+            "AnnotationResponse": {
+                "type": "object",
+                "x-tags": [
+                    "Branch"
+                ],
+                "required": [
+                    "annotation"
+                ],
+                "properties": {
+                    "annotation": {
+                        "$ref": "#/components/schemas/AnnotationData"
+                    }
+                }
+            },
+            "AnnotationsMapResponse": {
+                "type": "object",
+                "x-tags": [
+                    "Branch"
+                ],
+                "required": [
+                    "annotations"
+                ],
+                "properties": {
+                    "annotations": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/AnnotationData"
+                        }
+                    }
+                }
             }
         }
     }

@@ -191,7 +191,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
+			Content: `{"annotations":{"br-aged-salad-637688":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}}},"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -270,7 +270,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
+			Content: `{"annotation":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}},"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
@@ -537,6 +537,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 	},
+
+	"/users/me/projects/transfer": {
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
 }
 
 // NewMockHTTPClient initiates a mock fo the HTTP client required for the SDK client.
@@ -615,9 +622,14 @@ type objPath struct {
 func parsePath(s string) objPath {
 	switch s {
 	// pass through
-	case "/user/me",
-		"/consumption_history/account",
+	case "/consumption_history/account",
 		"/consumption_history/projects":
+		return objPath{
+			path: s,
+		}
+	}
+
+	if strings.HasPrefix(s, "/user/me/") {
 		return objPath{
 			path: s,
 		}
