@@ -1566,7 +1566,7 @@ func Test_extractStructFromSchemaRef(t *testing.T) {
 			want: &model{name: "[][][]string"},
 		},
 		{
-			name: "array of arrays of arrays",
+			name: "allof",
 			args: args{
 				schema: &openapi3.SchemaRef{
 					Value: &openapi3.Schema{

@@ -1319,7 +1319,15 @@ func (m model) orderedFieldNames() []string {
 func (m model) generateCodeEnum() string {
 	tmp := m.docString() + "type " + m.name + " string\n\n"
 	tmp += "const (\n"
-	for child, _ := range m.children {
+
+	var children = make([]string, len(m.children))
+	var i int
+	for c := range m.children {
+		children[i] = c
+		i++
+	}
+
+	for _, child := range children {
 		enumOption := strings.ToUpper(child[:1]) + child[1:]
 
 		enumOption = removeSpecialCharAndMakeCamelCase(enumOption, "-")
@@ -1327,6 +1335,7 @@ func (m model) generateCodeEnum() string {
 
 		tmp += m.name + enumOption + " " + m.name + " = \"" + child + "\"\n"
 	}
+
 	tmp += ")"
 	return tmp
 }
@@ -1367,6 +1376,7 @@ func generateEndpointsImplementationMethods(
 	o openAPISpec, orderedEndpoints []string,
 ) (endpoints []endpointImplementation) {
 	const suffixResponseObject = "RespObj"
+	const suffixRequestObject = "ReqObj"
 
 	httpCodes := []string{"200", "201"}
 	httpMethods := []string{
@@ -1437,6 +1447,9 @@ func generateEndpointsImplementationMethods(
 					if vv, ok := v.Value.Content["application/json"]; ok {
 						e.RequestBodyStruct = extractStructFromSchemaRef(vv.Schema)
 						e.RequestBodyRequires = v.Value.Required
+						if e.RequestBodyStruct.name == "" {
+							e.RequestBodyStruct.name = e.Name + suffixRequestObject
+						}
 					}
 				}
 			}

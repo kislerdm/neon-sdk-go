@@ -95,9 +95,14 @@ type objPath struct {
 func parsePath(s string) objPath {
 	switch s {
     // pass through
-    case "/user/me",
-        "/consumption_history/account",
+    case "/consumption_history/account",
         "/consumption_history/projects":
+        return objPath{
+            path: s,
+        }
+    }
+
+    if strings.HasPrefix(s, "/user/me/") {
         return objPath{
             path: s,
         }
