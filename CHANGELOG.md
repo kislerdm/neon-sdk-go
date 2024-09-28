@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.6.0] - 2024-09-28
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-09-28 21:53:00 GMT.
+
+### Added
+
+- Added the method `TransferProjectsFromUserToOrg` to migrate personal projects to organisation.
+- Added the payment method attribute to the struct `BillingAccount`.
+- Added `Business` subscription type's value.
+- Added the attribute `CreatedBy` to the struct `Branch` to indicate who created the branch.
+
+### Changed
+
+- **[BREAKING]** Change the signatures of the methods:
+  - `ListProjectBranches`;
+  - `CreateProjectBranch`;
+  - `GetProjectBranch`;
+  - `GetProjectBranchSchema`.
+
 ## [v0.5.0] - 2024-06-24
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-06-24 22:03:00 GMT.
