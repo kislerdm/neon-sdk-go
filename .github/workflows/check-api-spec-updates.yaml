@@ -19,10 +19,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Pull new spec
-        run: |
-          curl -SLo openAPIDefinition_new.json "$SPEC_URL"
-        env:
-          SPEC_URL: https://neon.tech/api_spec/release/v2.json
+        run: make fetch-specs
       - name: Diff spec files
         id: diff
         run: |
