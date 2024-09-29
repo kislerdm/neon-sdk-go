@@ -741,7 +741,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	tests := []struct {
 		name          string
 		args          args
-		wantEndpoints []endpointImplementation
+		wantEndpoints map[string]endpointImplementation
 	}{
 		{
 			name: "happy path",
@@ -752,8 +752,8 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 					"/foo/bar/{qux_id}/{date_submit}",
 				},
 			},
-			wantEndpoints: []endpointImplementation{
-				{
+			wantEndpoints: map[string]endpointImplementation{
+				"FooEndpoint": {
 					Name:              "FooEndpoint",
 					Method:            "GET",
 					Route:             "/foo/{bar}/{qux_id}",
@@ -798,7 +798,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 						},
 					},
 				},
-				{
+				"FooBarEndpoint": {
 					Name:              "FooBarEndpoint",
 					Method:            "GET",
 					Route:             "/foo/bar/{qux_id}/{date_submit}",
@@ -838,9 +838,11 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
-				assert.Equal(
-					t, tt.wantEndpoints, generateEndpointsImplementationMethods(tt.args.o, tt.args.orderedEndpoints),
-				)
+				got := generateEndpointsImplementationMethods(tt.args.o, tt.args.orderedEndpoints)
+				assert.Len(t, got, len(tt.wantEndpoints))
+				for k, v := range tt.wantEndpoints {
+					assert.Equal(t, v, got[k])
+				}
 			},
 		)
 	}
@@ -1278,7 +1280,7 @@ FooResponse
 				},
 			},
 			want: []string{
-				"type FooResponse struct {\nFoo Foo `json:\"foo\"`\n}",
+				"type FooResponse struct {\nFoo Foo `json:\"foo\" pulumi:\"foo\"`\n}",
 			},
 		},
 		{

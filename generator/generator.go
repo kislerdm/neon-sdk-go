@@ -1286,7 +1286,10 @@ func (m model) generateCode() string {
 			omitEmpty = ",omitempty"
 			pointerFlag = true
 		}
-		tmp += objNameGoConventionExport(fieldName) + " " + field.argType(pointerFlag) + " `json:\"" + field.k + omitEmpty + "\"`\n"
+		tmp += objNameGoConventionExport(fieldName) + " " + field.argType(pointerFlag) +
+			" `json:\"" + field.k + omitEmpty + "\"" +
+			" pulumi:\"" + field.k + "\"`" +
+			"\n"
 	}
 
 	if len(m.fields) == 0 {
