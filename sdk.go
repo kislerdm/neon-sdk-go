@@ -898,115 +898,115 @@ func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg E
 // If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
-	Ips *[]string `json:"ips,omitempty"`
+	Ips *[]string `json:"ips,omitempty" pulumi:"ips"`
 	// PrimaryBranchOnly DEPRECATED: Use `protected_branches_only`.
 	// If true, the list will be applied only to the default branch.
-	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty"`
+	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty" pulumi:"primary_branch_only"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
-	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
+	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty" pulumi:"protected_branches_only"`
 }
 
 type AnnotationCreateValueRequest struct {
-	AnnotationValue *AnnotationValueData `json:"annotation_value,omitempty"`
+	AnnotationValue *AnnotationValueData `json:"annotation_value,omitempty" pulumi:"annotation_value"`
 }
 
 type AnnotationData struct {
-	CreatedAt *time.Time           `json:"created_at,omitempty"`
-	Object    AnnotationObjectData `json:"object"`
-	UpdatedAt *time.Time           `json:"updated_at,omitempty"`
-	Value     AnnotationValueData  `json:"value"`
+	CreatedAt *time.Time           `json:"created_at,omitempty" pulumi:"created_at"`
+	Object    AnnotationObjectData `json:"object" pulumi:"object"`
+	UpdatedAt *time.Time           `json:"updated_at,omitempty" pulumi:"updated_at"`
+	Value     AnnotationValueData  `json:"value" pulumi:"value"`
 }
 
 type AnnotationObjectData struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	ID   string `json:"id" pulumi:"id"`
+	Type string `json:"type" pulumi:"type"`
 }
 
 type AnnotationResponse struct {
-	Annotation AnnotationData `json:"annotation"`
+	Annotation AnnotationData `json:"annotation" pulumi:"annotation"`
 }
 
 // AnnotationValueData Annotation properties.
 type AnnotationValueData map[string]interface{}
 
 type AnnotationsMapResponse struct {
-	Annotations AnnotationsMapResponseAnnotations `json:"annotations"`
+	Annotations AnnotationsMapResponseAnnotations `json:"annotations" pulumi:"annotations"`
 }
 
 type AnnotationsMapResponseAnnotations map[string]interface{}
 
 type ApiKeyCreateRequest struct {
 	// KeyName A user-specified API key name. This value is required when creating an API key.
-	KeyName string `json:"key_name"`
+	KeyName string `json:"key_name" pulumi:"key_name"`
 }
 
 type ApiKeyCreateResponse struct {
 	// CreatedAt A timestamp indicating when the API key was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// ID The API key ID
-	ID int64 `json:"id"`
+	ID int64 `json:"id" pulumi:"id"`
 	// Key The generated 64-bit token required to access the Neon API
-	Key string `json:"key"`
+	Key string `json:"key" pulumi:"key"`
 	// Name The user-specified API key name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 }
 
 type ApiKeyRevokeResponse struct {
 	// ID The API key ID
-	ID int64 `json:"id"`
+	ID int64 `json:"id" pulumi:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
-	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty" pulumi:"last_used_at"`
 	// LastUsedFromAddr The IP address from which the API key was last used
-	LastUsedFromAddr string `json:"last_used_from_addr"`
+	LastUsedFromAddr string `json:"last_used_from_addr" pulumi:"last_used_from_addr"`
 	// Name The user-specified API key name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// Revoked A `true` or `false` value indicating whether the API key is revoked
-	Revoked bool `json:"revoked"`
+	Revoked bool `json:"revoked" pulumi:"revoked"`
 }
 
 type ApiKeysListResponseItem struct {
 	// CreatedAt A timestamp indicating when the API key was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// ID The API key ID
-	ID int64 `json:"id"`
+	ID int64 `json:"id" pulumi:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
-	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty" pulumi:"last_used_at"`
 	// LastUsedFromAddr The IP address from which the API key was last used
-	LastUsedFromAddr string `json:"last_used_from_addr"`
+	LastUsedFromAddr string `json:"last_used_from_addr" pulumi:"last_used_from_addr"`
 	// Name The user-specified API key name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 }
 
 type BillingAccount struct {
 	// AddressCity Billing address city.
-	AddressCity string `json:"address_city"`
+	AddressCity string `json:"address_city" pulumi:"address_city"`
 	// AddressCountry Billing address country code defined by ISO 3166-1 alpha-2.
-	AddressCountry string `json:"address_country"`
+	AddressCountry string `json:"address_country" pulumi:"address_country"`
 	// AddressCountryName Billing address country name.
-	AddressCountryName *string `json:"address_country_name,omitempty"`
+	AddressCountryName *string `json:"address_country_name,omitempty" pulumi:"address_country_name"`
 	// AddressLine1 Billing address line 1.
-	AddressLine1 string `json:"address_line1"`
+	AddressLine1 string `json:"address_line1" pulumi:"address_line1"`
 	// AddressLine2 Billing address line 2.
-	AddressLine2 string `json:"address_line2"`
+	AddressLine2 string `json:"address_line2" pulumi:"address_line2"`
 	// AddressPostalCode Billing address postal code.
-	AddressPostalCode string `json:"address_postal_code"`
+	AddressPostalCode string `json:"address_postal_code" pulumi:"address_postal_code"`
 	// AddressState Billing address state or region.
-	AddressState string `json:"address_state"`
+	AddressState string `json:"address_state" pulumi:"address_state"`
 	// Email Billing email, to receive emails related to invoices and subscriptions.
-	Email string `json:"email"`
+	Email string `json:"email" pulumi:"email"`
 	// Name The full name of the individual or entity that owns the billing account. This name appears on invoices.
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// OrbPortalURL Orb user portal url
-	OrbPortalURL  *string              `json:"orb_portal_url,omitempty"`
-	PaymentMethod BillingPaymentMethod `json:"payment_method"`
-	PaymentSource PaymentSource        `json:"payment_source"`
+	OrbPortalURL  *string              `json:"orb_portal_url,omitempty" pulumi:"orb_portal_url"`
+	PaymentMethod BillingPaymentMethod `json:"payment_method" pulumi:"payment_method"`
+	PaymentSource PaymentSource        `json:"payment_source" pulumi:"payment_source"`
 	// QuotaResetAtLast The last time the quota was reset. Defaults to the date-time the account is created.
-	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
-	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
+	QuotaResetAtLast time.Time               `json:"quota_reset_at_last" pulumi:"quota_reset_at_last"`
+	SubscriptionType BillingSubscriptionType `json:"subscription_type" pulumi:"subscription_type"`
 	// TaxID The tax identification number for the billing account, displayed on invoices.
-	TaxID *string `json:"tax_id,omitempty"`
+	TaxID *string `json:"tax_id,omitempty" pulumi:"tax_id"`
 	// TaxIDType The type of the tax identification number based on the country.
-	TaxIDType *string `json:"tax_id_type,omitempty"`
+	TaxIDType *string `json:"tax_id_type,omitempty" pulumi:"tax_id_type"`
 }
 
 // BillingPaymentMethod Indicates whether and how an account makes payments.
@@ -1015,6 +1015,7 @@ type BillingPaymentMethod string
 const (
 	BillingPaymentMethodUNKNOWN       BillingPaymentMethod = "UNKNOWN"
 	BillingPaymentMethodAwsMp         BillingPaymentMethod = "aws_mp"
+	BillingPaymentMethodAzureMp       BillingPaymentMethod = "azure_mp"
 	BillingPaymentMethodDirectPayment BillingPaymentMethod = "direct_payment"
 	BillingPaymentMethodNone          BillingPaymentMethod = "none"
 	BillingPaymentMethodSponsorship   BillingPaymentMethod = "sponsorship"
@@ -1039,83 +1040,83 @@ const (
 )
 
 type Branch struct {
-	ActiveTimeSeconds  int64 `json:"active_time_seconds"`
-	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
+	ActiveTimeSeconds  int64 `json:"active_time_seconds" pulumi:"active_time_seconds"`
+	ComputeTimeSeconds int64 `json:"compute_time_seconds" pulumi:"compute_time_seconds"`
 	// CpuUsedSec CPU seconds used by all of the branch's compute endpoints, including deleted ones.
 	// This value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. A branch that uses 1 CPU for 1 second is equal to `cpu_used_sec=1`.
 	// 2. A branch that uses 2 CPUs simultaneously for 1 second is equal to `cpu_used_sec=2`.
-	CpuUsedSec int64 `json:"cpu_used_sec"`
+	CpuUsedSec int64 `json:"cpu_used_sec" pulumi:"cpu_used_sec"`
 	// CreatedAt A timestamp indicating when the branch was created
-	CreatedAt time.Time        `json:"created_at"`
-	CreatedBy *BranchCreatedBy `json:"created_by,omitempty"`
+	CreatedAt time.Time        `json:"created_at" pulumi:"created_at"`
+	CreatedBy *BranchCreatedBy `json:"created_by,omitempty" pulumi:"created_by"`
 	// CreationSource The branch creation source
-	CreationSource    string      `json:"creation_source"`
-	CurrentState      BranchState `json:"current_state"`
-	DataTransferBytes int64       `json:"data_transfer_bytes"`
+	CreationSource    string      `json:"creation_source" pulumi:"creation_source"`
+	CurrentState      BranchState `json:"current_state" pulumi:"current_state"`
+	DataTransferBytes int64       `json:"data_transfer_bytes" pulumi:"data_transfer_bytes"`
 	// Default Whether the branch is the project's default branch
-	Default bool `json:"default"`
+	Default bool `json:"default" pulumi:"default"`
 	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
-	ID string `json:"id"`
+	ID string `json:"id" pulumi:"id"`
 	// LastResetAt A timestamp indicating when the branch was last reset
-	LastResetAt *time.Time `json:"last_reset_at,omitempty"`
+	LastResetAt *time.Time `json:"last_reset_at,omitempty" pulumi:"last_reset_at"`
 	// LogicalSize The logical size of the branch, in bytes
-	LogicalSize *int64 `json:"logical_size,omitempty"`
+	LogicalSize *int64 `json:"logical_size,omitempty" pulumi:"logical_size"`
 	// Name The branch name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// ParentID The `branch_id` of the parent branch
-	ParentID *string `json:"parent_id,omitempty"`
+	ParentID *string `json:"parent_id,omitempty" pulumi:"parent_id"`
 	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created
-	ParentLsn *string `json:"parent_lsn,omitempty"`
+	ParentLsn *string `json:"parent_lsn,omitempty" pulumi:"parent_lsn"`
 	// ParentTimestamp The point in time on the parent branch from which this branch was created
-	ParentTimestamp *time.Time   `json:"parent_timestamp,omitempty"`
-	PendingState    *BranchState `json:"pending_state,omitempty"`
+	ParentTimestamp *time.Time   `json:"parent_timestamp,omitempty" pulumi:"parent_timestamp"`
+	PendingState    *BranchState `json:"pending_state,omitempty" pulumi:"pending_state"`
 	// Primary DEPRECATED. Use `default` field.
 	// Whether the branch is the project's primary branch
-	Primary bool `json:"primary"`
+	Primary bool `json:"primary" pulumi:"primary"`
 	// ProjectID The ID of the project to which the branch belongs
-	ProjectID string `json:"project_id"`
+	ProjectID string `json:"project_id" pulumi:"project_id"`
 	// Protected Whether the branch is protected
-	Protected bool `json:"protected"`
+	Protected bool `json:"protected" pulumi:"protected"`
 	// UpdatedAt A timestamp indicating when the branch was last updated
-	UpdatedAt        time.Time `json:"updated_at"`
-	WrittenDataBytes int64     `json:"written_data_bytes"`
+	UpdatedAt        time.Time `json:"updated_at" pulumi:"updated_at"`
+	WrittenDataBytes int64     `json:"written_data_bytes" pulumi:"written_data_bytes"`
 }
 
 type BranchCreateRequest struct {
-	Branch    *BranchCreateRequestBranch            `json:"branch,omitempty"`
-	Endpoints *[]BranchCreateRequestEndpointOptions `json:"endpoints,omitempty"`
+	Branch    *BranchCreateRequestBranch            `json:"branch,omitempty" pulumi:"branch"`
+	Endpoints *[]BranchCreateRequestEndpointOptions `json:"endpoints,omitempty" pulumi:"endpoints"`
 }
 
 type BranchCreateRequestBranch struct {
 	// Name The branch name
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" pulumi:"name"`
 	// ParentID The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.
-	ParentID *string `json:"parent_id,omitempty"`
+	ParentID *string `json:"parent_id,omitempty" pulumi:"parent_id"`
 	// ParentLsn A Log Sequence Number (LSN) on the parent branch. The branch will be created with data from this LSN.
-	ParentLsn *string `json:"parent_lsn,omitempty"`
+	ParentLsn *string `json:"parent_lsn,omitempty" pulumi:"parent_lsn"`
 	// ParentTimestamp A timestamp identifying a point in time on the parent branch. The branch will be created with data starting from this point in time.
 	// The timestamp must be provided in ISO 8601 format; for example: `2024-02-26T12:00:00Z`.
-	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
+	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty" pulumi:"parent_timestamp"`
 	// Protected Whether the branch is protected
-	Protected *bool `json:"protected,omitempty"`
+	Protected *bool `json:"protected,omitempty" pulumi:"protected"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
-	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
-	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
-	Type                  EndpointType           `json:"type"`
+	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty" pulumi:"autoscaling_limit_min_cu"`
+	Provisioner           *Provisioner           `json:"provisioner,omitempty" pulumi:"provisioner"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty" pulumi:"suspend_timeout_seconds"`
+	Type                  EndpointType           `json:"type" pulumi:"type"`
 }
 
 // BranchCreatedBy The resolved user model that contains details of the user/org/integration/api_key used for branch creation. This field is filled only in listing/get/create/get/update/delete methods, if it is empty when calling other handlers, it does not mean that it is empty in the system.
 type BranchCreatedBy struct {
 	// Image The URL to the user's avatar image.
-	Image *string `json:"image,omitempty"`
+	Image *string `json:"image,omitempty" pulumi:"image"`
 	// Name The name of the user.
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" pulumi:"name"`
 }
 
 type BranchOperations struct {
@@ -1124,26 +1125,26 @@ type BranchOperations struct {
 }
 
 type BranchResponse struct {
-	Branch Branch `json:"branch"`
+	Branch Branch `json:"branch" pulumi:"branch"`
 }
 
 type BranchRestoreRequest struct {
 	// PreserveUnderName If not empty, the previous state of the branch will be saved to a branch with this name.
 	// If the branch has children or the `source_branch_id` is equal to the branch id, this field is required. All existing child branches will be moved to the newly created branch under the name `preserve_under_name`.
-	PreserveUnderName *string `json:"preserve_under_name,omitempty"`
+	PreserveUnderName *string `json:"preserve_under_name,omitempty" pulumi:"preserve_under_name"`
 	// SourceBranchID The `branch_id` of the restore source branch.
 	// If `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.
 	// If `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.
-	SourceBranchID string `json:"source_branch_id"`
+	SourceBranchID string `json:"source_branch_id" pulumi:"source_branch_id"`
 	// SourceLsn A Log Sequence Number (LSN) on the source branch. The branch will be restored with data from this LSN.
-	SourceLsn *string `json:"source_lsn,omitempty"`
+	SourceLsn *string `json:"source_lsn,omitempty" pulumi:"source_lsn"`
 	// SourceTimestamp A timestamp identifying a point in time on the source branch. The branch will be restored with data starting from this point in time.
 	// The timestamp must be provided in ISO 8601 format; for example: `2024-02-26T12:00:00Z`.
-	SourceTimestamp *time.Time `json:"source_timestamp,omitempty"`
+	SourceTimestamp *time.Time `json:"source_timestamp,omitempty" pulumi:"source_timestamp"`
 }
 
 type BranchSchemaResponse struct {
-	Sql *string `json:"sql,omitempty"`
+	Sql *string `json:"sql,omitempty" pulumi:"sql"`
 }
 
 // BranchState The branch state
@@ -1155,51 +1156,51 @@ const (
 )
 
 type BranchUpdateRequest struct {
-	Branch BranchUpdateRequestBranch `json:"branch"`
+	Branch BranchUpdateRequestBranch `json:"branch" pulumi:"branch"`
 }
 
 type BranchUpdateRequestBranch struct {
-	Name      *string `json:"name,omitempty"`
-	Protected *bool   `json:"protected,omitempty"`
+	Name      *string `json:"name,omitempty" pulumi:"name"`
+	Protected *bool   `json:"protected,omitempty" pulumi:"protected"`
 }
 
 type BranchesResponse struct {
-	Branches []Branch `json:"branches"`
+	Branches []Branch `json:"branches" pulumi:"branches"`
 }
 
 type ComputeUnit float64
 
 type ConnectionDetails struct {
-	ConnectionParameters ConnectionParameters `json:"connection_parameters"`
+	ConnectionParameters ConnectionParameters `json:"connection_parameters" pulumi:"connection_parameters"`
 	// ConnectionURI The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)
 	// The connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable.
-	ConnectionURI string `json:"connection_uri"`
+	ConnectionURI string `json:"connection_uri" pulumi:"connection_uri"`
 }
 
 type ConnectionParameters struct {
 	// Database name
-	Database string `json:"database"`
+	Database string `json:"database" pulumi:"database"`
 	// Host Hostname
-	Host string `json:"host"`
+	Host string `json:"host" pulumi:"host"`
 	// Password for the role
-	Password string `json:"password"`
+	Password string `json:"password" pulumi:"password"`
 	// PoolerHost Pooler hostname
-	PoolerHost string `json:"pooler_host"`
+	PoolerHost string `json:"pooler_host" pulumi:"pooler_host"`
 	// Role name
-	Role string `json:"role"`
+	Role string `json:"role" pulumi:"role"`
 }
 
 type ConnectionURIResponse struct {
 	// URI The connection URI.
-	URI string `json:"uri"`
+	URI string `json:"uri" pulumi:"uri"`
 }
 
 type ConnectionURIsOptionalResponse struct {
-	ConnectionURIs *[]ConnectionDetails `json:"connection_uris,omitempty"`
+	ConnectionURIs *[]ConnectionDetails `json:"connection_uris,omitempty" pulumi:"connection_uris"`
 }
 
 type ConnectionURIsResponse struct {
-	ConnectionURIs []ConnectionDetails `json:"connection_uris"`
+	ConnectionURIs []ConnectionDetails `json:"connection_uris" pulumi:"connection_uris"`
 }
 
 type ConsumptionHistoryGranularity string
@@ -1211,31 +1212,31 @@ const (
 )
 
 type ConsumptionHistoryPerAccountResponse struct {
-	Periods []ConsumptionHistoryPerPeriod `json:"periods"`
+	Periods []ConsumptionHistoryPerPeriod `json:"periods" pulumi:"periods"`
 }
 
 type ConsumptionHistoryPerPeriod struct {
-	Consumption []ConsumptionHistoryPerTimeframe `json:"consumption"`
-	PeriodID    string                           `json:"period_id"`
+	Consumption []ConsumptionHistoryPerTimeframe `json:"consumption" pulumi:"consumption"`
+	PeriodID    string                           `json:"period_id" pulumi:"period_id"`
 }
 
 type ConsumptionHistoryPerProject struct {
-	Periods   []ConsumptionHistoryPerPeriod `json:"periods"`
-	ProjectID string                        `json:"project_id"`
+	Periods   []ConsumptionHistoryPerPeriod `json:"periods" pulumi:"periods"`
+	ProjectID string                        `json:"project_id" pulumi:"project_id"`
 }
 
 type ConsumptionHistoryPerProjectResponse struct {
-	Projects []ConsumptionHistoryPerProject `json:"projects"`
+	Projects []ConsumptionHistoryPerProject `json:"projects" pulumi:"projects"`
 }
 
 type ConsumptionHistoryPerTimeframe struct {
-	ActiveTimeSeconds         int       `json:"active_time_seconds"`
-	ComputeTimeSeconds        int       `json:"compute_time_seconds"`
-	DataStorageBytesHour      *int      `json:"data_storage_bytes_hour,omitempty"`
-	SyntheticStorageSizeBytes int       `json:"synthetic_storage_size_bytes"`
-	TimeframeEnd              time.Time `json:"timeframe_end"`
-	TimeframeStart            time.Time `json:"timeframe_start"`
-	WrittenDataBytes          int       `json:"written_data_bytes"`
+	ActiveTimeSeconds         int       `json:"active_time_seconds" pulumi:"active_time_seconds"`
+	ComputeTimeSeconds        int       `json:"compute_time_seconds" pulumi:"compute_time_seconds"`
+	DataStorageBytesHour      *int      `json:"data_storage_bytes_hour,omitempty" pulumi:"data_storage_bytes_hour"`
+	SyntheticStorageSizeBytes int       `json:"synthetic_storage_size_bytes" pulumi:"synthetic_storage_size_bytes"`
+	TimeframeEnd              time.Time `json:"timeframe_end" pulumi:"timeframe_end"`
+	TimeframeStart            time.Time `json:"timeframe_start" pulumi:"timeframe_start"`
+	WrittenDataBytes          int       `json:"written_data_bytes" pulumi:"written_data_bytes"`
 }
 
 type CreateProjectBranchReqObj struct {
@@ -1263,55 +1264,57 @@ type CreatedProject struct {
 }
 
 type CurrentUserAuthAccount struct {
-	Email    string             `json:"email"`
-	Image    string             `json:"image"`
-	Login    string             `json:"login"`
-	Name     string             `json:"name"`
-	Provider IdentityProviderId `json:"provider"`
+	Email string `json:"email" pulumi:"email"`
+	Image string `json:"image" pulumi:"image"`
+	// Login DEPRECATED. Use `email` field.
+	Login    string             `json:"login" pulumi:"login"`
+	Name     string             `json:"name" pulumi:"name"`
+	Provider IdentityProviderId `json:"provider" pulumi:"provider"`
 }
 
 type CurrentUserInfoResponse struct {
 	// ActiveSecondsLimit Control plane observes active endpoints of a user this amount of wall-clock time.
-	ActiveSecondsLimit  int64                    `json:"active_seconds_limit"`
-	AuthAccounts        []CurrentUserAuthAccount `json:"auth_accounts"`
-	BillingAccount      BillingAccount           `json:"billing_account"`
-	BranchesLimit       int64                    `json:"branches_limit"`
-	ComputeSecondsLimit *int64                   `json:"compute_seconds_limit,omitempty"`
-	Email               string                   `json:"email"`
-	ID                  string                   `json:"id"`
-	Image               string                   `json:"image"`
-	LastName            string                   `json:"last_name"`
-	Login               string                   `json:"login"`
-	MaxAutoscalingLimit ComputeUnit              `json:"max_autoscaling_limit"`
-	Name                string                   `json:"name"`
-	Plan                string                   `json:"plan"`
-	ProjectsLimit       int64                    `json:"projects_limit"`
+	ActiveSecondsLimit  int64                    `json:"active_seconds_limit" pulumi:"active_seconds_limit"`
+	AuthAccounts        []CurrentUserAuthAccount `json:"auth_accounts" pulumi:"auth_accounts"`
+	BillingAccount      BillingAccount           `json:"billing_account" pulumi:"billing_account"`
+	BranchesLimit       int64                    `json:"branches_limit" pulumi:"branches_limit"`
+	ComputeSecondsLimit *int64                   `json:"compute_seconds_limit,omitempty" pulumi:"compute_seconds_limit"`
+	Email               string                   `json:"email" pulumi:"email"`
+	ID                  string                   `json:"id" pulumi:"id"`
+	Image               string                   `json:"image" pulumi:"image"`
+	LastName            string                   `json:"last_name" pulumi:"last_name"`
+	// Login DEPRECATED. Use `email` field.
+	Login               string      `json:"login" pulumi:"login"`
+	MaxAutoscalingLimit ComputeUnit `json:"max_autoscaling_limit" pulumi:"max_autoscaling_limit"`
+	Name                string      `json:"name" pulumi:"name"`
+	Plan                string      `json:"plan" pulumi:"plan"`
+	ProjectsLimit       int64       `json:"projects_limit" pulumi:"projects_limit"`
 }
 
 type Database struct {
 	// BranchID The ID of the branch to which the database belongs
-	BranchID string `json:"branch_id"`
+	BranchID string `json:"branch_id" pulumi:"branch_id"`
 	// CreatedAt A timestamp indicating when the database was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// ID The database ID
-	ID int64 `json:"id"`
+	ID int64 `json:"id" pulumi:"id"`
 	// Name The database name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// OwnerName The name of role that owns the database
-	OwnerName string `json:"owner_name"`
+	OwnerName string `json:"owner_name" pulumi:"owner_name"`
 	// UpdatedAt A timestamp indicating when the database was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 type DatabaseCreateRequest struct {
-	Database DatabaseCreateRequestDatabase `json:"database"`
+	Database DatabaseCreateRequestDatabase `json:"database" pulumi:"database"`
 }
 
 type DatabaseCreateRequestDatabase struct {
 	// Name The name of the datbase
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// OwnerName The name of the role that owns the database
-	OwnerName string `json:"owner_name"`
+	OwnerName string `json:"owner_name" pulumi:"owner_name"`
 }
 
 type DatabaseOperations struct {
@@ -1320,106 +1323,106 @@ type DatabaseOperations struct {
 }
 
 type DatabaseResponse struct {
-	Database Database `json:"database"`
+	Database Database `json:"database" pulumi:"database"`
 }
 
 type DatabaseUpdateRequest struct {
-	Database DatabaseUpdateRequestDatabase `json:"database"`
+	Database DatabaseUpdateRequestDatabase `json:"database" pulumi:"database"`
 }
 
 type DatabaseUpdateRequestDatabase struct {
 	// Name The name of the database
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" pulumi:"name"`
 	// OwnerName The name of the role that owns the database
-	OwnerName *string `json:"owner_name,omitempty"`
+	OwnerName *string `json:"owner_name,omitempty" pulumi:"owner_name"`
 }
 
 type DatabasesResponse struct {
-	Databases []Database `json:"databases"`
+	Databases []Database `json:"databases" pulumi:"databases"`
 }
 
 // DefaultEndpointSettings A collection of settings for a Neon endpoint
 type DefaultEndpointSettings struct {
-	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
-	PgSettings            *PgSettingsData        `json:"pg_settings,omitempty"`
-	PgbouncerSettings     *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
+	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty" pulumi:"autoscaling_limit_min_cu"`
+	PgSettings            *PgSettingsData        `json:"pg_settings,omitempty" pulumi:"pg_settings"`
+	PgbouncerSettings     *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty" pulumi:"pgbouncer_settings"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty" pulumi:"suspend_timeout_seconds"`
 }
 
 // EmptyResponse Empty response.
 type EmptyResponse map[string]interface{}
 
 type Endpoint struct {
-	AutoscalingLimitMaxCu ComputeUnit `json:"autoscaling_limit_max_cu"`
-	AutoscalingLimitMinCu ComputeUnit `json:"autoscaling_limit_min_cu"`
+	AutoscalingLimitMaxCu ComputeUnit `json:"autoscaling_limit_max_cu" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu ComputeUnit `json:"autoscaling_limit_min_cu" pulumi:"autoscaling_limit_min_cu"`
 	// BranchID The ID of the branch that the compute endpoint is associated with
-	BranchID string `json:"branch_id"`
+	BranchID string `json:"branch_id" pulumi:"branch_id"`
 	// ComputeReleaseVersion Attached compute's release version number.
-	ComputeReleaseVersion *string `json:"compute_release_version,omitempty"`
+	ComputeReleaseVersion *string `json:"compute_release_version,omitempty" pulumi:"compute_release_version"`
 	// CreatedAt A timestamp indicating when the compute endpoint was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// CreationSource The compute endpoint creation source
-	CreationSource string        `json:"creation_source"`
-	CurrentState   EndpointState `json:"current_state"`
+	CreationSource string        `json:"creation_source" pulumi:"creation_source"`
+	CurrentState   EndpointState `json:"current_state" pulumi:"current_state"`
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
 	// A disabled compute endpoint cannot be enabled by a connection or
 	// console action. However, the compute endpoint is periodically
 	// enabled by check_availability operations.
-	Disabled bool `json:"disabled"`
+	Disabled bool `json:"disabled" pulumi:"disabled"`
 	// Host The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
-	Host string `json:"host"`
+	Host string `json:"host" pulumi:"host"`
 	// ID The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`
-	ID string `json:"id"`
+	ID string `json:"id" pulumi:"id"`
 	// LastActive A timestamp indicating when the compute endpoint was last active
-	LastActive *time.Time `json:"last_active,omitempty"`
+	LastActive *time.Time `json:"last_active,omitempty" pulumi:"last_active"`
 	// PasswordlessAccess Whether to permit passwordless access to the compute endpoint
-	PasswordlessAccess bool           `json:"passwordless_access"`
-	PendingState       *EndpointState `json:"pending_state,omitempty"`
+	PasswordlessAccess bool           `json:"passwordless_access" pulumi:"passwordless_access"`
+	PendingState       *EndpointState `json:"pending_state,omitempty" pulumi:"pending_state"`
 	// PoolerEnabled Whether connection pooling is enabled for the compute endpoint
-	PoolerEnabled bool               `json:"pooler_enabled"`
-	PoolerMode    EndpointPoolerMode `json:"pooler_mode"`
+	PoolerEnabled bool               `json:"pooler_enabled" pulumi:"pooler_enabled"`
+	PoolerMode    EndpointPoolerMode `json:"pooler_mode" pulumi:"pooler_mode"`
 	// ProjectID The ID of the project to which the compute endpoint belongs
-	ProjectID   string      `json:"project_id"`
-	Provisioner Provisioner `json:"provisioner"`
+	ProjectID   string      `json:"project_id" pulumi:"project_id"`
+	Provisioner Provisioner `json:"provisioner" pulumi:"provisioner"`
 	// ProxyHost DEPRECATED. Use the "host" property instead.
-	ProxyHost string `json:"proxy_host"`
+	ProxyHost string `json:"proxy_host" pulumi:"proxy_host"`
 	// RegionID The region identifier
-	RegionID              string                `json:"region_id"`
-	Settings              EndpointSettingsData  `json:"settings"`
-	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
-	Type                  EndpointType          `json:"type"`
+	RegionID              string                `json:"region_id" pulumi:"region_id"`
+	Settings              EndpointSettingsData  `json:"settings" pulumi:"settings"`
+	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds" pulumi:"suspend_timeout_seconds"`
+	Type                  EndpointType          `json:"type" pulumi:"type"`
 	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 type EndpointCreateRequest struct {
-	Endpoint EndpointCreateRequestEndpoint `json:"endpoint"`
+	Endpoint EndpointCreateRequestEndpoint `json:"endpoint" pulumi:"endpoint"`
 }
 
 type EndpointCreateRequestEndpoint struct {
-	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
+	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty" pulumi:"autoscaling_limit_min_cu"`
 	// BranchID The ID of the branch the compute endpoint will be associated with
-	BranchID string `json:"branch_id"`
+	BranchID string `json:"branch_id" pulumi:"branch_id"`
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
 	// A disabled compute endpoint cannot be enabled by a connection or
 	// console action. However, the compute endpoint is periodically
 	// enabled by check_availability operations.
-	Disabled *bool `json:"disabled,omitempty"`
+	Disabled *bool `json:"disabled,omitempty" pulumi:"disabled"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
-	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
+	PasswordlessAccess *bool `json:"passwordless_access,omitempty" pulumi:"passwordless_access"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
-	PoolerEnabled *bool               `json:"pooler_enabled,omitempty"`
-	PoolerMode    *EndpointPoolerMode `json:"pooler_mode,omitempty"`
-	Provisioner   *Provisioner        `json:"provisioner,omitempty"`
+	PoolerEnabled *bool               `json:"pooler_enabled,omitempty" pulumi:"pooler_enabled"`
+	PoolerMode    *EndpointPoolerMode `json:"pooler_mode,omitempty" pulumi:"pooler_mode"`
+	Provisioner   *Provisioner        `json:"provisioner,omitempty" pulumi:"provisioner"`
 	// RegionID The region where the compute endpoint will be created. Only the project's `region_id` is permitted.
-	RegionID              *string                `json:"region_id,omitempty"`
-	Settings              *EndpointSettingsData  `json:"settings,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
-	Type                  EndpointType           `json:"type"`
+	RegionID              *string                `json:"region_id,omitempty" pulumi:"region_id"`
+	Settings              *EndpointSettingsData  `json:"settings,omitempty" pulumi:"settings"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty" pulumi:"suspend_timeout_seconds"`
+	Type                  EndpointType           `json:"type" pulumi:"type"`
 }
 
 type EndpointOperations struct {
@@ -1435,13 +1438,13 @@ const (
 )
 
 type EndpointResponse struct {
-	Endpoint Endpoint `json:"endpoint"`
+	Endpoint Endpoint `json:"endpoint" pulumi:"endpoint"`
 }
 
 // EndpointSettingsData A collection of settings for a compute endpoint
 type EndpointSettingsData struct {
-	PgSettings        *PgSettingsData        `json:"pg_settings,omitempty"`
-	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
+	PgSettings        *PgSettingsData        `json:"pg_settings,omitempty" pulumi:"pg_settings"`
+	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty" pulumi:"pgbouncer_settings"`
 }
 
 // EndpointState The state of the compute endpoint
@@ -1462,32 +1465,32 @@ const (
 )
 
 type EndpointUpdateRequest struct {
-	Endpoint EndpointUpdateRequestEndpoint `json:"endpoint"`
+	Endpoint EndpointUpdateRequestEndpoint `json:"endpoint" pulumi:"endpoint"`
 }
 
 type EndpointUpdateRequestEndpoint struct {
-	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
-	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
+	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty" pulumi:"autoscaling_limit_min_cu"`
 	// BranchID The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
-	BranchID *string `json:"branch_id,omitempty"`
+	BranchID *string `json:"branch_id,omitempty" pulumi:"branch_id"`
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
 	// A disabled compute endpoint cannot be enabled by a connection or
 	// console action. However, the compute endpoint is periodically
 	// enabled by check_availability operations.
-	Disabled *bool `json:"disabled,omitempty"`
+	Disabled *bool `json:"disabled,omitempty" pulumi:"disabled"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
-	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
+	PasswordlessAccess *bool `json:"passwordless_access,omitempty" pulumi:"passwordless_access"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
-	PoolerEnabled         *bool                  `json:"pooler_enabled,omitempty"`
-	PoolerMode            *EndpointPoolerMode    `json:"pooler_mode,omitempty"`
-	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
-	Settings              *EndpointSettingsData  `json:"settings,omitempty"`
-	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
+	PoolerEnabled         *bool                  `json:"pooler_enabled,omitempty" pulumi:"pooler_enabled"`
+	PoolerMode            *EndpointPoolerMode    `json:"pooler_mode,omitempty" pulumi:"pooler_mode"`
+	Provisioner           *Provisioner           `json:"provisioner,omitempty" pulumi:"provisioner"`
+	Settings              *EndpointSettingsData  `json:"settings,omitempty" pulumi:"settings"`
+	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty" pulumi:"suspend_timeout_seconds"`
 }
 
 type EndpointsResponse struct {
-	Endpoints []Endpoint `json:"endpoints"`
+	Endpoints []Endpoint `json:"endpoints" pulumi:"endpoints"`
 }
 
 type GetConsumptionHistoryPerProjectRespObj struct {
@@ -1501,7 +1504,7 @@ type GetProjectBranchRespObj struct {
 }
 
 type GrantPermissionToProjectRequest struct {
-	Email string `json:"email"`
+	Email string `json:"email" pulumi:"email"`
 }
 
 // IdentityProviderId Identity provider id from keycloak
@@ -1533,6 +1536,7 @@ type ListProjectsConsumptionRespObj struct {
 
 type ListProjectsRespObj struct {
 	PaginationResponse
+	ProjectsApplicationsMapResponse
 	ProjectsResponse
 }
 
@@ -1542,28 +1546,28 @@ type ListSharedProjectsRespObj struct {
 }
 
 type Operation struct {
-	Action OperationAction `json:"action"`
+	Action OperationAction `json:"action" pulumi:"action"`
 	// BranchID The branch ID
-	BranchID *string `json:"branch_id,omitempty"`
+	BranchID *string `json:"branch_id,omitempty" pulumi:"branch_id"`
 	// CreatedAt A timestamp indicating when the operation was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// EndpointID The endpoint ID
-	EndpointID *string `json:"endpoint_id,omitempty"`
+	EndpointID *string `json:"endpoint_id,omitempty" pulumi:"endpoint_id"`
 	// Error The error that occured
-	Error *string `json:"error,omitempty"`
+	Error *string `json:"error,omitempty" pulumi:"error"`
 	// FailuresCount The number of times the operation failed
-	FailuresCount int32 `json:"failures_count"`
+	FailuresCount int32 `json:"failures_count" pulumi:"failures_count"`
 	// ID The operation ID
-	ID string `json:"id"`
+	ID string `json:"id" pulumi:"id"`
 	// ProjectID The Neon project ID
-	ProjectID string `json:"project_id"`
+	ProjectID string `json:"project_id" pulumi:"project_id"`
 	// RetryAt A timestamp indicating when the operation was last retried
-	RetryAt *time.Time      `json:"retry_at,omitempty"`
-	Status  OperationStatus `json:"status"`
+	RetryAt *time.Time      `json:"retry_at,omitempty" pulumi:"retry_at"`
+	Status  OperationStatus `json:"status" pulumi:"status"`
 	// TotalDurationMs The total duration of the operation in milliseconds
-	TotalDurationMs int32 `json:"total_duration_ms"`
+	TotalDurationMs int32 `json:"total_duration_ms" pulumi:"total_duration_ms"`
 	// UpdatedAt A timestamp indicating when the operation status was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 // OperationAction The action performed by the operation
@@ -1591,7 +1595,7 @@ const (
 )
 
 type OperationResponse struct {
-	Operation Operation `json:"operation"`
+	Operation Operation `json:"operation" pulumi:"operation"`
 }
 
 // OperationStatus The status of the operation
@@ -1609,53 +1613,53 @@ const (
 )
 
 type OperationsResponse struct {
-	Operations []Operation `json:"operations"`
+	Operations []Operation `json:"operations" pulumi:"operations"`
 }
 
 type Organization struct {
 	// CreatedAt A timestamp indicting when the organization was created
-	CreatedAt time.Time `json:"created_at"`
-	Handle    string    `json:"handle"`
-	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
+	Handle    string    `json:"handle" pulumi:"handle"`
+	ID        string    `json:"id" pulumi:"id"`
 	// ManagedBy Organizations created via the Console or the API are managed by `console`.
 	// Organizations created by other methods can't be deleted via the Console or the API.
-	ManagedBy string `json:"managed_by"`
-	Name      string `json:"name"`
-	Plan      string `json:"plan"`
+	ManagedBy string `json:"managed_by" pulumi:"managed_by"`
+	Name      string `json:"name" pulumi:"name"`
+	Plan      string `json:"plan" pulumi:"plan"`
 	// UpdatedAt A timestamp indicating when the organization was updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 type OrganizationsResponse struct {
-	Organizations []Organization `json:"organizations"`
+	Organizations []Organization `json:"organizations" pulumi:"organizations"`
 }
 
 // Pagination Cursor based pagination is used. The user must pass the cursor as is to the backend.
 // For more information about cursor based pagination, see
 // https://learn.microsoft.com/en-us/ef/core/querying/pagination#keyset-pagination
 type Pagination struct {
-	Cursor string `json:"cursor"`
+	Cursor string `json:"cursor" pulumi:"cursor"`
 }
 
 type PaginationResponse struct {
-	Pagination *Pagination `json:"pagination,omitempty"`
+	Pagination *Pagination `json:"pagination,omitempty" pulumi:"pagination"`
 }
 
 type PaymentSource struct {
-	Card *PaymentSourceBankCard `json:"card,omitempty"`
+	Card *PaymentSourceBankCard `json:"card,omitempty" pulumi:"card"`
 	// Type of payment source. E.g. "card".
-	Type string `json:"type"`
+	Type string `json:"type" pulumi:"type"`
 }
 
 type PaymentSourceBankCard struct {
 	// Brand of credit card.
-	Brand *string `json:"brand,omitempty"`
+	Brand *string `json:"brand,omitempty" pulumi:"brand"`
 	// ExpMonth Credit card expiration month
-	ExpMonth *int64 `json:"exp_month,omitempty"`
+	ExpMonth *int64 `json:"exp_month,omitempty" pulumi:"exp_month"`
 	// ExpYear Credit card expiration year
-	ExpYear *int64 `json:"exp_year,omitempty"`
+	ExpYear *int64 `json:"exp_year,omitempty" pulumi:"exp_year"`
 	// Last4 Last 4 digits of the card.
-	Last4 string `json:"last4"`
+	Last4 string `json:"last4" pulumi:"last4"`
 }
 
 // PgSettingsData A raw representation of Postgres settings
@@ -1671,70 +1675,70 @@ type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
-	ActiveTimeSeconds int64 `json:"active_time_seconds"`
+	ActiveTimeSeconds int64 `json:"active_time_seconds" pulumi:"active_time_seconds"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
-	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
+	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit" pulumi:"branch_logical_size_limit"`
 	// BranchLogicalSizeLimitBytes The logical size limit for a branch. The value is in B.
-	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
+	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes" pulumi:"branch_logical_size_limit_bytes"`
 	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
 	//
 	// Omitted when observed no actitivy for endpoints of this project.
-	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty"`
+	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty" pulumi:"compute_last_active_at"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
 	// The value has some lag. The value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
-	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
+	ComputeTimeSeconds int64 `json:"compute_time_seconds" pulumi:"compute_time_seconds"`
 	// ConsumptionPeriodEnd A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
-	ConsumptionPeriodEnd time.Time `json:"consumption_period_end"`
+	ConsumptionPeriodEnd time.Time `json:"consumption_period_end" pulumi:"consumption_period_end"`
 	// ConsumptionPeriodStart A date-time indicating when Neon Cloud started measuring consumption for current consumption period.
-	ConsumptionPeriodStart time.Time `json:"consumption_period_start"`
+	ConsumptionPeriodStart time.Time `json:"consumption_period_start" pulumi:"consumption_period_start"`
 	// CpuUsedSec DEPRECATED, use compute_time instead.
-	CpuUsedSec int64 `json:"cpu_used_sec"`
+	CpuUsedSec int64 `json:"cpu_used_sec" pulumi:"cpu_used_sec"`
 	// CreatedAt A timestamp indicating when the project was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// CreationSource The project creation source
-	CreationSource string `json:"creation_source"`
+	CreationSource string `json:"creation_source" pulumi:"creation_source"`
 	// DataStorageBytesHour Bytes-Hour. Project consumed that much storage hourly during the billing period. The value has some lag.
 	// The value is reset at the beginning of each billing period.
-	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
+	DataStorageBytesHour int64 `json:"data_storage_bytes_hour" pulumi:"data_storage_bytes_hour"`
 	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
-	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
-	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	DataTransferBytes       int64                    `json:"data_transfer_bytes" pulumi:"data_transfer_bytes"`
+	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty" pulumi:"default_endpoint_settings"`
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).
-	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
+	HistoryRetentionSeconds int32 `json:"history_retention_seconds" pulumi:"history_retention_seconds"`
 	// ID The project ID
-	ID string `json:"id"`
+	ID string `json:"id" pulumi:"id"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
-	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
+	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty" pulumi:"maintenance_starts_at"`
 	// Name The project name
-	Name      string            `json:"name"`
-	OrgID     *string           `json:"org_id,omitempty"`
-	Owner     *ProjectOwnerData `json:"owner,omitempty"`
-	OwnerID   string            `json:"owner_id"`
-	PgVersion PgVersion         `json:"pg_version"`
+	Name      string            `json:"name" pulumi:"name"`
+	OrgID     *string           `json:"org_id,omitempty" pulumi:"org_id"`
+	Owner     *ProjectOwnerData `json:"owner,omitempty" pulumi:"owner"`
+	OwnerID   string            `json:"owner_id" pulumi:"owner_id"`
+	PgVersion PgVersion         `json:"pg_version" pulumi:"pg_version"`
 	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
-	PlatformID  string      `json:"platform_id"`
-	Provisioner Provisioner `json:"provisioner"`
+	PlatformID  string      `json:"platform_id" pulumi:"platform_id"`
+	Provisioner Provisioner `json:"provisioner" pulumi:"provisioner"`
 	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
-	ProxyHost string `json:"proxy_host"`
+	ProxyHost string `json:"proxy_host" pulumi:"proxy_host"`
 	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
 	// A timestamp indicating when the project quota resets.
-	QuotaResetAt *time.Time `json:"quota_reset_at,omitempty"`
+	QuotaResetAt *time.Time `json:"quota_reset_at,omitempty" pulumi:"quota_reset_at"`
 	// RegionID The region identifier
-	RegionID string               `json:"region_id"`
-	Settings *ProjectSettingsData `json:"settings,omitempty"`
+	RegionID string               `json:"region_id" pulumi:"region_id"`
+	Settings *ProjectSettingsData `json:"settings,omitempty" pulumi:"settings"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords bool `json:"store_passwords"`
+	StorePasswords bool `json:"store_passwords" pulumi:"store_passwords"`
 	// SyntheticStorageSize The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
-	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
+	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty" pulumi:"synthetic_storage_size"`
 	// UpdatedAt A timestamp indicating when the project was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 	// WrittenDataBytes Bytes. Amount of WAL that travelled through storage for given project across all branches.
 	// The value has some lag. The value is reset at the beginning of each billing period.
-	WrittenDataBytes int64 `json:"written_data_bytes"`
+	WrittenDataBytes int64 `json:"written_data_bytes" pulumi:"written_data_bytes"`
 }
 
 type ProjectConsumption struct {
@@ -1742,150 +1746,150 @@ type ProjectConsumption struct {
 	// Expect some lag in the reported value.
 	//
 	// The value is reset at the beginning of each billing period.
-	ActiveTimeSeconds int64 `json:"active_time_seconds"`
+	ActiveTimeSeconds int64 `json:"active_time_seconds" pulumi:"active_time_seconds"`
 	// ActiveTimeSecondsUpdatedAt The timestamp of the last update of the `active_time_seconds` field.
-	ActiveTimeSecondsUpdatedAt *time.Time `json:"active_time_seconds_updated_at,omitempty"`
+	ActiveTimeSecondsUpdatedAt *time.Time `json:"active_time_seconds_updated_at,omitempty" pulumi:"active_time_seconds_updated_at"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
 	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
-	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
+	ComputeTimeSeconds int64 `json:"compute_time_seconds" pulumi:"compute_time_seconds"`
 	// ComputeTimeSecondsUpdatedAt The timestamp of the last update of `compute_time_seconds` field.
-	ComputeTimeSecondsUpdatedAt *time.Time `json:"compute_time_seconds_updated_at,omitempty"`
+	ComputeTimeSecondsUpdatedAt *time.Time `json:"compute_time_seconds_updated_at,omitempty" pulumi:"compute_time_seconds_updated_at"`
 	// DataStorageBytesHour Bytes-Hour. The amount of storage the project consumed during the billing period. Expect some lag in the reported value.
 	// The value is reset at the beginning of each billing period.
-	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
+	DataStorageBytesHour int64 `json:"data_storage_bytes_hour" pulumi:"data_storage_bytes_hour"`
 	// DataStorageBytesHourUpdatedAt The timestamp of the last update of the `data_storage_bytes_hour` field.
-	DataStorageBytesHourUpdatedAt *time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
+	DataStorageBytesHourUpdatedAt *time.Time `json:"data_storage_bytes_hour_updated_at,omitempty" pulumi:"data_storage_bytes_hour_updated_at"`
 	// DataTransferBytes Bytes. The egress traffic from the Neon cloud to the client for the project over the billing period.
 	// Includes egress traffic for deleted endpoints. Expect some lag in the reported value. The value is reset at the beginning of each billing period.
-	DataTransferBytes int64 `json:"data_transfer_bytes"`
+	DataTransferBytes int64 `json:"data_transfer_bytes" pulumi:"data_transfer_bytes"`
 	// DataTransferBytesUpdatedAt Timestamp of the last update of `data_transfer_bytes` field
-	DataTransferBytesUpdatedAt *time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
+	DataTransferBytesUpdatedAt *time.Time `json:"data_transfer_bytes_updated_at,omitempty" pulumi:"data_transfer_bytes_updated_at"`
 	// PeriodEnd The end of the consumption period.
-	PeriodEnd time.Time `json:"period_end"`
+	PeriodEnd time.Time `json:"period_end" pulumi:"period_end"`
 	// PeriodID The Id of the consumption period, used to reference the `previous_period_id` field.
-	PeriodID string `json:"period_id"`
+	PeriodID string `json:"period_id" pulumi:"period_id"`
 	// PeriodStart The start of the consumption period.
-	PeriodStart time.Time `json:"period_start"`
+	PeriodStart time.Time `json:"period_start" pulumi:"period_start"`
 	// PreviousPeriodID The `period_id` of the previous consumption period.
-	PreviousPeriodID string `json:"previous_period_id"`
+	PreviousPeriodID string `json:"previous_period_id" pulumi:"previous_period_id"`
 	// ProjectID The project ID
-	ProjectID string `json:"project_id"`
+	ProjectID string `json:"project_id" pulumi:"project_id"`
 	// SyntheticStorageSize Bytes. The current space occupied by project in storage. Expect some lag in the reported value.
-	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
+	SyntheticStorageSize int64 `json:"synthetic_storage_size" pulumi:"synthetic_storage_size"`
 	// SyntheticStorageSizeUpdatedAt The timestamp of the last update of the `synthetic_storage_size` field.
-	SyntheticStorageSizeUpdatedAt *time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
+	SyntheticStorageSizeUpdatedAt *time.Time `json:"synthetic_storage_size_updated_at,omitempty" pulumi:"synthetic_storage_size_updated_at"`
 	// UpdatedAt A timestamp indicating when the period was last updated.
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 	// WrittenDataBytes Bytes. The Amount of WAL that travelled through storage for given project for all branches.
 	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
-	WrittenDataBytes int64 `json:"written_data_bytes"`
+	WrittenDataBytes int64 `json:"written_data_bytes" pulumi:"written_data_bytes"`
 	// WrittenDataBytesUpdatedAt The timestamp of the last update of `written_data_bytes` field.
-	WrittenDataBytesUpdatedAt *time.Time `json:"written_data_bytes_updated_at,omitempty"`
+	WrittenDataBytesUpdatedAt *time.Time `json:"written_data_bytes_updated_at,omitempty" pulumi:"written_data_bytes_updated_at"`
 }
 
 type ProjectCreateRequest struct {
-	Project ProjectCreateRequestProject `json:"project"`
+	Project ProjectCreateRequestProject `json:"project" pulumi:"project"`
 }
 
 type ProjectCreateRequestProject struct {
-	AutoscalingLimitMaxCu   *ComputeUnit                       `json:"autoscaling_limit_max_cu,omitempty"`
-	AutoscalingLimitMinCu   *ComputeUnit                       `json:"autoscaling_limit_min_cu,omitempty"`
-	Branch                  *ProjectCreateRequestProjectBranch `json:"branch,omitempty"`
-	DefaultEndpointSettings *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
+	AutoscalingLimitMaxCu   *ComputeUnit                       `json:"autoscaling_limit_max_cu,omitempty" pulumi:"autoscaling_limit_max_cu"`
+	AutoscalingLimitMinCu   *ComputeUnit                       `json:"autoscaling_limit_min_cu,omitempty" pulumi:"autoscaling_limit_min_cu"`
+	Branch                  *ProjectCreateRequestProjectBranch `json:"branch,omitempty" pulumi:"branch"`
+	DefaultEndpointSettings *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty" pulumi:"default_endpoint_settings"`
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	// The default is 1 day (86400 seconds).
-	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty" pulumi:"history_retention_seconds"`
 	// Name The project name
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" pulumi:"name"`
 	// OrgID Organization id in case the project created belongs to an organization.
 	// If not present, project is owned by a user and not by org.
-	OrgID       *string      `json:"org_id,omitempty"`
-	PgVersion   *PgVersion   `json:"pg_version,omitempty"`
-	Provisioner *Provisioner `json:"provisioner,omitempty"`
+	OrgID       *string      `json:"org_id,omitempty" pulumi:"org_id"`
+	PgVersion   *PgVersion   `json:"pg_version,omitempty" pulumi:"pg_version"`
+	Provisioner *Provisioner `json:"provisioner,omitempty" pulumi:"provisioner"`
 	// RegionID The region identifier. Refer to our [Regions](https://neon.tech/docs/introduction/regions) documentation for supported regions. Values are specified in this format: `aws-us-east-1`
-	RegionID *string              `json:"region_id,omitempty"`
-	Settings *ProjectSettingsData `json:"settings,omitempty"`
+	RegionID *string              `json:"region_id,omitempty" pulumi:"region_id"`
+	Settings *ProjectSettingsData `json:"settings,omitempty" pulumi:"settings"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords *bool `json:"store_passwords,omitempty"`
+	StorePasswords *bool `json:"store_passwords,omitempty" pulumi:"store_passwords"`
 }
 
 type ProjectCreateRequestProjectBranch struct {
 	// DatabaseName The database name. If not specified, the default database name, `neondb`, will be used.
-	DatabaseName *string `json:"database_name,omitempty"`
+	DatabaseName *string `json:"database_name,omitempty" pulumi:"database_name"`
 	// Name The default branch name. If not specified, the default branch name, `main`, will be used.
-	Name *string `json:"name,omitempty"`
+	Name *string `json:"name,omitempty" pulumi:"name"`
 	// RoleName The role name. If not specified, the default role name, `{database_name}_owner`, will be used.
-	RoleName *string `json:"role_name,omitempty"`
+	RoleName *string `json:"role_name,omitempty" pulumi:"role_name"`
 }
 
 // ProjectListItem Essential data about the project. Full data is available at the getProject endpoint.
 type ProjectListItem struct {
 	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
-	ActiveTime int64 `json:"active_time"`
+	ActiveTime int64 `json:"active_time" pulumi:"active_time"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
-	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
+	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit" pulumi:"branch_logical_size_limit"`
 	// BranchLogicalSizeLimitBytes The logical size limit for a branch. The value is in B.
-	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
+	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes" pulumi:"branch_logical_size_limit_bytes"`
 	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
 	//
 	// Omitted when observed no actitivy for endpoints of this project.
-	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty"`
+	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty" pulumi:"compute_last_active_at"`
 	// CpuUsedSec DEPRECATED. Use data from the getProject endpoint instead.
-	CpuUsedSec int64 `json:"cpu_used_sec"`
+	CpuUsedSec int64 `json:"cpu_used_sec" pulumi:"cpu_used_sec"`
 	// CreatedAt A timestamp indicating when the project was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// CreationSource The project creation source
-	CreationSource          string                   `json:"creation_source"`
-	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	CreationSource          string                   `json:"creation_source" pulumi:"creation_source"`
+	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty" pulumi:"default_endpoint_settings"`
 	// ID The project ID
-	ID string `json:"id"`
+	ID string `json:"id" pulumi:"id"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
-	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
+	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty" pulumi:"maintenance_starts_at"`
 	// Name The project name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// OrgID Organization id if a project belongs to organization.
 	// Permissions for the project will be given to organization members as defined by the organization admins.
 	// The permissions of the project do not depend on the user that created the project if a project belongs to an organization.
-	OrgID     *string   `json:"org_id,omitempty"`
-	OwnerID   string    `json:"owner_id"`
-	PgVersion PgVersion `json:"pg_version"`
+	OrgID     *string   `json:"org_id,omitempty" pulumi:"org_id"`
+	OwnerID   string    `json:"owner_id" pulumi:"owner_id"`
+	PgVersion PgVersion `json:"pg_version" pulumi:"pg_version"`
 	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
-	PlatformID  string      `json:"platform_id"`
-	Provisioner Provisioner `json:"provisioner"`
+	PlatformID  string      `json:"platform_id" pulumi:"platform_id"`
+	Provisioner Provisioner `json:"provisioner" pulumi:"provisioner"`
 	// ProxyHost The proxy host for the project. This value combines the `region_id`, the `platform_id`, and the Neon domain (`neon.tech`).
-	ProxyHost string `json:"proxy_host"`
+	ProxyHost string `json:"proxy_host" pulumi:"proxy_host"`
 	// QuotaResetAt DEPRECATED. Use `consumption_period_end` from the getProject endpoint instead.
 	// A timestamp indicating when the project quota resets
-	QuotaResetAt *time.Time `json:"quota_reset_at,omitempty"`
+	QuotaResetAt *time.Time `json:"quota_reset_at,omitempty" pulumi:"quota_reset_at"`
 	// RegionID The region identifier
-	RegionID string               `json:"region_id"`
-	Settings *ProjectSettingsData `json:"settings,omitempty"`
+	RegionID string               `json:"region_id" pulumi:"region_id"`
+	Settings *ProjectSettingsData `json:"settings,omitempty" pulumi:"settings"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
-	StorePasswords bool `json:"store_passwords"`
+	StorePasswords bool `json:"store_passwords" pulumi:"store_passwords"`
 	// SyntheticStorageSize The current space occupied by the project in storage, in bytes. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
-	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
+	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty" pulumi:"synthetic_storage_size"`
 	// UpdatedAt A timestamp indicating when the project was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 type ProjectOwnerData struct {
-	BranchesLimit    int                     `json:"branches_limit"`
-	Email            string                  `json:"email"`
-	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
+	BranchesLimit    int                     `json:"branches_limit" pulumi:"branches_limit"`
+	Email            string                  `json:"email" pulumi:"email"`
+	SubscriptionType BillingSubscriptionType `json:"subscription_type" pulumi:"subscription_type"`
 }
 
 type ProjectPermission struct {
-	GrantedAt      time.Time  `json:"granted_at"`
-	GrantedToEmail string     `json:"granted_to_email"`
-	ID             string     `json:"id"`
-	RevokedAt      *time.Time `json:"revoked_at,omitempty"`
+	GrantedAt      time.Time  `json:"granted_at" pulumi:"granted_at"`
+	GrantedToEmail string     `json:"granted_to_email" pulumi:"granted_to_email"`
+	ID             string     `json:"id" pulumi:"id"`
+	RevokedAt      *time.Time `json:"revoked_at,omitempty" pulumi:"revoked_at"`
 }
 
 type ProjectPermissions struct {
-	ProjectPermissions []ProjectPermission `json:"project_permissions"`
+	ProjectPermissions []ProjectPermission `json:"project_permissions" pulumi:"project_permissions"`
 }
 
 // ProjectQuota Per-project consumption quota. If the quota is exceeded, all active computes
@@ -1902,51 +1906,58 @@ type ProjectPermissions struct {
 // A zero or empty quota value means 'unlimited'.
 type ProjectQuota struct {
 	// ActiveTimeSeconds The total amount of wall-clock time allowed to be spent by the project's compute endpoints.
-	ActiveTimeSeconds *int64 `json:"active_time_seconds,omitempty"`
+	ActiveTimeSeconds *int64 `json:"active_time_seconds,omitempty" pulumi:"active_time_seconds"`
 	// ComputeTimeSeconds The total amount of CPU seconds allowed to be spent by the project's compute endpoints.
-	ComputeTimeSeconds *int64 `json:"compute_time_seconds,omitempty"`
+	ComputeTimeSeconds *int64 `json:"compute_time_seconds,omitempty" pulumi:"compute_time_seconds"`
 	// DataTransferBytes Total amount of data transferred from all of a project's branches using the proxy.
-	DataTransferBytes *int64 `json:"data_transfer_bytes,omitempty"`
+	DataTransferBytes *int64 `json:"data_transfer_bytes,omitempty" pulumi:"data_transfer_bytes"`
 	// LogicalSizeBytes Limit on the logical size of every project's branch.
-	LogicalSizeBytes *int64 `json:"logical_size_bytes,omitempty"`
+	LogicalSizeBytes *int64 `json:"logical_size_bytes,omitempty" pulumi:"logical_size_bytes"`
 	// WrittenDataBytes Total amount of data written to all of a project's branches.
-	WrittenDataBytes *int64 `json:"written_data_bytes,omitempty"`
+	WrittenDataBytes *int64 `json:"written_data_bytes,omitempty" pulumi:"written_data_bytes"`
 }
 
 type ProjectResponse struct {
-	Project Project `json:"project"`
+	Project Project `json:"project" pulumi:"project"`
 }
 
 type ProjectSettingsData struct {
-	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
+	AllowedIps *AllowedIps `json:"allowed_ips,omitempty" pulumi:"allowed_ips"`
 	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
 	// All active endpoints will be suspended.
 	// Once enabled, logical replication cannot be disabled.
-	EnableLogicalReplication *bool         `json:"enable_logical_replication,omitempty"`
-	Quota                    *ProjectQuota `json:"quota,omitempty"`
+	EnableLogicalReplication *bool         `json:"enable_logical_replication,omitempty" pulumi:"enable_logical_replication"`
+	Quota                    *ProjectQuota `json:"quota,omitempty" pulumi:"quota"`
 }
 
 type ProjectUpdateRequest struct {
-	Project ProjectUpdateRequestProject `json:"project"`
+	Project ProjectUpdateRequestProject `json:"project" pulumi:"project"`
 }
 
 type ProjectUpdateRequestProject struct {
-	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty" pulumi:"default_endpoint_settings"`
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	// The default is 1 day (604800 seconds).
-	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty" pulumi:"history_retention_seconds"`
 	// Name The project name
-	Name     *string              `json:"name,omitempty"`
-	Settings *ProjectSettingsData `json:"settings,omitempty"`
+	Name     *string              `json:"name,omitempty" pulumi:"name"`
+	Settings *ProjectSettingsData `json:"settings,omitempty" pulumi:"settings"`
 }
 
+// ProjectsApplicationsMapResponse A map where key is a project ID and a value is a list of available applications.
+type ProjectsApplicationsMapResponse struct {
+	Applications ProjectsApplicationsMapResponseApplications `json:"applications" pulumi:"applications"`
+}
+
+type ProjectsApplicationsMapResponseApplications map[string]interface{}
+
 type ProjectsConsumptionResponse struct {
-	PeriodsInResponse int64                `json:"periods_in_response"`
-	Projects          []ProjectConsumption `json:"projects"`
+	PeriodsInResponse int64                `json:"periods_in_response" pulumi:"periods_in_response"`
+	Projects          []ProjectConsumption `json:"projects" pulumi:"projects"`
 }
 
 type ProjectsResponse struct {
-	Projects []ProjectListItem `json:"projects"`
+	Projects []ProjectListItem `json:"projects" pulumi:"projects"`
 }
 
 // Provisioner The Neon compute provisioner.
@@ -1960,26 +1971,26 @@ const (
 
 type Role struct {
 	// BranchID The ID of the branch to which the role belongs
-	BranchID string `json:"branch_id"`
+	BranchID string `json:"branch_id" pulumi:"branch_id"`
 	// CreatedAt A timestamp indicating when the role was created
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" pulumi:"created_at"`
 	// Name The role name
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 	// Password The role password
-	Password *string `json:"password,omitempty"`
+	Password *string `json:"password,omitempty" pulumi:"password"`
 	// Protected Whether or not the role is system-protected
-	Protected *bool `json:"protected,omitempty"`
+	Protected *bool `json:"protected,omitempty" pulumi:"protected"`
 	// UpdatedAt A timestamp indicating when the role was last updated
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" pulumi:"updated_at"`
 }
 
 type RoleCreateRequest struct {
-	Role RoleCreateRequestRole `json:"role"`
+	Role RoleCreateRequestRole `json:"role" pulumi:"role"`
 }
 
 type RoleCreateRequestRole struct {
 	// Name The role name. Cannot exceed 63 bytes in length.
-	Name string `json:"name"`
+	Name string `json:"name" pulumi:"name"`
 }
 
 type RoleOperations struct {
@@ -1989,15 +2000,15 @@ type RoleOperations struct {
 
 type RolePasswordResponse struct {
 	// Password The role password
-	Password string `json:"password"`
+	Password string `json:"password" pulumi:"password"`
 }
 
 type RoleResponse struct {
-	Role Role `json:"role"`
+	Role Role `json:"role" pulumi:"role"`
 }
 
 type RolesResponse struct {
-	Roles []Role `json:"roles"`
+	Roles []Role `json:"roles" pulumi:"roles"`
 }
 
 // SuspendTimeoutSeconds Duration of inactivity in seconds after which the compute endpoint is
@@ -2009,9 +2020,9 @@ type RolesResponse struct {
 type SuspendTimeoutSeconds int64
 
 type TransferProjectsToOrganizationRequest struct {
-	OrgID string `json:"org_id"`
+	OrgID string `json:"org_id" pulumi:"org_id"`
 	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
-	ProjectIDs []string `json:"project_ids"`
+	ProjectIDs []string `json:"project_ids" pulumi:"project_ids"`
 }
 
 type UpdateProjectRespObj struct {
