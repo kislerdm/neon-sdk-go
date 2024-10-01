@@ -1288,8 +1288,9 @@ func (m model) generateCode() string {
 		}
 		tmp += objNameGoConventionExport(fieldName) + " " + field.argType(pointerFlag) +
 			" `json:\"" + field.k + omitEmpty + "\"" +
-			" pulumi:\"" + field.k + "\"`" +
-			"\n"
+			// TODO: add pulumi tags (?)
+			// " pulumi:\"" + field.k + pulumiOptional + "\"`" +
+			"`\n"
 	}
 
 	if len(m.fields) == 0 {

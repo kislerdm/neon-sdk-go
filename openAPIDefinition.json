@@ -309,6 +309,9 @@
                                         },
                                         {
                                             "$ref": "#/components/schemas/PaginationResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ProjectsApplicationsMapResponse"
                                         }
                                     ]
                                 },
@@ -351,7 +354,13 @@
                                             "active_time": 100,
                                             "org_id": "org-morning-bread-81040908"
                                         }
-                                    ]
+                                    ],
+                                    "applications": {
+                                        "winter-boat-259881": [
+                                            "vercel",
+                                            "github"
+                                        ]
+                                    }
                                 }
                             }
                         }
@@ -5814,41 +5823,6 @@
                     }
                 }
             },
-            "NotificationMetricType": {
-                "type": "string",
-                "description": "The metric type for a given notification\n",
-                "enum": [
-                    "database_size",
-                    "connections",
-                    "cpu",
-                    "ram",
-                    "compute_over_limit"
-                ]
-            },
-            "NotificationCategoryType": {
-                "type": "string",
-                "description": "The category type for a given notification\n",
-                "enum": [
-                    "usage",
-                    "performance"
-                ]
-            },
-            "NotificationType": {
-                "type": "string",
-                "description": "The type of the notification\n",
-                "enum": [
-                    "info",
-                    "warning"
-                ]
-            },
-            "NotificationActionType": {
-                "type": "string",
-                "description": "The action type for a given notification\n",
-                "enum": [
-                    "upgrade_plan",
-                    "upgrade_cu"
-                ]
-            },
             "Role": {
                 "type": "object",
                 "required": [
@@ -6115,6 +6089,7 @@
                     "stripe",
                     "direct_payment",
                     "aws_mp",
+                    "azure_mp",
                     "vercel_mp",
                     "staff",
                     "trial",
@@ -6655,7 +6630,9 @@
                         "type": "string"
                     },
                     "login": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true,
+                        "description": "DEPRECATED. Use `email` field.\n"
                     },
                     "name": {
                         "type": "string"
@@ -6756,7 +6733,9 @@
                         "type": "string"
                     },
                     "login": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true,
+                        "description": "DEPRECATED. Use `email` field.\n"
                     },
                     "name": {
                         "type": "string"
@@ -7259,6 +7238,33 @@
                             "$ref": "#/components/schemas/AnnotationData"
                         }
                     }
+                }
+            },
+            "ProjectsApplicationsMapResponse": {
+                "type": "object",
+                "x-tags": [
+                    "Project"
+                ],
+                "description": "A map where key is a project ID and a value is a list of available applications.\n",
+                "required": [
+                    "applications"
+                ],
+                "properties": {
+                    "applications": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "winter-boat-259881": [
+                        "vercel",
+                        "github"
+                    ]
                 }
             }
         }

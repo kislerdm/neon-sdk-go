@@ -1280,7 +1280,7 @@ FooResponse
 				},
 			},
 			want: []string{
-				"type FooResponse struct {\nFoo Foo `json:\"foo\" pulumi:\"foo\"`\n}",
+				"type FooResponse struct {\nFoo Foo `json:\"foo\"`\n}",
 			},
 		},
 		{

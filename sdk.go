@@ -1015,6 +1015,7 @@ type BillingPaymentMethod string
 const (
 	BillingPaymentMethodUNKNOWN       BillingPaymentMethod = "UNKNOWN"
 	BillingPaymentMethodAwsMp         BillingPaymentMethod = "aws_mp"
+	BillingPaymentMethodAzureMp       BillingPaymentMethod = "azure_mp"
 	BillingPaymentMethodDirectPayment BillingPaymentMethod = "direct_payment"
 	BillingPaymentMethodNone          BillingPaymentMethod = "none"
 	BillingPaymentMethodSponsorship   BillingPaymentMethod = "sponsorship"
@@ -1263,8 +1264,9 @@ type CreatedProject struct {
 }
 
 type CurrentUserAuthAccount struct {
-	Email    string             `json:"email"`
-	Image    string             `json:"image"`
+	Email string `json:"email"`
+	Image string `json:"image"`
+	// Login DEPRECATED. Use `email` field.
 	Login    string             `json:"login"`
 	Name     string             `json:"name"`
 	Provider IdentityProviderId `json:"provider"`
@@ -1281,11 +1283,12 @@ type CurrentUserInfoResponse struct {
 	ID                  string                   `json:"id"`
 	Image               string                   `json:"image"`
 	LastName            string                   `json:"last_name"`
-	Login               string                   `json:"login"`
-	MaxAutoscalingLimit ComputeUnit              `json:"max_autoscaling_limit"`
-	Name                string                   `json:"name"`
-	Plan                string                   `json:"plan"`
-	ProjectsLimit       int64                    `json:"projects_limit"`
+	// Login DEPRECATED. Use `email` field.
+	Login               string      `json:"login"`
+	MaxAutoscalingLimit ComputeUnit `json:"max_autoscaling_limit"`
+	Name                string      `json:"name"`
+	Plan                string      `json:"plan"`
+	ProjectsLimit       int64       `json:"projects_limit"`
 }
 
 type Database struct {
@@ -1533,6 +1536,7 @@ type ListProjectsConsumptionRespObj struct {
 
 type ListProjectsRespObj struct {
 	PaginationResponse
+	ProjectsApplicationsMapResponse
 	ProjectsResponse
 }
 
@@ -1939,6 +1943,13 @@ type ProjectUpdateRequestProject struct {
 	Name     *string              `json:"name,omitempty"`
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 }
+
+// ProjectsApplicationsMapResponse A map where key is a project ID and a value is a list of available applications.
+type ProjectsApplicationsMapResponse struct {
+	Applications ProjectsApplicationsMapResponseApplications `json:"applications"`
+}
+
+type ProjectsApplicationsMapResponseApplications map[string]interface{}
 
 type ProjectsConsumptionResponse struct {
 	PeriodsInResponse int64                `json:"periods_in_response"`
