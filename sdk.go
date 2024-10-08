@@ -120,10 +120,9 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 // CreateProject Creates a Neon project.
 // A project is the top-level object in the Neon object hierarchy.
 // Plan limits define how many projects you can create.
-// Neon's Free plan permits one project per Neon account.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 // You can specify a region and Postgres version in the request body.
-// Neon currently supports PostgreSQL 14, 15 and 16. version 17 is coming soon.
+// Neon currently supports PostgreSQL 14, 15, 16, and 17.
 // For supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).
 func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) {
 	var v CreatedProject
@@ -1151,8 +1150,9 @@ type BranchSchemaResponse struct {
 type BranchState string
 
 const (
-	BranchStateInit  BranchState = "init"
-	BranchStateReady BranchState = "ready"
+	BranchStateArchived BranchState = "archived"
+	BranchStateInit     BranchState = "init"
+	BranchStateReady    BranchState = "ready"
 )
 
 type BranchUpdateRequest struct {
@@ -1217,12 +1217,14 @@ type ConsumptionHistoryPerAccountResponse struct {
 
 type ConsumptionHistoryPerPeriod struct {
 	Consumption []ConsumptionHistoryPerTimeframe `json:"consumption"`
-	PeriodID    string                           `json:"period_id"`
+	// PeriodID The ID assigned to the specified period.
+	PeriodID string `json:"period_id"`
 }
 
 type ConsumptionHistoryPerProject struct {
-	Periods   []ConsumptionHistoryPerPeriod `json:"periods"`
-	ProjectID string                        `json:"project_id"`
+	Periods []ConsumptionHistoryPerPeriod `json:"periods"`
+	// ProjectID The project ID
+	ProjectID string `json:"project_id"`
 }
 
 type ConsumptionHistoryPerProjectResponse struct {
@@ -1230,13 +1232,20 @@ type ConsumptionHistoryPerProjectResponse struct {
 }
 
 type ConsumptionHistoryPerTimeframe struct {
-	ActiveTimeSeconds         int       `json:"active_time_seconds"`
-	ComputeTimeSeconds        int       `json:"compute_time_seconds"`
-	DataStorageBytesHour      *int      `json:"data_storage_bytes_hour,omitempty"`
-	SyntheticStorageSizeBytes int       `json:"synthetic_storage_size_bytes"`
-	TimeframeEnd              time.Time `json:"timeframe_end"`
-	TimeframeStart            time.Time `json:"timeframe_start"`
-	WrittenDataBytes          int       `json:"written_data_bytes"`
+	// ActiveTimeSeconds Seconds. The amount of time the compute endpoints have been active.
+	ActiveTimeSeconds int `json:"active_time_seconds"`
+	// ComputeTimeSeconds Seconds. The number of CPU seconds used by compute endpoints, including compute endpoints that have been deleted.
+	ComputeTimeSeconds int `json:"compute_time_seconds"`
+	// DataStorageBytesHour Bytes-Hour. The amount of storage consumed hourly.
+	DataStorageBytesHour *int `json:"data_storage_bytes_hour,omitempty"`
+	// SyntheticStorageSizeBytes Bytes. The space occupied in storage. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches.
+	SyntheticStorageSizeBytes int `json:"synthetic_storage_size_bytes"`
+	// TimeframeEnd The specified end date-time for the reported consumption.
+	TimeframeEnd time.Time `json:"timeframe_end"`
+	// TimeframeStart The specified start date-time for the reported consumption.
+	TimeframeStart time.Time `json:"timeframe_start"`
+	// WrittenDataBytes Bytes. The amount of written data for all branches.
+	WrittenDataBytes int `json:"written_data_bytes"`
 }
 
 type CreateProjectBranchReqObj struct {
@@ -1592,6 +1601,8 @@ const (
 	OperationActionTenantDetach               OperationAction = "tenant_detach"
 	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
 	OperationActionTenantReattach             OperationAction = "tenant_reattach"
+	OperationActionTimelineArchive            OperationAction = "timeline_archive"
+	OperationActionTimelineUnarchive          OperationAction = "timeline_unarchive"
 )
 
 type OperationResponse struct {
@@ -1665,7 +1676,7 @@ type PaymentSourceBankCard struct {
 // PgSettingsData A raw representation of Postgres settings
 type PgSettingsData map[string]interface{}
 
-// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, and `16`. version `17` is coming soon.
+// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, `16`, and `17`.
 type PgVersion int
 
 // PgbouncerSettingsData A raw representation of PgBouncer settings
