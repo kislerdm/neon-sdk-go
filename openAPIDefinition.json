@@ -372,7 +372,7 @@
             },
             "post": {
                 "summary": "Create a project",
-                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nNeon's Free plan permits one project per Neon account.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and Postgres version in the request body.\nNeon currently supports PostgreSQL 14, 15 and 16. version 17 is coming soon.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
+                "description": "Creates a Neon project.\nA project is the top-level object in the Neon object hierarchy.\nPlan limits define how many projects you can create.\nFor more information, see [Manage projects](https://neon.tech/docs/manage/projects/).\n\nYou can specify a region and Postgres version in the request body.\nNeon currently supports PostgreSQL 14, 15, 16, and 17.\nFor supported regions and `region_id` values, see [Regions](https://neon.tech/docs/introduction/regions/).\n",
                 "tags": [
                     "Project"
                 ],
@@ -4157,7 +4157,9 @@
                     "apply_storage_config",
                     "prepare_secondary_pageserver",
                     "switch_pageserver",
-                    "detach_parent_branch"
+                    "detach_parent_branch",
+                    "timeline_archive",
+                    "timeline_unarchive"
                 ]
             },
             "OperationStatus": {
@@ -4728,6 +4730,7 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
+                        "description": "The project ID",
                         "type": "string"
                     },
                     "periods": {
@@ -4746,6 +4749,7 @@
                 "type": "object",
                 "properties": {
                     "period_id": {
+                        "description": "The ID assigned to the specified period.",
                         "type": "string",
                         "format": "uuid"
                     },
@@ -4786,30 +4790,37 @@
                 "type": "object",
                 "properties": {
                     "timeframe_start": {
+                        "description": "The specified start date-time for the reported consumption.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "timeframe_end": {
+                        "description": "The specified end date-time for the reported consumption.\n",
                         "type": "string",
                         "format": "date-time"
                     },
                     "active_time_seconds": {
+                        "description": "Seconds. The amount of time the compute endpoints have been active.\n",
                         "type": "integer",
                         "format": "uint64"
                     },
                     "compute_time_seconds": {
+                        "description": "Seconds. The number of CPU seconds used by compute endpoints, including compute endpoints that have been deleted.\n",
                         "type": "integer",
                         "format": "uint64"
                     },
                     "written_data_bytes": {
+                        "description": "Bytes. The amount of written data for all branches.\n",
                         "type": "integer",
                         "format": "uint64"
                     },
                     "synthetic_storage_size_bytes": {
+                        "description": "Bytes. The space occupied in storage. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches.\n",
                         "type": "integer",
                         "format": "uint64"
                     },
                     "data_storage_bytes_hour": {
+                        "description": "Bytes-Hour. The amount of storage consumed hourly.\n",
                         "type": "integer",
                         "format": "uint64"
                     }
@@ -5192,7 +5203,8 @@
                 "type": "string",
                 "enum": [
                     "init",
-                    "ready"
+                    "ready",
+                    "archived"
                 ]
             },
             "BranchCreateRequestEndpointOptions": {
@@ -6921,7 +6933,7 @@
                 }
             },
             "PgVersion": {
-                "description": "The major Postgres version number. Currently supported versions are `14`, `15`, and `16`. version `17` is coming soon.",
+                "description": "The major Postgres version number. Currently supported versions are `14`, `15`, `16`, and `17`.",
                 "type": "integer",
                 "minimum": 14,
                 "maximum": 17,
@@ -7255,7 +7267,12 @@
                         "additionalProperties": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "enum": [
+                                    "vercel",
+                                    "github",
+                                    "datadog"
+                                ]
                             }
                         }
                     }
@@ -7263,7 +7280,8 @@
                 "example": {
                     "winter-boat-259881": [
                         "vercel",
-                        "github"
+                        "github",
+                        "datadog"
                     ]
                 }
             }
