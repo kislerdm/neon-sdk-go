@@ -5,9 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.6.2] - 2024-10-08
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-08 00:11:00 GMT.
+
+### Added
+
+- Added the mapping of the enum value "archived" to the type `BranchState`.
+- Added the mapping of the enum values "timeline_archive" and "timeline_unarchive" to the type `OperationAction`.
+
 ## [v0.6.1] - 2024-10-01
 
-The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-09-28 06:44:00 GMT.
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-01 06:44:00 GMT.
 
 ### Added
 
