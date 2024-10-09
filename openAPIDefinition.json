@@ -589,6 +589,7 @@
                                         "cpu_used_sec": 10,
                                         "owner_id": "1232111",
                                         "owner": {
+                                            "name": "John Smith",
                                             "email": "some@email.com",
                                             "branches_limit": 10,
                                             "subscription_type": "scale"
@@ -4497,6 +4498,7 @@
                     "created_at": "2022-12-13T01:30:55Z",
                     "updated_at": "2022-12-13T01:30:55Z",
                     "owner": {
+                        "name": "John Smith",
                         "email": "some@email.com",
                         "branches_limit": 10,
                         "subscription_type": "scale"
@@ -5386,7 +5388,7 @@
                 ],
                 "properties": {
                     "connection_uri": {
-                        "description": "The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)\nThe connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable.\n",
+                        "description": "The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)\nThe connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable.\nWhen creating a branch from a parent with more than one role or database, the response body does not include a connection URI.\n",
                         "type": "string"
                     },
                     "connection_parameters": {
@@ -6958,11 +6960,15 @@
                 "type": "object",
                 "required": [
                     "email",
+                    "name",
                     "branches_limit",
                     "subscription_type"
                 ],
                 "properties": {
                     "email": {
+                        "type": "string"
+                    },
+                    "name": {
                         "type": "string"
                     },
                     "branches_limit": {

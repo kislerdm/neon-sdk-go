@@ -1174,6 +1174,7 @@ type ConnectionDetails struct {
 	ConnectionParameters ConnectionParameters `json:"connection_parameters"`
 	// ConnectionURI The connection URI is defined as specified here: [Connection URIs](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING-URIS)
 	// The connection URI can be used to connect to a Postgres database with psql or defined in a DATABASE_URL environment variable.
+	// When creating a branch from a parent with more than one role or database, the response body does not include a connection URI.
 	ConnectionURI string `json:"connection_uri"`
 }
 
@@ -1889,6 +1890,7 @@ type ProjectListItem struct {
 type ProjectOwnerData struct {
 	BranchesLimit    int                     `json:"branches_limit"`
 	Email            string                  `json:"email"`
+	Name             string                  `json:"name"`
 	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 }
 
