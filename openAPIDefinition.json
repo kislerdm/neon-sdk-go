@@ -3777,11 +3777,7 @@
             },
             "Provisioner": {
                 "type": "string",
-                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n",
-                "enum": [
-                    "k8s-pod",
-                    "k8s-neonvm"
-                ]
+                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n\nProvisioner can be one of the following values:\n* k8s-pod\n* k8s-neonvm\n\nClients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.\n"
             },
             "PaginationResponse": {
                 "type": "object",
