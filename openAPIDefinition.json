@@ -3777,11 +3777,7 @@
             },
             "Provisioner": {
                 "type": "string",
-                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n",
-                "enum": [
-                    "k8s-pod",
-                    "k8s-neonvm"
-                ]
+                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n\nProvisioner can be one of the following values:\n* k8s-pod\n* k8s-neonvm\n\nClients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.\n"
             },
             "PaginationResponse": {
                 "type": "object",
@@ -5201,13 +5197,8 @@
                 }
             },
             "BranchState": {
-                "description": "The branch state",
-                "type": "string",
-                "enum": [
-                    "init",
-                    "ready",
-                    "archived"
-                ]
+                "description": "A branch state which affects how queries will run:\n  * 'init' - only just created, not yet ready to be used\n  * 'ready' - ready to be used, fast query responses\n  * 'archived' - will take some time to become ready, slow query responses, very cheap\n",
+                "type": "string"
             },
             "BranchCreateRequestEndpointOptions": {
                 "type": "object",
@@ -6689,7 +6680,9 @@
                         "format": "uuid"
                     },
                     "image": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true,
+                        "description": "DEPRECATED. This field is ignored.\n"
                     },
                     "first_name": {
                         "type": "string"
