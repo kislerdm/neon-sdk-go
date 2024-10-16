@@ -179,9 +179,10 @@
                                 "example": {
                                     "id": 165435,
                                     "name": "mykey",
-                                    "revoked": true,
+                                    "created_at": "2022-11-15T20:13:35Z",
                                     "last_used_at": "2022-11-15T20:15:04Z",
-                                    "last_used_from_addr": "192.0.2.255"
+                                    "last_used_from_addr": "192.0.2.255",
+                                    "revoked": true
                                 }
                             }
                         }
@@ -1076,6 +1077,7 @@
                                             "project_id": "shiny-wind-028834",
                                             "name": "main",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 28,
                                             "created_at": "2022-11-23T17:42:25Z",
                                             "updated_at": "2022-11-23T17:42:26Z",
@@ -1096,6 +1098,7 @@
                                             "parent_lsn": "0/1DE2850",
                                             "name": "dev2",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 28,
                                             "created_at": "2022-11-30T19:09:48Z",
                                             "updated_at": "2022-11-30T19:09:49Z",
@@ -1116,6 +1119,7 @@
                                             "parent_lsn": "0/19623D8",
                                             "name": "dev1",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 21,
                                             "created_at": "2022-11-30T17:36:57Z",
                                             "updated_at": "2022-11-30T17:36:57Z",
@@ -1202,6 +1206,7 @@
                                         "project_id": "shiny-wind-028834",
                                         "name": "main",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "logical_size": 28,
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
@@ -1256,6 +1261,7 @@
                                         "project_id": "shiny-wind-028834",
                                         "name": "main",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "logical_size": 28,
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
@@ -1341,6 +1347,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "data_transfer_bytes": 1000000,
@@ -1540,6 +1547,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
@@ -1607,6 +1615,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
@@ -3777,11 +3786,7 @@
             },
             "Provisioner": {
                 "type": "string",
-                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n",
-                "enum": [
-                    "k8s-pod",
-                    "k8s-neonvm"
-                ]
+                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n\nProvisioner can be one of the following values:\n* k8s-pod\n* k8s-neonvm\n\nClients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.\n"
             },
             "PaginationResponse": {
                 "type": "object",
@@ -3955,6 +3960,7 @@
                 "required": [
                     "id",
                     "name",
+                    "created_at",
                     "revoked",
                     "last_used_from_addr"
                 ],
@@ -3968,9 +3974,10 @@
                         "description": "The user-specified API key name",
                         "type": "string"
                     },
-                    "revoked": {
-                        "description": "A `true` or `false` value indicating whether the API key is revoked",
-                        "type": "boolean"
+                    "created_at": {
+                        "description": "A timestamp indicating when the API key was created",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "last_used_at": {
                         "description": "A timestamp indicating when the API was last used",
@@ -3981,16 +3988,20 @@
                     "last_used_from_addr": {
                         "description": "The IP address from which the API key was last used",
                         "type": "string"
+                    },
+                    "revoked": {
+                        "description": "A `true` or `false` value indicating whether the API key is revoked",
+                        "type": "boolean"
                     }
                 }
             },
             "ApiKeysListResponseItem": {
                 "type": "object",
                 "required": [
-                    "last_used_from_addr",
                     "id",
                     "name",
-                    "created_at"
+                    "created_at",
+                    "last_used_from_addr"
                 ],
                 "properties": {
                     "id": {
@@ -5067,6 +5078,7 @@
                     "project_id",
                     "name",
                     "current_state",
+                    "state_changed_at",
                     "creation_source",
                     "created_at",
                     "updated_at",
@@ -5110,6 +5122,11 @@
                     },
                     "pending_state": {
                         "$ref": "#/components/schemas/BranchState"
+                    },
+                    "state_changed_at": {
+                        "description": "A UTC timestamp indicating when the `current_state` began\n",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "logical_size": {
                         "description": "The logical size of the branch, in bytes\n",
@@ -5193,6 +5210,7 @@
                     "name": "dev2",
                     "protected": false,
                     "current_state": "ready",
+                    "state_changed_at": "2022-11-30T20:09:48Z",
                     "creation_source": "console",
                     "created_at": "2022-11-30T19:09:48Z",
                     "updated_at": "2022-12-01T19:53:05Z",
@@ -5201,13 +5219,8 @@
                 }
             },
             "BranchState": {
-                "description": "The branch state",
-                "type": "string",
-                "enum": [
-                    "init",
-                    "ready",
-                    "archived"
-                ]
+                "description": "A branch state which affects how queries will run:\n  * 'init' - only just created, not yet ready to be used\n  * 'ready' - ready to be used, fast query responses\n  * 'archived' - will take some time to become ready, slow query responses, very cheap\n",
+                "type": "string"
             },
             "BranchCreateRequestEndpointOptions": {
                 "type": "object",
@@ -6689,7 +6702,9 @@
                         "format": "uuid"
                     },
                     "image": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true,
+                        "description": "DEPRECATED. This field is ignored.\n"
                     },
                     "first_name": {
                         "type": "string"
