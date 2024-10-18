@@ -179,9 +179,10 @@
                                 "example": {
                                     "id": 165435,
                                     "name": "mykey",
-                                    "revoked": true,
+                                    "created_at": "2022-11-15T20:13:35Z",
                                     "last_used_at": "2022-11-15T20:15:04Z",
-                                    "last_used_from_addr": "192.0.2.255"
+                                    "last_used_from_addr": "192.0.2.255",
+                                    "revoked": true
                                 }
                             }
                         }
@@ -1076,6 +1077,7 @@
                                             "project_id": "shiny-wind-028834",
                                             "name": "main",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 28,
                                             "created_at": "2022-11-23T17:42:25Z",
                                             "updated_at": "2022-11-23T17:42:26Z",
@@ -1096,6 +1098,7 @@
                                             "parent_lsn": "0/1DE2850",
                                             "name": "dev2",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 28,
                                             "created_at": "2022-11-30T19:09:48Z",
                                             "updated_at": "2022-11-30T19:09:49Z",
@@ -1116,6 +1119,7 @@
                                             "parent_lsn": "0/19623D8",
                                             "name": "dev1",
                                             "current_state": "ready",
+                                            "state_changed_at": "2022-11-30T20:09:48Z",
                                             "logical_size": 21,
                                             "created_at": "2022-11-30T17:36:57Z",
                                             "updated_at": "2022-11-30T17:36:57Z",
@@ -1202,6 +1206,7 @@
                                         "project_id": "shiny-wind-028834",
                                         "name": "main",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "logical_size": 28,
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
@@ -1256,6 +1261,7 @@
                                         "project_id": "shiny-wind-028834",
                                         "name": "main",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "logical_size": 28,
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
@@ -1341,6 +1347,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "data_transfer_bytes": 1000000,
@@ -1540,6 +1547,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
@@ -1607,6 +1615,7 @@
                                         "parent_lsn": "0/1E19478",
                                         "name": "mybranch",
                                         "current_state": "ready",
+                                        "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
                                         "primary": true,
@@ -3430,96 +3439,6 @@
                 }
             }
         },
-        "/consumption/projects": {
-            "get": {
-                "summary": "Get project consumption metrics",
-                "deprecated": true,
-                "description": "Retrieves consumption metrics for each project for the current billing period.\nFor usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).\nIssuing a call to this API does not wake a project's compute endpoint.\n",
-                "tags": [
-                    "Consumption"
-                ],
-                "operationId": "listProjectsConsumption",
-                "parameters": [
-                    {
-                        "name": "cursor",
-                        "description": "Specify the cursor value from the previous response to get the next batch of projects",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "description": "Specify a value from 1 to 1000 to limit number of projects in the response",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "default": 10,
-                            "maximum": 1000
-                        }
-                    },
-                    {
-                        "name": "from",
-                        "description": "Specify the start date-time for the consumption period.\nThe time value must be provided in ISO 8601 format.\nIf `from` or `to` is not specified, we return only current consumption period.\n",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    },
-                    {
-                        "name": "to",
-                        "description": "Specify the end date-time period for the consumption period.\nThe time value must be provided in ISO 8601 format.\nIf `from` or `to` is not specified, only the current consumption period is returned.\n",
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    },
-                    {
-                        "name": "org_id",
-                        "description": "Specify the organization for which the project consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the authenticated\nuser's projects.\n",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Returned a list of project consumption metrics for the Neon account",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/ProjectsConsumptionResponse"
-                                        },
-                                        {
-                                            "$ref": "#/components/schemas/PaginationResponse"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Account is not a member of the organization specified by `org_id`.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/GeneralError"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "$ref": "#/components/responses/GeneralError"
-                    }
-                }
-            }
-        },
         "/users/me": {
             "get": {
                 "summary": "Get current user details",
@@ -3777,11 +3696,7 @@
             },
             "Provisioner": {
                 "type": "string",
-                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n",
-                "enum": [
-                    "k8s-pod",
-                    "k8s-neonvm"
-                ]
+                "description": "The Neon compute provisioner.\nSpecify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.\n\nProvisioner can be one of the following values:\n* k8s-pod\n* k8s-neonvm\n\nClients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.\n"
             },
             "PaginationResponse": {
                 "type": "object",
@@ -3955,6 +3870,7 @@
                 "required": [
                     "id",
                     "name",
+                    "created_at",
                     "revoked",
                     "last_used_from_addr"
                 ],
@@ -3968,9 +3884,10 @@
                         "description": "The user-specified API key name",
                         "type": "string"
                     },
-                    "revoked": {
-                        "description": "A `true` or `false` value indicating whether the API key is revoked",
-                        "type": "boolean"
+                    "created_at": {
+                        "description": "A timestamp indicating when the API key was created",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "last_used_at": {
                         "description": "A timestamp indicating when the API was last used",
@@ -3981,16 +3898,20 @@
                     "last_used_from_addr": {
                         "description": "The IP address from which the API key was last used",
                         "type": "string"
+                    },
+                    "revoked": {
+                        "description": "A `true` or `false` value indicating whether the API key is revoked",
+                        "type": "boolean"
                     }
                 }
             },
             "ApiKeysListResponseItem": {
                 "type": "object",
                 "required": [
-                    "last_used_from_addr",
                     "id",
                     "name",
-                    "created_at"
+                    "created_at",
+                    "last_used_from_addr"
                 ],
                 "properties": {
                     "id": {
@@ -4844,141 +4765,6 @@
                     "monthly"
                 ]
             },
-            "ProjectsConsumptionResponse": {
-                "type": "object",
-                "required": [
-                    "projects",
-                    "periods_in_response"
-                ],
-                "properties": {
-                    "projects": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ProjectConsumption"
-                        }
-                    },
-                    "periods_in_response": {
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                }
-            },
-            "ProjectConsumption": {
-                "type": "object",
-                "required": [
-                    "period_id",
-                    "previous_period_id",
-                    "project_id",
-                    "active_time_seconds",
-                    "compute_time_seconds",
-                    "written_data_bytes",
-                    "data_transfer_bytes",
-                    "data_storage_bytes_hour",
-                    "synthetic_storage_size",
-                    "updated_at",
-                    "period_start",
-                    "period_end"
-                ],
-                "properties": {
-                    "project_id": {
-                        "description": "The project ID",
-                        "type": "string"
-                    },
-                    "period_id": {
-                        "description": "The Id of the consumption period, used to reference the `previous_period_id` field.\n",
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "data_storage_bytes_hour": {
-                        "description": "Bytes-Hour. The amount of storage the project consumed during the billing period. Expect some lag in the reported value.\nThe value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "data_storage_bytes_hour_updated_at": {
-                        "description": "The timestamp of the last update of the `data_storage_bytes_hour` field.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "synthetic_storage_size": {
-                        "description": "Bytes. The current space occupied by project in storage. Expect some lag in the reported value.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "synthetic_storage_size_updated_at": {
-                        "description": "The timestamp of the last update of the `synthetic_storage_size` field.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "data_transfer_bytes": {
-                        "description": "Bytes. The egress traffic from the Neon cloud to the client for the project over the billing period.\nIncludes egress traffic for deleted endpoints. Expect some lag in the reported value. The value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "data_transfer_bytes_updated_at": {
-                        "description": "Timestamp of the last update of `data_transfer_bytes` field\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "written_data_bytes": {
-                        "description": "Bytes. The Amount of WAL that travelled through storage for given project for all branches.\nExpect some lag in the reported value. The value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "written_data_bytes_updated_at": {
-                        "description": "The timestamp of the last update of `written_data_bytes` field.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "compute_time_seconds": {
-                        "description": "Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.\nExpect some lag in the reported value. The value is reset at the beginning of each billing period.\nExamples:\n1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.\n2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "compute_time_seconds_updated_at": {
-                        "description": "The timestamp of the last update of `compute_time_seconds` field.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "active_time_seconds": {
-                        "description": "Seconds. The amount of time that compute endpoints in this project have been active.\nExpect some lag in the reported value.\n\nThe value is reset at the beginning of each billing period.\n",
-                        "type": "integer",
-                        "format": "int64",
-                        "minimum": 0
-                    },
-                    "active_time_seconds_updated_at": {
-                        "description": "The timestamp of the last update of the `active_time_seconds` field.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updated_at": {
-                        "description": "A timestamp indicating when the period was last updated.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "period_start": {
-                        "description": "The start of the consumption period.\n",
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "period_end": {
-                        "description": "The end of the consumption period.\n",
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    },
-                    "previous_period_id": {
-                        "description": "The `period_id` of the previous consumption period.\n",
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    }
-                }
-            },
             "ProjectLimits": {
                 "type": "object",
                 "required": [
@@ -5067,6 +4853,7 @@
                     "project_id",
                     "name",
                     "current_state",
+                    "state_changed_at",
                     "creation_source",
                     "created_at",
                     "updated_at",
@@ -5110,6 +4897,11 @@
                     },
                     "pending_state": {
                         "$ref": "#/components/schemas/BranchState"
+                    },
+                    "state_changed_at": {
+                        "description": "A UTC timestamp indicating when the `current_state` began\n",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "logical_size": {
                         "description": "The logical size of the branch, in bytes\n",
@@ -5193,6 +4985,7 @@
                     "name": "dev2",
                     "protected": false,
                     "current_state": "ready",
+                    "state_changed_at": "2022-11-30T20:09:48Z",
                     "creation_source": "console",
                     "created_at": "2022-11-30T19:09:48Z",
                     "updated_at": "2022-12-01T19:53:05Z",
@@ -5201,13 +4994,8 @@
                 }
             },
             "BranchState": {
-                "description": "The branch state",
-                "type": "string",
-                "enum": [
-                    "init",
-                    "ready",
-                    "archived"
-                ]
+                "description": "The branch\u2019s state, indicating if it is initializing, ready for use, or archived.\n  * 'init' - the branch is being created but is not available for querying.\n  * 'ready' - the branch is fully operational and ready for querying. Expect normal query response times.\n  * 'archived' - the branch is stored in cost-effective archival storage. Expect slow query response times.\n",
+                "type": "string"
             },
             "BranchCreateRequestEndpointOptions": {
                 "type": "object",
@@ -6689,7 +6477,9 @@
                         "format": "uuid"
                     },
                     "image": {
-                        "type": "string"
+                        "type": "string",
+                        "deprecated": true,
+                        "description": "DEPRECATED. This field is ignored.\n"
                     },
                     "first_name": {
                         "type": "string"
