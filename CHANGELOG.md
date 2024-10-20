@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.7.0] - 2024-10-20
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-20 11:15:00 GMT.
+
+### Added
+
+- Added the attributes to reflect when and who created, or revoked API keys:
+  - Added `CreatedBy` to `ApiKeyCreateResponse` and `ApiKeysListResponseItem`;
+  - Added `CreatedAt` and `CreatedBy` to `ApiKeyRevokeResponse`.
+
+- Added the attribute `StateChangedAt` to the type `Branch` to reflect when the "current_state" began.
+
+### Removed
+
+- **[BREAKING]** Removed the method to list projects consumption `ListProjectsConsumption`.
+
 ## [v0.6.2] - 2024-10-08
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-08 00:11:00 GMT.

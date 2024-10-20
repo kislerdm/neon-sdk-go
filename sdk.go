@@ -654,39 +654,6 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 	return v, nil
 }
 
-// ListProjectsConsumption Retrieves consumption metrics for each project for the current billing period.
-// For usage information, see [Retrieving metrics for all projects](https://neon.tech/docs/guides/partner-billing#retrieving-metrics-for-all-projects).
-// Issuing a call to this API does not wake a project's compute endpoint.
-func (c Client) ListProjectsConsumption(cursor *string, limit *int, from *time.Time, to *time.Time, orgID *string) (ListProjectsConsumptionRespObj, error) {
-	var (
-		queryElements []string
-		query         string
-	)
-	if cursor != nil {
-		queryElements = append(queryElements, "cursor="+*cursor)
-	}
-	if limit != nil {
-		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
-	}
-	if from != nil {
-		queryElements = append(queryElements, "from="+from.Format(time.RFC3339))
-	}
-	if to != nil {
-		queryElements = append(queryElements, "to="+to.Format(time.RFC3339))
-	}
-	if orgID != nil {
-		queryElements = append(queryElements, "org_id="+*orgID)
-	}
-	if len(queryElements) > 0 {
-		query = "?" + strings.Join(queryElements, "&")
-	}
-	var v ListProjectsConsumptionRespObj
-	if err := c.requestHandler(c.baseURL+"/consumption/projects"+query, "GET", nil, &v); err != nil {
-		return ListProjectsConsumptionRespObj{}, err
-	}
-	return v, nil
-}
-
 // ListSharedProjects Retrieves a list of shared projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
@@ -942,6 +909,8 @@ type ApiKeyCreateRequest struct {
 type ApiKeyCreateResponse struct {
 	// CreatedAt A timestamp indicating when the API key was created
 	CreatedAt time.Time `json:"created_at"`
+	// CreatedBy ID of the user who created this API key
+	CreatedBy string `json:"created_by"`
 	// ID The API key ID
 	ID int64 `json:"id"`
 	// Key The generated 64-bit token required to access the Neon API
@@ -951,6 +920,10 @@ type ApiKeyCreateResponse struct {
 }
 
 type ApiKeyRevokeResponse struct {
+	// CreatedAt A timestamp indicating when the API key was created
+	CreatedAt time.Time `json:"created_at"`
+	// CreatedBy ID of the user who created this API key
+	CreatedBy string `json:"created_by"`
 	// ID The API key ID
 	ID int64 `json:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
@@ -966,6 +939,8 @@ type ApiKeyRevokeResponse struct {
 type ApiKeysListResponseItem struct {
 	// CreatedAt A timestamp indicating when the API key was created
 	CreatedAt time.Time `json:"created_at"`
+	// CreatedBy ID of the user who created this API key
+	CreatedBy string `json:"created_by"`
 	// ID The API key ID
 	ID int64 `json:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
@@ -1078,6 +1053,8 @@ type Branch struct {
 	ProjectID string `json:"project_id"`
 	// Protected Whether the branch is protected
 	Protected bool `json:"protected"`
+	// StateChangedAt A UTC timestamp indicating when the `current_state` began
+	StateChangedAt time.Time `json:"state_changed_at"`
 	// UpdatedAt A timestamp indicating when the branch was last updated
 	UpdatedAt        time.Time `json:"updated_at"`
 	WrittenDataBytes int64     `json:"written_data_bytes"`
@@ -1146,14 +1123,11 @@ type BranchSchemaResponse struct {
 	Sql *string `json:"sql,omitempty"`
 }
 
-// BranchState The branch state
+// BranchState The branch’s state, indicating if it is initializing, ready for use, or archived.
+//   - 'init' - the branch is being created but is not available for querying.
+//   - 'ready' - the branch is fully operational and ready for querying. Expect normal query response times.
+//   - 'archived' - the branch is stored in cost-effective archival storage. Expect slow query response times.
 type BranchState string
-
-const (
-	BranchStateArchived BranchState = "archived"
-	BranchStateInit     BranchState = "init"
-	BranchStateReady    BranchState = "ready"
-)
 
 type BranchUpdateRequest struct {
 	Branch BranchUpdateRequestBranch `json:"branch"`
@@ -1539,11 +1513,6 @@ type ListProjectBranchesRespObj struct {
 	BranchesResponse
 }
 
-type ListProjectsConsumptionRespObj struct {
-	PaginationResponse
-	ProjectsConsumptionResponse
-}
-
 type ListProjectsRespObj struct {
 	PaginationResponse
 	ProjectsApplicationsMapResponse
@@ -1753,55 +1722,6 @@ type Project struct {
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 
-type ProjectConsumption struct {
-	// ActiveTimeSeconds Seconds. The amount of time that compute endpoints in this project have been active.
-	// Expect some lag in the reported value.
-	//
-	// The value is reset at the beginning of each billing period.
-	ActiveTimeSeconds int64 `json:"active_time_seconds"`
-	// ActiveTimeSecondsUpdatedAt The timestamp of the last update of the `active_time_seconds` field.
-	ActiveTimeSecondsUpdatedAt *time.Time `json:"active_time_seconds_updated_at,omitempty"`
-	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
-	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
-	// Examples:
-	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
-	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
-	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
-	// ComputeTimeSecondsUpdatedAt The timestamp of the last update of `compute_time_seconds` field.
-	ComputeTimeSecondsUpdatedAt *time.Time `json:"compute_time_seconds_updated_at,omitempty"`
-	// DataStorageBytesHour Bytes-Hour. The amount of storage the project consumed during the billing period. Expect some lag in the reported value.
-	// The value is reset at the beginning of each billing period.
-	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
-	// DataStorageBytesHourUpdatedAt The timestamp of the last update of the `data_storage_bytes_hour` field.
-	DataStorageBytesHourUpdatedAt *time.Time `json:"data_storage_bytes_hour_updated_at,omitempty"`
-	// DataTransferBytes Bytes. The egress traffic from the Neon cloud to the client for the project over the billing period.
-	// Includes egress traffic for deleted endpoints. Expect some lag in the reported value. The value is reset at the beginning of each billing period.
-	DataTransferBytes int64 `json:"data_transfer_bytes"`
-	// DataTransferBytesUpdatedAt Timestamp of the last update of `data_transfer_bytes` field
-	DataTransferBytesUpdatedAt *time.Time `json:"data_transfer_bytes_updated_at,omitempty"`
-	// PeriodEnd The end of the consumption period.
-	PeriodEnd time.Time `json:"period_end"`
-	// PeriodID The Id of the consumption period, used to reference the `previous_period_id` field.
-	PeriodID string `json:"period_id"`
-	// PeriodStart The start of the consumption period.
-	PeriodStart time.Time `json:"period_start"`
-	// PreviousPeriodID The `period_id` of the previous consumption period.
-	PreviousPeriodID string `json:"previous_period_id"`
-	// ProjectID The project ID
-	ProjectID string `json:"project_id"`
-	// SyntheticStorageSize Bytes. The current space occupied by project in storage. Expect some lag in the reported value.
-	SyntheticStorageSize int64 `json:"synthetic_storage_size"`
-	// SyntheticStorageSizeUpdatedAt The timestamp of the last update of the `synthetic_storage_size` field.
-	SyntheticStorageSizeUpdatedAt *time.Time `json:"synthetic_storage_size_updated_at,omitempty"`
-	// UpdatedAt A timestamp indicating when the period was last updated.
-	UpdatedAt time.Time `json:"updated_at"`
-	// WrittenDataBytes Bytes. The Amount of WAL that travelled through storage for given project for all branches.
-	// Expect some lag in the reported value. The value is reset at the beginning of each billing period.
-	WrittenDataBytes int64 `json:"written_data_bytes"`
-	// WrittenDataBytesUpdatedAt The timestamp of the last update of `written_data_bytes` field.
-	WrittenDataBytesUpdatedAt *time.Time `json:"written_data_bytes_updated_at,omitempty"`
-}
-
 type ProjectCreateRequest struct {
 	Project ProjectCreateRequestProject `json:"project"`
 }
@@ -1964,23 +1884,19 @@ type ProjectsApplicationsMapResponse struct {
 
 type ProjectsApplicationsMapResponseApplications map[string]interface{}
 
-type ProjectsConsumptionResponse struct {
-	PeriodsInResponse int64                `json:"periods_in_response"`
-	Projects          []ProjectConsumption `json:"projects"`
-}
-
 type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`
 }
 
 // Provisioner The Neon compute provisioner.
 // Specify the `k8s-neonvm` provisioner to create a compute endpoint that supports Autoscaling.
+//
+// Provisioner can be one of the following values:
+// * k8s-pod
+// * k8s-neonvm
+//
+// Clients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.
 type Provisioner string
-
-const (
-	ProvisionerK8sNeonvm Provisioner = "k8s-neonvm"
-	ProvisionerK8sPod    Provisioner = "k8s-pod"
-)
 
 type Role struct {
 	// BranchID The ID of the branch to which the role belongs
