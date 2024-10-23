@@ -15,7 +15,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"POST": mockResponse{
-			Content: `{"created_at":"2022-11-15T20:13:35Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165434,"key":"9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3","name":"mykey_1"}`,
+			Content: `{"created_at":"2022-11-15T20:13:35Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165434,"key":"9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3","name":"mykey"}`,
 			Code:    200,
 		},
 	},

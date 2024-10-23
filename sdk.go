@@ -976,12 +976,24 @@ type BillingAccount struct {
 	PaymentSource PaymentSource        `json:"payment_source"`
 	// QuotaResetAtLast The last time the quota was reset. Defaults to the date-time the account is created.
 	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
+	State            BillingAccountState     `json:"state"`
 	SubscriptionType BillingSubscriptionType `json:"subscription_type"`
 	// TaxID The tax identification number for the billing account, displayed on invoices.
 	TaxID *string `json:"tax_id,omitempty"`
 	// TaxIDType The type of the tax identification number based on the country.
 	TaxIDType *string `json:"tax_id_type,omitempty"`
 }
+
+// BillingAccountState State of the billing account.
+type BillingAccountState string
+
+const (
+	BillingAccountStateUNKNOWN     BillingAccountState = "UNKNOWN"
+	BillingAccountStateActive      BillingAccountState = "active"
+	BillingAccountStateDeactivated BillingAccountState = "deactivated"
+	BillingAccountStateDeleted     BillingAccountState = "deleted"
+	BillingAccountStateSuspended   BillingAccountState = "suspended"
+)
 
 // BillingPaymentMethod Indicates whether and how an account makes payments.
 type BillingPaymentMethod string
