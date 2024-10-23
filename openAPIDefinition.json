@@ -138,7 +138,7 @@
                                 "example": {
                                     "id": 165434,
                                     "key": "9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3",
-                                    "name": "mykey_1",
+                                    "name": "mykey",
                                     "created_at": "2022-11-15T20:13:35Z",
                                     "created_by": "629982cc-de05-43db-ae16-28f2399c4910"
                                 }
@@ -5813,6 +5813,7 @@
             "BillingAccount": {
                 "type": "object",
                 "required": [
+                    "state",
                     "payment_source",
                     "subscription_type",
                     "payment_method",
@@ -5827,6 +5828,9 @@
                     "address_state"
                 ],
                 "properties": {
+                    "state": {
+                        "$ref": "#/components/schemas/BillingAccountState"
+                    },
                     "payment_source": {
                         "$ref": "#/components/schemas/PaymentSource"
                     },
@@ -5890,6 +5894,17 @@
                         "type": "string"
                     }
                 }
+            },
+            "BillingAccountState": {
+                "type": "string",
+                "description": "State of the billing account.\n",
+                "enum": [
+                    "UNKNOWN",
+                    "active",
+                    "suspended",
+                    "deactivated",
+                    "deleted"
+                ]
             },
             "BillingSubscriptionType": {
                 "type": "string",
@@ -6585,6 +6600,17 @@
                         "format": "int64"
                     },
                     "plan": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConvertUserToOrgRequest": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
                         "type": "string"
                     }
                 }
