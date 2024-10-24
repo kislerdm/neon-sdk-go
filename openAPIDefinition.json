@@ -1059,6 +1059,16 @@
                     "Branch"
                 ],
                 "operationId": "listProjectBranches",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "description": "Search by branch `name` or `id`. You can specify partial `name` or `id` values to filter results.",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Returned a list of branches for the specified project",
@@ -3322,7 +3332,7 @@
                     },
                     {
                         "name": "project_ids",
-                        "description": "Specify a list of project IDs to filter the response.\nIf omitted, the response will contain all projects.\n",
+                        "description": "Specify a list of project IDs to filter the response.\nIf omitted, the response will contain all projects.\nA list of project IDs can be specified as an array of parameter values or as a comma-separated list in a single parameter value.\n- As an array of parameter values: `project_ids=cold-poetry-09157238%20&project_ids=quiet-snow-71788278`\n- As a comma-separated list in a single parameter value: `project_ids=cold-poetry-09157238,quiet-snow-71788278`\n",
                         "in": "query",
                         "schema": {
                             "type": "array",
@@ -6281,14 +6291,14 @@
                 }
             },
             "OrganizationGuestsResponse": {
-                "description": "A list of details for guests of an organisation\n",
+                "description": "A list of details for guests of an organization\n",
                 "type": "array",
                 "items": {
                     "$ref": "#/components/schemas/OrganizationGuest"
                 }
             },
             "OrganizationGuest": {
-                "description": "Details of an organisation guest, who is not directly a member of\nan organisation but has been shared one of the projects it owns\n",
+                "description": "Details of an organization guest, who is not directly a member of\nan organization but has been shared one of the projects it owns\n",
                 "type": "object",
                 "required": [
                     "permission_id",

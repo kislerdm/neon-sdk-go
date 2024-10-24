@@ -569,9 +569,19 @@ func (c Client) ListProjectBranchRoles(projectID string, branchID string) (Roles
 // A project may contain child branches that were branched from `main` or from another branch.
 // A parent branch is identified by the `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) ListProjectBranches(projectID string) (ListProjectBranchesRespObj, error) {
+func (c Client) ListProjectBranches(projectID string, search *string) (ListProjectBranchesRespObj, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if search != nil {
+		queryElements = append(queryElements, "search="+*search)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
 	var v ListProjectBranchesRespObj
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "GET", nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches"+query, "GET", nil, &v); err != nil {
 		return ListProjectBranchesRespObj{}, err
 	}
 	return v, nil
