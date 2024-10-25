@@ -2158,6 +2158,7 @@ func Test_client_ListProjectBranches(t *testing.T) {
 	}
 	type args struct {
 		projectID string
+		search    *string
 	}
 	tests := []struct {
 		name    string
@@ -2170,6 +2171,7 @@ func Test_client_ListProjectBranches(t *testing.T) {
 			name: "happy path",
 			args: args{
 				projectID: "foo",
+				search:    createPointer("foo"),
 			},
 			apiKey:  "foo",
 			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches"]["GET"].Content),
@@ -2179,6 +2181,7 @@ func Test_client_ListProjectBranches(t *testing.T) {
 			name: "unhappy path",
 			args: args{
 				projectID: "foo",
+				search:    createPointer("foo"),
 			},
 			apiKey:  "invalidApiKey",
 			want:    ListProjectBranchesRespObj{},
@@ -2192,7 +2195,7 @@ func Test_client_ListProjectBranches(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.ListProjectBranches(tt.args.projectID)
+				got, err := c.ListProjectBranches(tt.args.projectID, tt.args.search)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("ListProjectBranches() error = %v, wantErr %v", err, tt.wantErr)
 					return
