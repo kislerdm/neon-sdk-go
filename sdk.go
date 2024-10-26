@@ -929,6 +929,16 @@ type ApiKeyCreateResponse struct {
 	Name string `json:"name"`
 }
 
+// ApiKeyCreatorData The user data of the user that created this API key.
+type ApiKeyCreatorData struct {
+	// ID of the user who created this API key
+	ID string `json:"id"`
+	// Image The URL to the user's avatar image.
+	Image string `json:"image"`
+	// Name The name of the user.
+	Name string `json:"name"`
+}
+
 type ApiKeyRevokeResponse struct {
 	// CreatedAt A timestamp indicating when the API key was created
 	CreatedAt time.Time `json:"created_at"`
@@ -948,9 +958,8 @@ type ApiKeyRevokeResponse struct {
 
 type ApiKeysListResponseItem struct {
 	// CreatedAt A timestamp indicating when the API key was created
-	CreatedAt time.Time `json:"created_at"`
-	// CreatedBy ID of the user who created this API key
-	CreatedBy string `json:"created_by"`
+	CreatedAt time.Time         `json:"created_at"`
+	CreatedBy ApiKeyCreatorData `json:"created_by"`
 	// ID The API key ID
 	ID int64 `json:"id"`
 	// LastUsedAt A timestamp indicating when the API was last used
