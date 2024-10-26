@@ -11,7 +11,7 @@ import (
 var endpointResponseExamples = map[string]map[string]mockResponse{
 	"/api_keys": {
 		"GET": mockResponse{
-			Content: `[{"created_at":"2022-11-15T20:13:35Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165432,"last_used_at":"2022-11-15T20:22:51Z","last_used_from_addr":"192.0.2.255","name":"mykey_1"},{"created_at":"2022-11-15T20:12:36Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165433,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"mykey_2"}]`,
+			Content: `[{"created_at":"2022-11-15T20:13:35Z","created_by":{"id":"629982cc-de05-43db-ae16-28f2399c4910","image":"http://link.to.image","name":"John Smith"},"id":165432,"last_used_at":"2022-11-15T20:22:51Z","last_used_from_addr":"192.0.2.255","name":"mykey_1"},{"created_at":"2022-11-15T20:12:36Z","created_by":{"id":"629982cc-de05-43db-ae16-28f2399c4910","image":"http://link.to.image","name":"John Smith"},"id":165433,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"mykey_2"}]`,
 			Code:    200,
 		},
 		"POST": mockResponse{
