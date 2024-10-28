@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.8.0] - 2024-10-28
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-28 22:27:00 GMT.
+
+### Added
+
+- **[BREAKING]** Added the argument `search` to the method `ListProjectBranches` to list branches by name or id.
+  A partial name or id values may be specified to filter results.
+- Added the property `BillingAccount` of the type `CurrentUserInfoResponse`: added the `State` to define the 
+  billing account's state.
+- Added the attribute `CreatedBy` to the type `ApiKeysListResponseItem` to define the user who created the API key. 
+- Added the endpoint `GetActiveRegions` to list active regions to provision databases.
+
 ## [v0.7.0] - 2024-10-20
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-20 11:15:00 GMT.
