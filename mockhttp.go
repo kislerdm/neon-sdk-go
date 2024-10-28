@@ -517,6 +517,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/regions": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/users/me": {
 		"GET": mockResponse{
 			Content: `null`,

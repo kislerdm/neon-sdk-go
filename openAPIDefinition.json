@@ -53,6 +53,10 @@
             "description": "New API methods that are in a Preview state and may be subject to changes."
         },
         {
+            "name": "Region",
+            "description": "These methods allow you to inspect Neon regions."
+        },
+        {
             "name": "Users",
             "description": "These methods allow you to manage your Neon user account."
         },
@@ -3461,6 +3465,31 @@
                 }
             }
         },
+        "/regions": {
+            "get": {
+                "summary": "Get current active regions",
+                "description": "Retrieves the list of supported Neon regions\n",
+                "tags": [
+                    "Region"
+                ],
+                "operationId": "getActiveRegions",
+                "responses": {
+                    "200": {
+                        "description": "The list of active regions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ActiveRegionsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/users/me": {
             "get": {
                 "summary": "Get current user details",
@@ -6489,6 +6518,53 @@
                     },
                     "features": {
                         "$ref": "#/components/schemas/Features"
+                    }
+                }
+            },
+            "ActiveRegionsResponse": {
+                "type": "object",
+                "required": [
+                    "regions"
+                ],
+                "properties": {
+                    "regions": {
+                        "type": "array",
+                        "description": "The list of active regions",
+                        "items": {
+                            "$ref": "#/components/schemas/RegionResponse"
+                        }
+                    }
+                }
+            },
+            "RegionResponse": {
+                "type": "object",
+                "required": [
+                    "region_id",
+                    "name",
+                    "default",
+                    "geo_lat",
+                    "geo_long"
+                ],
+                "properties": {
+                    "region_id": {
+                        "type": "string",
+                        "description": "The region ID as used in other API endpoints"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "A short description of the region."
+                    },
+                    "default": {
+                        "type": "boolean",
+                        "description": "Whether this region is used by default in new projects."
+                    },
+                    "geo_lat": {
+                        "type": "string",
+                        "description": "The geographical latitude (approximate) for the region. Empty if unknown."
+                    },
+                    "geo_long": {
+                        "type": "string",
+                        "description": "The geographical longitude (approximate) for the region. Empty if unknown."
                     }
                 }
             },

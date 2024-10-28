@@ -1113,6 +1113,53 @@ func Test_client_DeleteProjectEndpoint(t *testing.T) {
 	}
 }
 
+func Test_client_GetActiveRegions(t *testing.T) {
+	deserializeResp := func(s string) ActiveRegionsResponse {
+		var v ActiveRegionsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	tests := []struct {
+		name    string
+		apiKey  string
+		want    ActiveRegionsResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/regions"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			want:    ActiveRegionsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetActiveRegions()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetActiveRegions() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetActiveRegions() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetConnectionURI(t *testing.T) {
 	deserializeResp := func(s string) ConnectionURIResponse {
 		var v ConnectionURIResponse

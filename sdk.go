@@ -263,6 +263,15 @@ func (c Client) DeleteProjectEndpoint(projectID string, endpointID string) (Endp
 	return v, nil
 }
 
+// GetActiveRegions Retrieves the list of supported Neon regions
+func (c Client) GetActiveRegions() (ActiveRegionsResponse, error) {
+	var v ActiveRegionsResponse
+	if err := c.requestHandler(c.baseURL+"/regions", "GET", nil, &v); err != nil {
+		return ActiveRegionsResponse{}, err
+	}
+	return v, nil
+}
+
 // GetConnectionURI Retrieves a connection URI for the specified database.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `database_name` by listing the databases for a branch.
@@ -867,6 +876,11 @@ func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg E
 		return EndpointOperations{}, err
 	}
 	return v, nil
+}
+
+type ActiveRegionsResponse struct {
+	// Regions The list of active regions
+	Regions []RegionResponse `json:"regions"`
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
@@ -1928,6 +1942,19 @@ type ProjectsResponse struct {
 //
 // Clients must expect, that any string value that is not documented in the description above should be treated as a error. UNKNOWN value if safe to treat as an error too.
 type Provisioner string
+
+type RegionResponse struct {
+	// Default Whether this region is used by default in new projects.
+	Default bool `json:"default"`
+	// GeoLat The geographical latitude (approximate) for the region. Empty if unknown.
+	GeoLat string `json:"geo_lat"`
+	// GeoLong The geographical longitude (approximate) for the region. Empty if unknown.
+	GeoLong string `json:"geo_long"`
+	// Name A short description of the region.
+	Name string `json:"name"`
+	// RegionID The region ID as used in other API endpoints
+	RegionID string `json:"region_id"`
+}
 
 type Role struct {
 	// BranchID The ID of the branch to which the role belongs
