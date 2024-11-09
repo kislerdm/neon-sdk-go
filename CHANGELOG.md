@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.9.0] - 2024-11-09
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-11-09 11:12:00 GMT.
+
+### Added
+
+- Added the methods to manipulate JWKS for the project: 
+  - `AddProjectJWKS`: adds the JWKS URL to the project.
+  - `GetProjectJWKS`: retrieve all JWKS URLs configured for the project.
+  - `DeleteProjectJWKS`: deletes the JWKS URL from the project.
+
+- Added the method `GetOrganization` to read the organization's info
+
+- Added the methods to manage the organization's membership invitations:
+  - `GetOrganizationInvitations`: retrieves the memberships invitations for the organization. 
+  - `GetOrganizationMember`: reads the info about the organization's members.
+  - `GetOrganizationMembers`: retrieves the info about all organization's members.
+
+- Added Vercel as the identity provider's enum value.
+
+### Changed
+
+- **[BREAKING]** Changed the type of the attributes `Primary` in the `Branch` struct to the pointer to bool from bool.
+
 ## [v0.8.0] - 2024-10-28
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-10-28 22:27:00 GMT.
