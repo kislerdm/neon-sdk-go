@@ -450,6 +450,66 @@ func TestError_httpResp(t *testing.T) {
 	}
 }
 
+func Test_client_AddProjectJWKS(t *testing.T) {
+	deserializeResp := func(s string) JWKSCreationOperation {
+		var v JWKSCreationOperation
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		cfg       AddProjectJWKSRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    JWKSCreationOperation
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				cfg:       AddProjectJWKSRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/jwks"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				cfg:       AddProjectJWKSRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    JWKSCreationOperation{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.AddProjectJWKS(tt.args.projectID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("AddProjectJWKS() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("AddProjectJWKS() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_CreateApiKey(t *testing.T) {
 	deserializeResp := func(s string) ApiKeyCreateResponse {
 		var v ApiKeyCreateResponse
@@ -501,6 +561,66 @@ func Test_client_CreateApiKey(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("CreateApiKey() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateOrganizationInvitations(t *testing.T) {
+	deserializeResp := func(s string) OrganizationInvitationsResponse {
+		var v OrganizationInvitationsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+		cfg   OrganizationInvitesCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    OrganizationInvitationsResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+				cfg:   OrganizationInvitesCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/invitations"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+				cfg:   OrganizationInvitesCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    OrganizationInvitationsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateOrganizationInvitations(tt.args.orgID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateOrganizationInvitations() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateOrganizationInvitations() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1113,6 +1233,66 @@ func Test_client_DeleteProjectEndpoint(t *testing.T) {
 	}
 }
 
+func Test_client_DeleteProjectJWKS(t *testing.T) {
+	deserializeResp := func(s string) JWKS {
+		var v JWKS
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+		jwksID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    JWKS
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+				jwksID:    "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/jwks/{jwks_id}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+				jwksID:    "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    JWKS{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.DeleteProjectJWKS(tt.args.projectID, tt.args.jwksID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteProjectJWKS() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("DeleteProjectJWKS() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetActiveRegions(t *testing.T) {
 	deserializeResp := func(s string) ActiveRegionsResponse {
 		var v ActiveRegionsResponse
@@ -1467,6 +1647,237 @@ func Test_client_GetCurrentUserOrganizations(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("GetCurrentUserOrganizations() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetOrganization(t *testing.T) {
+	deserializeResp := func(s string) Organization {
+		var v Organization
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    Organization
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    Organization{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetOrganization(tt.args.orgID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetOrganization() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetOrganization() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetOrganizationInvitations(t *testing.T) {
+	deserializeResp := func(s string) OrganizationInvitationsResponse {
+		var v OrganizationInvitationsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    OrganizationInvitationsResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/invitations"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    OrganizationInvitationsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetOrganizationInvitations(tt.args.orgID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetOrganizationInvitations() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetOrganizationInvitations() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetOrganizationMember(t *testing.T) {
+	deserializeResp := func(s string) Member {
+		var v Member
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID    string
+		memberID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    Member
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/members/{member_id}"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    Member{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetOrganizationMember(tt.args.orgID, tt.args.memberID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetOrganizationMember() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetOrganizationMember() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetOrganizationMembers(t *testing.T) {
+	deserializeResp := func(s string) OrganizationMembersResponse {
+		var v OrganizationMembersResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    OrganizationMembersResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/members"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    OrganizationMembersResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetOrganizationMembers(tt.args.orgID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetOrganizationMembers() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetOrganizationMembers() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
@@ -1902,6 +2313,63 @@ func Test_client_GetProjectEndpoint(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("GetProjectEndpoint() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_GetProjectJWKS(t *testing.T) {
+	deserializeResp := func(s string) ProjectJWKSResponse {
+		var v ProjectJWKSResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ProjectJWKSResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/jwks"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    ProjectJWKSResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetProjectJWKS(tt.args.projectID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetProjectJWKS() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetProjectJWKS() got = %v, want %v", got, tt.want)
 				}
 			},
 		)

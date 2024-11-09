@@ -140,7 +140,7 @@ func parsePath(s string) objPath {
 		}
 
 		switch v := splt[i-1]; v {
-		case "projects", "endpoints", "operations":
+		case "projects", "endpoints", "operations", "members":
 			o += "/{" + v[:len(v)-1] + "_id}"
 		case "databases", "roles":
 			o += "/{" + v[:len(v)-1] + "_name}"
@@ -150,8 +150,11 @@ func parsePath(s string) objPath {
 			o += "/{branch_id}"
         case "consumption", "users":
             o += "/" + splt[i]
+        case "organizations":
+        	o += "/{org_id}"
+        case "jwks":
+            o += "/{jwks_id}"
 		}
-
 	}
 	return objPath{
 		path:        o,

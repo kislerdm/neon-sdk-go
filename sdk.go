@@ -104,6 +104,20 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
+// AddProjectJWKS Add a new JWKS URL to a project, such that it can be used for verifying JWTs used as the authentication mechanism for the specified project.
+// The URL must be a valid HTTPS URL that returns a JSON Web Key Set.
+// The `provider_name` field allows you to specify which authentication provider you're using (e.g., Clerk, Auth0, AWS Cognito, etc.).
+// The `branch_id` can be used to specify on which branches the JWKS URL will be accepted. If not specified, then it will work on any branch.
+// The `role_names` can be used to specify for which roles the JWKS URL will be accepted.
+// The `jwt_audience` can be used to specify which "aud" values should be accepted by Neon in the JWTs that are used for authentication.
+func (c Client) AddProjectJWKS(projectID string, cfg AddProjectJWKSRequest) (JWKSCreationOperation, error) {
+	var v JWKSCreationOperation
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/jwks", "POST", cfg, &v); err != nil {
+		return JWKSCreationOperation{}, err
+	}
+	return v, nil
+}
+
 // CreateApiKey Creates an API key.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -113,6 +127,19 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	var v ApiKeyCreateResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys", "POST", cfg, &v); err != nil {
 		return ApiKeyCreateResponse{}, err
+	}
+	return v, nil
+}
+
+// CreateOrganizationInvitations Creates invitations for a specific organization.
+// If the invited user has an existing account, they automatically join as a member.
+// If they don't yet have an account, they are invited to create one, after which they become a member.
+// Each invited user receives an email notification.
+func (c Client) CreateOrganizationInvitations(orgID string, cfg OrganizationInvitesCreateRequest) (
+	OrganizationInvitationsResponse, error) {
+	var v OrganizationInvitationsResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/invitations", "POST", cfg, &v); err != nil {
+		return OrganizationInvitationsResponse{}, err
 	}
 	return v, nil
 }
@@ -263,6 +290,15 @@ func (c Client) DeleteProjectEndpoint(projectID string, endpointID string) (Endp
 	return v, nil
 }
 
+// DeleteProjectJWKS Deletes a JWKS URL from the specified project
+func (c Client) DeleteProjectJWKS(projectID string, jwksID string) (JWKS, error) {
+	var v JWKS
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/jwks/"+jwksID, "DELETE", nil, &v); err != nil {
+		return JWKS{}, err
+	}
+	return v, nil
+}
+
 // GetActiveRegions Retrieves the list of supported Neon regions
 func (c Client) GetActiveRegions() (ActiveRegionsResponse, error) {
 	var v ActiveRegionsResponse
@@ -397,6 +433,42 @@ func (c Client) GetCurrentUserOrganizations() (OrganizationsResponse, error) {
 	return v, nil
 }
 
+// GetOrganization Retrieves information about the specified organization.
+func (c Client) GetOrganization(orgID string) (Organization, error) {
+	var v Organization
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID, "GET", nil, &v); err != nil {
+		return Organization{}, err
+	}
+	return v, nil
+}
+
+// GetOrganizationInvitations Retrieves information about extended invitations for the specified organization
+func (c Client) GetOrganizationInvitations(orgID string) (OrganizationInvitationsResponse, error) {
+	var v OrganizationInvitationsResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/invitations", "GET", nil, &v); err != nil {
+		return OrganizationInvitationsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetOrganizationMember Retrieves information about the specified organization member.
+func (c Client) GetOrganizationMember(orgID string, memberID string) (Member, error) {
+	var v Member
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members/"+memberID, "GET", nil, &v); err != nil {
+		return Member{}, err
+	}
+	return v, nil
+}
+
+// GetOrganizationMembers Retrieves information about the specified organization members.
+func (c Client) GetOrganizationMembers(orgID string) (OrganizationMembersResponse, error) {
+	var v OrganizationMembersResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members", "GET", nil, &v); err != nil {
+		return OrganizationMembersResponse{}, err
+	}
+	return v, nil
+}
+
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -496,6 +568,15 @@ func (c Client) GetProjectEndpoint(projectID string, endpointID string) (Endpoin
 	var v EndpointResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "GET", nil, &v); err != nil {
 		return EndpointResponse{}, err
+	}
+	return v, nil
+}
+
+// GetProjectJWKS Returns all the available JWKS URLs that can be used for verifying JWTs used as the authentication mechanism for the specified project.
+func (c Client) GetProjectJWKS(projectID string) (ProjectJWKSResponse, error) {
+	var v ProjectJWKSResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/jwks", "GET", nil, &v); err != nil {
+		return ProjectJWKSResponse{}, err
 	}
 	return v, nil
 }
@@ -817,7 +898,6 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 }
 
 // TransferProjectsFromUserToOrg Transfers selected projects, identified by their IDs, from your personal account to a specified organization.
-// This API is only available for early access users.
 func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
 	var v EmptyResponse
 	if err := c.requestHandler(c.baseURL+"/users/me/projects/transfer", "POST", cfg, &v); err != nil {
@@ -881,6 +961,20 @@ func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg E
 type ActiveRegionsResponse struct {
 	// Regions The list of active regions
 	Regions []RegionResponse `json:"regions"`
+}
+
+// AddProjectJWKSRequest Add a new JWKS to a specific endpoint of a project
+type AddProjectJWKSRequest struct {
+	// BranchID Branch ID
+	BranchID *string `json:"branch_id,omitempty"`
+	// JwksURL The URL that lists the JWKS
+	JwksURL string `json:"jwks_url"`
+	// JwtAudience The name of the required JWT Audience to be used
+	JwtAudience *string `json:"jwt_audience,omitempty"`
+	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
+	ProviderName string `json:"provider_name"`
+	// RoleNames The roles the JWKS should be mapped to
+	RoleNames *[]string `json:"role_names,omitempty"`
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
@@ -1093,7 +1187,7 @@ type Branch struct {
 	PendingState    *BranchState `json:"pending_state,omitempty"`
 	// Primary DEPRECATED. Use `default` field.
 	// Whether the branch is the project's primary branch
-	Primary bool `json:"primary"`
+	Primary *bool `json:"primary,omitempty"`
 	// ProjectID The ID of the project to which the branch belongs
 	ProjectID string `json:"project_id"`
 	// Protected Whether the branch is protected
@@ -1546,7 +1640,49 @@ const (
 	IdentityProviderIdKeycloak  IdentityProviderId = "keycloak"
 	IdentityProviderIdMicrosoft IdentityProviderId = "microsoft"
 	IdentityProviderIdTest      IdentityProviderId = "test"
+	IdentityProviderIdVercelmp  IdentityProviderId = "vercelmp"
 )
+
+type Invitation struct {
+	// Email of the invited user
+	Email string `json:"email"`
+	ID    string `json:"id"`
+	// InvitedAt Timestamp when the invitation was created
+	InvitedAt time.Time `json:"invited_at"`
+	// InvitedBy UUID for the user_id who extended the invitation
+	InvitedBy string `json:"invited_by"`
+	// OrgID Organization id as it is stored in Neon
+	OrgID string     `json:"org_id"`
+	Role  MemberRole `json:"role"`
+}
+
+type JWKS struct {
+	// BranchID Branch ID
+	BranchID *string `json:"branch_id,omitempty"`
+	// CreatedAt The date and time when the JWKS was created
+	CreatedAt time.Time `json:"created_at"`
+	// ID JWKS ID
+	ID string `json:"id"`
+	// JwksURL The URL that lists the JWKS
+	JwksURL string `json:"jwks_url"`
+	// JwtAudience The name of the required JWT Audience to be used
+	JwtAudience *string `json:"jwt_audience,omitempty"`
+	// ProjectID Project ID
+	ProjectID string `json:"project_id"`
+	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
+	ProviderName string `json:"provider_name"`
+	// UpdatedAt The date and time when the JWKS was last modified
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type JWKSCreationOperation struct {
+	JWKSResponse
+	OperationsResponse
+}
+
+type JWKSResponse struct {
+	Jwks JWKS `json:"jwks"`
+}
 
 type ListOperations struct {
 	OperationsResponse
@@ -1561,12 +1697,38 @@ type ListProjectBranchesRespObj struct {
 type ListProjectsRespObj struct {
 	PaginationResponse
 	ProjectsApplicationsMapResponse
+	ProjectsIntegrationsMapResponse
 	ProjectsResponse
 }
 
 type ListSharedProjectsRespObj struct {
 	PaginationResponse
 	ProjectsResponse
+}
+
+type Member struct {
+	ID       string     `json:"id"`
+	JoinedAt *time.Time `json:"joined_at,omitempty"`
+	OrgID    string     `json:"org_id"`
+	Role     MemberRole `json:"role"`
+	UserID   string     `json:"user_id"`
+}
+
+// MemberRole The role of the organization member
+type MemberRole string
+
+const (
+	MemberRoleAdmin  MemberRole = "admin"
+	MemberRoleMember MemberRole = "member"
+)
+
+type MemberUserInfo struct {
+	Email string `json:"email"`
+}
+
+type MemberWithUser struct {
+	Member Member         `json:"member"`
+	User   MemberUserInfo `json:"user"`
 }
 
 type Operation struct {
@@ -1610,6 +1772,7 @@ const (
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
 	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
 	OperationActionStartCompute               OperationAction = "start_compute"
+	OperationActionStartReservedCompute       OperationAction = "start_reserved_compute"
 	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
 	OperationActionTenantAttach               OperationAction = "tenant_attach"
@@ -1654,6 +1817,23 @@ type Organization struct {
 	Plan      string `json:"plan"`
 	// UpdatedAt A timestamp indicating when the organization was updated
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type OrganizationInvitationsResponse struct {
+	Invitations []Invitation `json:"invitations"`
+}
+
+type OrganizationInviteCreateRequest struct {
+	Email string     `json:"email"`
+	Role  MemberRole `json:"role"`
+}
+
+type OrganizationInvitesCreateRequest struct {
+	Invitations []OrganizationInviteCreateRequest `json:"invitations"`
+}
+
+type OrganizationMembersResponse struct {
+	Members []MemberWithUser `json:"members"`
 }
 
 type OrganizationsResponse struct {
@@ -1802,6 +1982,11 @@ type ProjectCreateRequestProjectBranch struct {
 	RoleName *string `json:"role_name,omitempty"`
 }
 
+// ProjectJWKSResponse The list of configured JWKS definitions for a project
+type ProjectJWKSResponse struct {
+	Jwks []JWKS `json:"jwks"`
+}
+
 // ProjectListItem Essential data about the project. Full data is available at the getProject endpoint.
 type ProjectListItem struct {
 	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
@@ -1922,12 +2107,19 @@ type ProjectUpdateRequestProject struct {
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 }
 
-// ProjectsApplicationsMapResponse A map where key is a project ID and a value is a list of available applications.
+// ProjectsApplicationsMapResponse A map where key is a project ID and a value is a list of installed applications.
 type ProjectsApplicationsMapResponse struct {
 	Applications ProjectsApplicationsMapResponseApplications `json:"applications"`
 }
 
 type ProjectsApplicationsMapResponseApplications map[string]interface{}
+
+// ProjectsIntegrationsMapResponse A map where key is a project ID and a value is a list of installed integrations.
+type ProjectsIntegrationsMapResponse struct {
+	Integrations ProjectsIntegrationsMapResponseIntegrations `json:"integrations"`
+}
+
+type ProjectsIntegrationsMapResponseIntegrations map[string]interface{}
 
 type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`

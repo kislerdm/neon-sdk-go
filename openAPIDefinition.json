@@ -329,6 +329,9 @@
                                         },
                                         {
                                             "$ref": "#/components/schemas/ProjectsApplicationsMapResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/ProjectsIntegrationsMapResponse"
                                         }
                                     ]
                                 },
@@ -373,6 +376,12 @@
                                         }
                                     ],
                                     "applications": {
+                                        "winter-boat-259881": [
+                                            "vercel",
+                                            "github"
+                                        ]
+                                    },
+                                    "integrations": {
                                         "winter-boat-259881": [
                                             "vercel",
                                             "github"
@@ -913,6 +922,120 @@
                 }
             }
         },
+        "/projects/{project_id}/jwks": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Returns all available JWKS URLs for a project",
+                "description": "Returns all the available JWKS URLs that can be used for verifying JWTs used as the authentication mechanism for the specified project.\n",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "getProjectJWKS",
+                "responses": {
+                    "200": {
+                        "description": "The JWKS URLs available for the project",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectJWKSResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Adds a JWKS URL to a project",
+                "description": "Add a new JWKS URL to a project, such that it can be used for verifying JWTs used as the authentication mechanism for the specified project.\n\nThe URL must be a valid HTTPS URL that returns a JSON Web Key Set.\n\nThe `provider_name` field allows you to specify which authentication provider you're using (e.g., Clerk, Auth0, AWS Cognito, etc.).\n\nThe `branch_id` can be used to specify on which branches the JWKS URL will be accepted. If not specified, then it will work on any branch.\n\nThe `role_names` can be used to specify for which roles the JWKS URL will be accepted.\n\nThe `jwt_audience` can be used to specify which \"aud\" values should be accepted by Neon in the JWTs that are used for authentication.\n",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "addProjectJWKS",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddProjectJWKSRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The JWKS URL was added to the project's authentication connections",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JWKSCreationOperation"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/jwks/{jwks_id}": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "jwks_id",
+                    "in": "path",
+                    "description": "The JWKS ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "delete": {
+                "summary": "Delete a JWKS URL",
+                "description": "Deletes a JWKS URL from the specified project",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "deleteProjectJWKS",
+                "responses": {
+                    "200": {
+                        "description": "Deleted a JWKS URL from the project",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JWKS"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/connection_uri": {
             "get": {
                 "summary": "Get a connection URI",
@@ -1112,7 +1235,6 @@
                                             "compute_time_seconds": 100,
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
-                                            "primary": true,
                                             "default": true,
                                             "protected": false,
                                             "creation_source": "console"
@@ -1133,7 +1255,6 @@
                                             "compute_time_seconds": 100,
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
-                                            "primary": true,
                                             "default": true,
                                             "protected": false,
                                             "creation_source": "console"
@@ -1154,7 +1275,6 @@
                                             "compute_time_seconds": 100,
                                             "active_time_seconds": 100,
                                             "cpu_used_sec": 100,
-                                            "primary": true,
                                             "default": true,
                                             "protected": false,
                                             "creation_source": "console"
@@ -1241,7 +1361,6 @@
                                         "compute_time_seconds": 100,
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
-                                        "primary": true,
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
@@ -1296,7 +1415,6 @@
                                         "compute_time_seconds": 100,
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
-                                        "primary": true,
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
@@ -1381,7 +1499,6 @@
                                         "compute_time_seconds": 100,
                                         "active_time_seconds": 100,
                                         "cpu_used_sec": 100,
-                                        "primary": true,
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
@@ -1576,7 +1693,6 @@
                                         "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
-                                        "primary": true,
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
@@ -1644,7 +1760,6 @@
                                         "state_changed_at": "2022-11-30T20:09:48Z",
                                         "created_at": "2022-11-23T17:42:25Z",
                                         "updated_at": "2022-11-23T17:42:26Z",
-                                        "primary": true,
                                         "default": true,
                                         "protected": false,
                                         "creation_source": "console"
@@ -3465,6 +3580,265 @@
                 }
             }
         },
+        "/organizations/{org_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get organization details",
+                "description": "Retrieves information about the specified organization.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "getOrganization",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about the organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Organization"
+                                },
+                                "example": {
+                                    "id": "my-organization-morning-bread-81040908",
+                                    "name": "my-organization",
+                                    "handle": "my-organization-my-organization-morning-bread-81040908",
+                                    "plan": "scale",
+                                    "managed_by": "console",
+                                    "created_at": "2024-02-23T17:42:25Z",
+                                    "updated_at": "2024-02-26T20:41:25Z"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/organizations/{org_id}/members": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get organization members details",
+                "description": "Retrieves information about the specified organization members.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "getOrganizationMembers",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about organization members",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationMembersResponse"
+                                },
+                                "example": {
+                                    "members": [
+                                        {
+                                            "member": {
+                                                "id": "d57833f2-d308-4ede-9d2e-468d9d013d1b",
+                                                "user_id": "b107d689-6dd2-4c9a-8b9e-0b25e457cf56",
+                                                "org_id": "my-organization-morning-bread-81040908",
+                                                "role": "admin",
+                                                "joined_at": "2024-02-23T17:42:25Z"
+                                            },
+                                            "user": {
+                                                "email": "user1@email.com"
+                                            }
+                                        },
+                                        {
+                                            "member": {
+                                                "id": "5fee13ac-957b-40cd-8de0-4d494cc28e28",
+                                                "user_id": "6df052ac-ca9a-4321-8963-b6507b2d7dee",
+                                                "org_id": "my-organization-morning-bread-81040908",
+                                                "role": "member",
+                                                "joined_at": "2024-02-21T16:42:25Z"
+                                            },
+                                            "user": {
+                                                "email": "user2@email.com"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/organizations/{org_id}/members/{member_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "member_id",
+                    "in": "path",
+                    "description": "The Neon organization member ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get organization member details",
+                "description": "Retrieves information about the specified organization member.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "getOrganizationMember",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about the organization member",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Member"
+                                },
+                                "example": {
+                                    "id": "d57833f2-d308-4ede-9d2e-468d9d013d1b",
+                                    "user_id": "b107d689-6dd2-4c9a-8b9e-0b25e457cf56",
+                                    "org_id": "my-organization-morning-bread-81040908",
+                                    "role": "admin",
+                                    "joined_at": "2024-02-23T17:42:25Z"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/organizations/{org_id}/invitations": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get organization invitation details",
+                "description": "Retrieves information about extended invitations for the specified organization\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "getOrganizationInvitations",
+                "responses": {
+                    "200": {
+                        "description": "Returned information about the organization invitations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationInvitationsResponse"
+                                },
+                                "example": {
+                                    "invitations": [
+                                        {
+                                            "id": "db8faf32-b07f-4b0f-94c8-5c288909f5d3",
+                                            "email": "invited1@email.com",
+                                            "org_id": "my-organization-morning-bread-81040908",
+                                            "invited_by": "some@email.com",
+                                            "role": "admin",
+                                            "invited_at": "2024-02-23T17:42:25Z"
+                                        },
+                                        {
+                                            "id": "c52f0d22-ebd9-4708-ae44-2872cae49a83",
+                                            "email": "invited2@email.com",
+                                            "org_id": "my-organization-morning-bread-81040908",
+                                            "invited_by": "some@email.com",
+                                            "role": "member",
+                                            "invited_at": "2024-02-23T12:42:25Z"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create organization invitations",
+                "description": "Creates invitations for a specific organization.\nIf the invited user has an existing account, they automatically join as a member.\nIf they don't yet have an account, they are invited to create one, after which they become a member.\nEach invited user receives an email notification.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "createOrganizationInvitations",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationInvitesCreateRequest"
+                            },
+                            "example": {
+                                "invitations": [
+                                    {
+                                        "email": "invited-user@email.com",
+                                        "role": "member"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The created organization invitation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationInvitationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/regions": {
             "get": {
                 "summary": "Get current active regions",
@@ -3521,7 +3895,8 @@
                 "description": "Retrieves information about the current Neon user's organizations\n",
                 "operationId": "getCurrentUserOrganizations",
                 "tags": [
-                    "Users"
+                    "Users",
+                    "Organizations"
                 ],
                 "responses": {
                     "200": {
@@ -3543,7 +3918,7 @@
         "/users/me/projects/transfer": {
             "post": {
                 "summary": "Transfer projects from your personal account to a specified destination account",
-                "description": "Transfers selected projects, identified by their IDs, from your personal account to a specified organization.\nThis API is only available for early access users.\n",
+                "description": "Transfers selected projects, identified by their IDs, from your personal account to a specified organization.\n",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -4172,7 +4547,8 @@
                     "switch_pageserver",
                     "detach_parent_branch",
                     "timeline_archive",
-                    "timeline_unarchive"
+                    "timeline_unarchive",
+                    "start_reserved_compute"
                 ]
             },
             "OperationStatus": {
@@ -4871,6 +5247,7 @@
                             "max_branches",
                             "max_protected_branches",
                             "max_autoscaling_cu",
+                            "max_fixed_size_cu",
                             "cpu_seconds",
                             "max_compute_time_non_primary",
                             "max_active_endpoints",
@@ -4879,7 +5256,8 @@
                             "max_monitoring_retention_hours",
                             "max_history_retention_seconds",
                             "min_autosuspend_seconds",
-                            "max_data_transfer"
+                            "max_data_transfer",
+                            "min_idle_seconds_to_autoarchive"
                         ],
                         "properties": {
                             "active_time": {
@@ -4896,6 +5274,10 @@
                                 "type": "integer"
                             },
                             "max_autoscaling_cu": {
+                                "type": "number",
+                                "format": "float64"
+                            },
+                            "max_fixed_size_cu": {
                                 "type": "number",
                                 "format": "float64"
                             },
@@ -4929,6 +5311,10 @@
                             "max_data_transfer": {
                                 "type": "integer",
                                 "format": "int64"
+                            },
+                            "min_idle_seconds_to_autoarchive": {
+                                "type": "integer",
+                                "format": "int64"
                             }
                         }
                     },
@@ -4948,7 +5334,6 @@
                     "creation_source",
                     "created_at",
                     "updated_at",
-                    "primary",
                     "default",
                     "protected",
                     "cpu_used_sec",
@@ -5080,7 +5465,6 @@
                     "creation_source": "console",
                     "created_at": "2022-11-30T19:09:48Z",
                     "updated_at": "2022-12-01T19:53:05Z",
-                    "primary": true,
                     "default": true
                 }
             },
@@ -6463,6 +6847,7 @@
                             "max_projects",
                             "max_branches",
                             "max_autoscaling_cu",
+                            "max_fixed_size_cu",
                             "cpu_seconds",
                             "max_active_endpoints",
                             "max_read_only_endpoints",
@@ -6484,6 +6869,10 @@
                                 "type": "integer"
                             },
                             "max_autoscaling_cu": {
+                                "type": "number",
+                                "format": "float64"
+                            },
+                            "max_fixed_size_cu": {
                                 "type": "number",
                                 "format": "float64"
                             },
@@ -6796,6 +7185,7 @@
                     "google",
                     "hasura",
                     "microsoft",
+                    "vercelmp",
                     "keycloak",
                     "test"
                 ]
@@ -7217,12 +7607,45 @@
                 "x-tags": [
                     "Project"
                 ],
-                "description": "A map where key is a project ID and a value is a list of available applications.\n",
+                "description": "A map where key is a project ID and a value is a list of installed applications.\n",
                 "required": [
                     "applications"
                 ],
                 "properties": {
                     "applications": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "vercel",
+                                    "github",
+                                    "datadog"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "winter-boat-259881": [
+                        "vercel",
+                        "github",
+                        "datadog"
+                    ]
+                }
+            },
+            "ProjectsIntegrationsMapResponse": {
+                "type": "object",
+                "x-tags": [
+                    "Project"
+                ],
+                "description": "A map where key is a project ID and a value is a list of installed integrations.\n",
+                "required": [
+                    "integrations"
+                ],
+                "properties": {
+                    "integrations": {
                         "type": "object",
                         "additionalProperties": {
                             "type": "array",

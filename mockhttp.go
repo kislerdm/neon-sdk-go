@@ -41,9 +41,41 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/organizations/{org_id}": {
+		"GET": mockResponse{
+			Content: `{"created_at":"2024-02-23T17:42:25Z","handle":"my-organization-my-organization-morning-bread-81040908","id":"my-organization-morning-bread-81040908","managed_by":"console","name":"my-organization","plan":"scale","updated_at":"2024-02-26T20:41:25Z"}`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/invitations": {
+		"GET": mockResponse{
+			Content: `{"invitations":[{"email":"invited1@email.com","id":"db8faf32-b07f-4b0f-94c8-5c288909f5d3","invited_at":"2024-02-23T17:42:25Z","invited_by":"some@email.com","org_id":"my-organization-morning-bread-81040908","role":"admin"},{"email":"invited2@email.com","id":"c52f0d22-ebd9-4708-ae44-2872cae49a83","invited_at":"2024-02-23T12:42:25Z","invited_by":"some@email.com","org_id":"my-organization-morning-bread-81040908","role":"member"}]}`,
+			Code:    200,
+		},
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/members": {
+		"GET": mockResponse{
+			Content: `{"members":[{"member":{"id":"d57833f2-d308-4ede-9d2e-468d9d013d1b","joined_at":"2024-02-23T17:42:25Z","org_id":"my-organization-morning-bread-81040908","role":"admin","user_id":"b107d689-6dd2-4c9a-8b9e-0b25e457cf56"},"user":{"email":"user1@email.com"}},{"member":{"id":"5fee13ac-957b-40cd-8de0-4d494cc28e28","joined_at":"2024-02-21T16:42:25Z","org_id":"my-organization-morning-bread-81040908","role":"member","user_id":"6df052ac-ca9a-4321-8963-b6507b2d7dee"},"user":{"email":"user2@email.com"}}]}`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/members/{member_id}": {
+		"GET": mockResponse{
+			Content: `{"id":"d57833f2-d308-4ede-9d2e-468d9d013d1b","joined_at":"2024-02-23T17:42:25Z","org_id":"my-organization-morning-bread-81040908","role":"admin","user_id":"b107d689-6dd2-4c9a-8b9e-0b25e457cf56"}`,
+			Code:    200,
+		},
+	},
+
 	"/projects": {
 		"GET": mockResponse{
-			Content: `{"applications":{"winter-boat-259881":["vercel","github"]},"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","org_id":"org-morning-bread-81040908","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
+			Content: `{"applications":{"winter-boat-259881":["vercel","github"]},"integrations":{"winter-boat-259881":["vercel","github"]},"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","org_id":"org-morning-bread-81040908","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -184,7 +216,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"annotations":{"br-aged-salad-637688":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}}},"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
+			Content: `{"annotations":{"br-aged-salad-637688":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}}},"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -259,15 +291,15 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
 			Code:    200,
 		},
 		"GET": mockResponse{
-			Content: `{"annotation":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}},"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
+			Content: `{"annotation":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}},"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800}}`,
 			Code:    200,
 		},
 		"PATCH": mockResponse{
-			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
 			Code:    200,
 		},
 	},
@@ -375,14 +407,14 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches/{branch_id}/set_as_default": {
 		"POST": mockResponse{
-			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
 			Code:    200,
 		},
 	},
 
 	"/projects/{project_id}/branches/{branch_id}/set_as_primary": {
 		"POST": mockResponse{
-			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","primary":true,"project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
+			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
 			Code:    200,
 		},
 	},
@@ -471,6 +503,24 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 	"/projects/{project_id}/endpoints/{endpoint_id}/suspend": {
 		"POST": mockResponse{
 			Content: `{"endpoint":{"autoscaling_limit_max_cu":1,"autoscaling_limit_min_cu":1,"branch_id":"br-raspy-hill-832856","created_at":"2022-12-03T15:37:07Z","current_state":"idle","disabled":false,"host":"ep-steep-bush-777093.us-east-2.aws.neon.tech","id":"ep-steep-bush-777093","last_active":"2022-12-03T15:00:00Z","passwordless_access":true,"pooler_enabled":false,"pooler_mode":"transaction","project_id":"shiny-wind-028834","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","settings":{"pg_settings":{}},"type":"read_write","updated_at":"2022-12-03T15:49:10Z"},"operations":[{"action":"suspend_compute","branch_id":"br-proud-paper-090813","created_at":"2022-12-03T15:51:06Z","endpoint_id":"ep-shrill-thunder-454069","failures_count":0,"id":"e061087e-3c99-4856-b9c8-6b7751a253af","project_id":"bitter-meadow-966132","status":"running","updated_at":"2022-12-03T15:51:06Z"}]}`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/jwks": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    201,
+		},
+	},
+
+	"/projects/{project_id}/jwks/{jwks_id}": {
+		"DELETE": mockResponse{
+			Content: `null`,
 			Code:    200,
 		},
 	},
@@ -667,7 +717,7 @@ func parsePath(s string) objPath {
 		}
 
 		switch v := splt[i-1]; v {
-		case "projects", "endpoints", "operations":
+		case "projects", "endpoints", "operations", "members":
 			o += "/{" + v[:len(v)-1] + "_id}"
 		case "databases", "roles":
 			o += "/{" + v[:len(v)-1] + "_name}"
@@ -677,8 +727,11 @@ func parsePath(s string) objPath {
 			o += "/{branch_id}"
 		case "consumption", "users":
 			o += "/" + splt[i]
+		case "organizations":
+			o += "/{org_id}"
+		case "jwks":
+			o += "/{jwks_id}"
 		}
-
 	}
 	return objPath{
 		path:        o,
