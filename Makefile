@@ -36,6 +36,12 @@ build: ## Compiles the binary.
 testacc: ## Runs smoke tests.
 	@ source .env && TF_ACC=1 go test acc_test.go
 
+# official
+SPEC_URL := https://neon.tech/api_spec/release/v2.json
+
+# from James, VP of Eng. from Neon
+SPEC_URL := https://d216pytvakpmhr.cloudfront.net/api_spec/main/v2.json
+
 .PHONY: fetch-specs
 fetch-specs: ## Downloads API specs.
-	@ curl -SLo openAPIDefinition_new.json https://neon.tech/api_spec/release/v2.json
+	@ curl -SLo openAPIDefinition_new.json $(SPEC_URL)
