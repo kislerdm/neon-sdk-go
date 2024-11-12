@@ -135,8 +135,7 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 // If the invited user has an existing account, they automatically join as a member.
 // If they don't yet have an account, they are invited to create one, after which they become a member.
 // Each invited user receives an email notification.
-func (c Client) CreateOrganizationInvitations(orgID string, cfg OrganizationInvitesCreateRequest) (
-	OrganizationInvitationsResponse, error) {
+func (c Client) CreateOrganizationInvitations(orgID string, cfg OrganizationInvitesCreateRequest) (OrganizationInvitationsResponse, error) {
 	var v OrganizationInvitationsResponse
 	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/invitations", "POST", cfg, &v); err != nil {
 		return OrganizationInvitationsResponse{}, err
@@ -1331,8 +1330,14 @@ type ConsumptionHistoryPerAccountResponse struct {
 
 type ConsumptionHistoryPerPeriod struct {
 	Consumption []ConsumptionHistoryPerTimeframe `json:"consumption"`
-	// PeriodID The ID assigned to the specified period.
+	// PeriodEnd The end date-time of the billing period, available for the past periods only.
+	PeriodEnd *time.Time `json:"period_end,omitempty"`
+	// PeriodID The ID assigned to the specified billing period.
 	PeriodID string `json:"period_id"`
+	// PeriodPlan The billing plan applicable during the billing period.
+	PeriodPlan string `json:"period_plan"`
+	// PeriodStart The start date-time of the billing period.
+	PeriodStart time.Time `json:"period_start"`
 }
 
 type ConsumptionHistoryPerProject struct {

@@ -63,6 +63,10 @@
         {
             "name": "Consumption",
             "description": "These methods allow you to view consumption details for your Neon account."
+        },
+        {
+            "name": "Organizations",
+            "description": "These methods allow you to manage your Neon organizations."
         }
     ],
     "paths": {
@@ -5139,9 +5143,23 @@
                 "type": "object",
                 "properties": {
                     "period_id": {
-                        "description": "The ID assigned to the specified period.",
+                        "description": "The ID assigned to the specified billing period.",
                         "type": "string",
                         "format": "uuid"
+                    },
+                    "period_plan": {
+                        "description": "The billing plan applicable during the billing period.",
+                        "type": "string"
+                    },
+                    "period_start": {
+                        "description": "The start date-time of the billing period.\n",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "period_end": {
+                        "description": "The end date-time of the billing period, available for the past periods only.\n",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "consumption": {
                         "type": "array",
@@ -5152,10 +5170,14 @@
                 },
                 "required": [
                     "period_id",
+                    "period_plan",
+                    "period_start",
                     "consumption"
                 ],
                 "example": {
                     "period_id": "79ec829f-1828-4006-ac82-9f1828a0067d",
+                    "period_plan": "scale",
+                    "period_start": "2024-03-01T00:00:00Z",
                     "consumption": [
                         {
                             "timeframe_start": "2024-03-22T00:00:00Z",
@@ -5257,7 +5279,8 @@
                             "max_history_retention_seconds",
                             "min_autosuspend_seconds",
                             "max_data_transfer",
-                            "min_idle_seconds_to_autoarchive"
+                            "min_idle_seconds_to_autoarchive",
+                            "min_age_seconds_to_autoarchive"
                         ],
                         "properties": {
                             "active_time": {
@@ -5313,6 +5336,10 @@
                                 "format": "int64"
                             },
                             "min_idle_seconds_to_autoarchive": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "min_age_seconds_to_autoarchive": {
                                 "type": "integer",
                                 "format": "int64"
                             }
