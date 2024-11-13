@@ -63,6 +63,10 @@
         {
             "name": "Consumption",
             "description": "These methods allow you to view consumption details for your Neon account."
+        },
+        {
+            "name": "Organizations",
+            "description": "These methods allow you to manage your Neon organizations."
         }
     ],
     "paths": {
@@ -217,7 +221,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -310,7 +315,8 @@
                         "description": "Search for projects by `org_id`.",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     }
                 ],
@@ -580,7 +586,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -797,7 +804,8 @@
                         "description": "The Neon project ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     }
                 ],
@@ -818,7 +826,8 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -886,7 +895,8 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -930,7 +940,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -999,7 +1010,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1051,7 +1063,8 @@
                         "description": "The Neon project ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1060,7 +1073,8 @@
                         "description": "The branch ID. Defaults to your project's default `branch_id` if not specified.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1069,7 +1083,8 @@
                         "description": "The endpoint ID. Defaults to the read-write `endpoint_id` associated with the `branch_id` if not specified.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1125,7 +1140,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1311,7 +1327,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1320,7 +1337,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1529,7 +1547,8 @@
                         "description": "The Neon project ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1538,7 +1557,8 @@
                         "description": "The branch ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     }
                 ],
@@ -1584,7 +1604,8 @@
                         "description": "The Neon project ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1593,7 +1614,8 @@
                         "description": "The branch ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -1648,7 +1670,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1657,7 +1680,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1716,7 +1740,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1725,7 +1750,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1783,7 +1809,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1792,7 +1819,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1857,7 +1885,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -1866,7 +1895,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -1997,7 +2027,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2006,7 +2037,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2195,7 +2227,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2204,7 +2237,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -2320,7 +2354,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2329,7 +2364,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2441,7 +2477,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2450,7 +2487,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2518,7 +2556,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2527,7 +2566,8 @@
                     "description": "The branch ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2608,7 +2648,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -2828,7 +2869,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -2837,7 +2879,8 @@
                     "description": "The endpoint ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -3062,7 +3105,8 @@
                         "description": "The Neon project ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -3071,7 +3115,8 @@
                         "description": "The endpoint ID",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     }
                 ],
@@ -3141,7 +3186,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -3150,7 +3196,8 @@
                     "description": "The endpoint ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -3227,7 +3274,8 @@
                     "description": "The Neon project ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -3236,7 +3284,8 @@
                     "description": "The endpoint ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -3360,7 +3409,8 @@
                         "description": "Specify the organization for which the consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the\nauthenticated user's account.\n",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -3464,7 +3514,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
                             },
                             "minItems": 0,
                             "maxItems": 100
@@ -3504,7 +3555,8 @@
                         "description": "Specify the organization for which the project consumption metrics should be returned.\nIf this parameter is not provided, the endpoint will return the metrics for the\nauthenticated user's projects.\n",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         }
                     },
                     {
@@ -3588,7 +3640,8 @@
                     "description": "The Neon organization ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -3633,7 +3686,8 @@
                     "description": "The Neon organization ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -3697,7 +3751,8 @@
                     "description": "The Neon organization ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 {
@@ -3750,7 +3805,8 @@
                     "description": "The Neon organization ID",
                     "required": true,
                     "schema": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 }
             ],
@@ -4171,8 +4227,9 @@
                         "type": "string"
                     },
                     "branch_id": {
-                        "description": "Branch ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Branch ID"
                     },
                     "jwt_audience": {
                         "description": "The name of the required JWT Audience to be used",
@@ -4204,12 +4261,14 @@
                         "type": "string"
                     },
                     "project_id": {
-                        "description": "Project ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Project ID"
                     },
                     "branch_id": {
-                        "description": "Branch ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Branch ID"
                     },
                     "jwks_url": {
                         "description": "The URL that lists the JWKS",
@@ -4425,16 +4484,19 @@
                         "format": "uuid"
                     },
                     "project_id": {
-                        "description": "The Neon project ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID"
                     },
                     "branch_id": {
-                        "description": "The branch ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The branch ID"
                     },
                     "endpoint_id": {
-                        "description": "The endpoint ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The endpoint ID"
                     },
                     "action": {
                         "$ref": "#/components/schemas/OperationAction"
@@ -4588,8 +4650,9 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The project ID\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The project ID"
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -4685,6 +4748,7 @@
                     },
                     "org_id": {
                         "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
                         "description": "Organization id if a project belongs to organization.\nPermissions for the project will be given to organization members as defined by the organization admins.\nThe permissions of the project do not depend on the user that created the project if a project belongs to an organization.\n"
                     }
                 },
@@ -4767,8 +4831,9 @@
                         "deprecated": true
                     },
                     "id": {
-                        "description": "The project ID\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The project ID"
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -4869,7 +4934,8 @@
                         "format": "date-time"
                     },
                     "org_id": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 "example": {
@@ -4963,6 +5029,7 @@
                             },
                             "org_id": {
                                 "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$",
                                 "description": "Organization id in case the project created belongs to an organization.\nIf not present, project is owned by a user and not by org.\n"
                             }
                         }
@@ -5120,8 +5187,9 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
-                        "description": "The project ID",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The project ID"
                     },
                     "periods": {
                         "type": "array",
@@ -5139,9 +5207,23 @@
                 "type": "object",
                 "properties": {
                     "period_id": {
-                        "description": "The ID assigned to the specified period.",
+                        "description": "The ID assigned to the specified billing period.",
                         "type": "string",
                         "format": "uuid"
+                    },
+                    "period_plan": {
+                        "description": "The billing plan applicable during the billing period.",
+                        "type": "string"
+                    },
+                    "period_start": {
+                        "description": "The start date-time of the billing period.\n",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "period_end": {
+                        "description": "The end date-time of the billing period, available for the past periods only.\n",
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "consumption": {
                         "type": "array",
@@ -5152,10 +5234,14 @@
                 },
                 "required": [
                     "period_id",
+                    "period_plan",
+                    "period_start",
                     "consumption"
                 ],
                 "example": {
                     "period_id": "79ec829f-1828-4006-ac82-9f1828a0067d",
+                    "period_plan": "scale",
+                    "period_start": "2024-03-01T00:00:00Z",
                     "consumption": [
                         {
                             "timeframe_start": "2024-03-22T00:00:00Z",
@@ -5257,7 +5343,8 @@
                             "max_history_retention_seconds",
                             "min_autosuspend_seconds",
                             "max_data_transfer",
-                            "min_idle_seconds_to_autoarchive"
+                            "min_idle_seconds_to_autoarchive",
+                            "min_age_seconds_to_autoarchive"
                         ],
                         "properties": {
                             "active_time": {
@@ -5315,6 +5402,10 @@
                             "min_idle_seconds_to_autoarchive": {
                                 "type": "integer",
                                 "format": "int64"
+                            },
+                            "min_age_seconds_to_autoarchive": {
+                                "type": "integer",
+                                "format": "int64"
                             }
                         }
                     },
@@ -5344,16 +5435,19 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n"
                     },
                     "project_id": {
-                        "description": "The ID of the project to which the branch belongs\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project to which the branch belongs\n"
                     },
                     "parent_id": {
-                        "description": "The `branch_id` of the parent branch\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The `branch_id` of the parent branch\n"
                     },
                     "parent_lsn": {
                         "description": "The Log Sequence Number (LSN) on the parent branch from which this branch was created\n",
@@ -5510,8 +5604,9 @@
                         "type": "object",
                         "properties": {
                             "parent_id": {
-                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n"
                             },
                             "name": {
                                 "description": "The branch name\n",
@@ -5561,6 +5656,7 @@
                 "properties": {
                     "source_branch_id": {
                         "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
                         "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n"
                     },
                     "source_lsn": {
@@ -5701,16 +5797,19 @@
                         "type": "string"
                     },
                     "id": {
-                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n"
                     },
                     "project_id": {
-                        "description": "The ID of the project to which the compute endpoint belongs\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project to which the compute endpoint belongs\n"
                     },
                     "branch_id": {
-                        "description": "The ID of the branch that the compute endpoint is associated with\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch that the compute endpoint is associated with\n"
                     },
                     "autoscaling_limit_min_cu": {
                         "description": "The minimum number of Compute Units\n",
@@ -5877,8 +5976,9 @@
                         ],
                         "properties": {
                             "branch_id": {
-                                "description": "The ID of the branch the compute endpoint will be associated with\n",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "The ID of the branch the compute endpoint will be associated with\n"
                             },
                             "region_id": {
                                 "description": "The region where the compute endpoint will be created. Only the project's `region_id` is permitted.\n",
@@ -5934,8 +6034,9 @@
                         "type": "object",
                         "properties": {
                             "branch_id": {
-                                "description": "The destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "The destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n"
                             },
                             "autoscaling_limit_min_cu": {
                                 "description": "The minimum number of Compute Units. The minimum value is `0.25`.\nSee [Compute size and Autoscaling configuration](https://neon.tech/docs/manage/endpoints#compute-size-and-autoscaling-configuration)\nfor more information.\n",
@@ -6110,8 +6211,9 @@
                 ],
                 "properties": {
                     "branch_id": {
-                        "description": "The ID of the branch to which the role belongs\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch to which the role belongs\n"
                     },
                     "name": {
                         "description": "The role name\n",
@@ -6405,8 +6507,9 @@
                         "format": "int64"
                     },
                     "branch_id": {
-                        "description": "The ID of the branch to which the database belongs\n",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch to which the database belongs\n"
                     },
                     "name": {
                         "description": "The database name\n",
@@ -6528,8 +6631,9 @@
                         "format": "email"
                     },
                     "org_id": {
-                        "description": "Organization id as it is stored in Neon",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Organization id as it is stored in Neon"
                     },
                     "invited_by": {
                         "description": "UUID for the user_id who extended the invitation",
@@ -6572,7 +6676,8 @@
                         "format": "uuid"
                     },
                     "org_id": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -6622,7 +6727,8 @@
                 ],
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "name": {
                         "type": "string"
@@ -6757,7 +6863,8 @@
                         "type": "string"
                     },
                     "project_id": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "project_name": {
                         "type": "string"
@@ -7153,14 +7260,16 @@
                 ],
                 "properties": {
                     "org_id": {
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "project_ids": {
                         "type": "array",
                         "minItems": 1,
                         "maxItems": 400,
                         "items": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
                         },
                         "description": "The list of projects ids to transfer. Maximum of 400 project ids"
                     }
@@ -7383,7 +7492,8 @@
                             ],
                             "properties": {
                                 "id": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9-]{1,60}$"
                                 },
                                 "integration": {
                                     "type": "string"
