@@ -2972,6 +2972,66 @@ func Test_client_ListSharedProjects(t *testing.T) {
 	}
 }
 
+func Test_client_RemoveOrganizationMember(t *testing.T) {
+	deserializeResp := func(s string) EmptyResponse {
+		var v EmptyResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID    string
+		memberID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    EmptyResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/members/{member_id}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    EmptyResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.RemoveOrganizationMember(tt.args.orgID, tt.args.memberID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("RemoveOrganizationMember() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("RemoveOrganizationMember() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_ResetProjectBranchRolePassword(t *testing.T) {
 	deserializeResp := func(s string) RoleOperations {
 		var v RoleOperations
@@ -3275,66 +3335,6 @@ func Test_client_SetDefaultProjectBranch(t *testing.T) {
 	}
 }
 
-func Test_client_SetPrimaryProjectBranch(t *testing.T) {
-	deserializeResp := func(s string) BranchOperations {
-		var v BranchOperations
-		if err := json.Unmarshal([]byte(s), &v); err != nil {
-			panic(err)
-		}
-		return v
-	}
-	type args struct {
-		projectID string
-		branchID  string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		apiKey  string
-		want    BranchOperations
-		wantErr bool
-	}{
-		{
-			name: "happy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/branches/{branch_id}/set_as_primary"]["POST"].Content),
-			wantErr: false,
-		},
-		{
-			name: "unhappy path",
-			args: args{
-				projectID: "foo",
-				branchID:  "foo",
-			},
-			apiKey:  "invalidApiKey",
-			want:    BranchOperations{},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
-				if err != nil {
-					panic(err)
-				}
-				got, err := c.SetPrimaryProjectBranch(tt.args.projectID, tt.args.branchID)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("SetPrimaryProjectBranch() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("SetPrimaryProjectBranch() got = %v, want %v", got, tt.want)
-				}
-			},
-		)
-	}
-}
-
 func Test_client_StartProjectEndpoint(t *testing.T) {
 	deserializeResp := func(s string) EndpointOperations {
 		var v EndpointOperations
@@ -3506,6 +3506,69 @@ func Test_client_TransferProjectsFromUserToOrg(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("TransferProjectsFromUserToOrg() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_UpdateOrganizationMember(t *testing.T) {
+	deserializeResp := func(s string) Member {
+		var v Member
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID    string
+		memberID string
+		cfg      OrganizationMemberUpdateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    Member
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+				cfg:      OrganizationMemberUpdateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/members/{member_id}"]["PATCH"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID:    "foo",
+				memberID: "foo",
+				cfg:      OrganizationMemberUpdateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    Member{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.UpdateOrganizationMember(tt.args.orgID, tt.args.memberID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("UpdateOrganizationMember() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("UpdateOrganizationMember() got = %v, want %v", got, tt.want)
 				}
 			},
 		)

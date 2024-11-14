@@ -67,8 +67,16 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 	},
 
 	"/organizations/{org_id}/members/{member_id}": {
+		"DELETE": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
 		"GET": mockResponse{
 			Content: `{"id":"d57833f2-d308-4ede-9d2e-468d9d013d1b","joined_at":"2024-02-23T17:42:25Z","org_id":"my-organization-morning-bread-81040908","role":"admin","user_id":"b107d689-6dd2-4c9a-8b9e-0b25e457cf56"}`,
+			Code:    200,
+		},
+		"PATCH": mockResponse{
+			Content: `null`,
 			Code:    200,
 		},
 	},
@@ -406,13 +414,6 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 	},
 
 	"/projects/{project_id}/branches/{branch_id}/set_as_default": {
-		"POST": mockResponse{
-			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
-			Code:    200,
-		},
-	},
-
-	"/projects/{project_id}/branches/{branch_id}/set_as_primary": {
 		"POST": mockResponse{
 			Content: `{"branch":{"active_time_seconds":1,"compute_time_seconds":1,"cpu_used_sec":1,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":100,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100},"operations":[]}`,
 			Code:    200,

@@ -780,6 +780,17 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	return v, nil
 }
 
+// RemoveOrganizationMember Remove member from the organization.
+// Only an admin of the organization can perform this action.
+// If another admin is being removed, it will not be allows in case it is the only admin left in the organization.
+func (c Client) RemoveOrganizationMember(orgID string, memberID string) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members/"+memberID, "DELETE", nil, &v); err != nil {
+		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
 // ResetProjectBranchRolePassword Resets the password for the specified Postgres role.
 // Returns a new password and operations. The new password is ready to use when the last operation finishes.
 // The old password remains valid until last operation finishes.
@@ -855,20 +866,6 @@ func (c Client) SetDefaultProjectBranch(projectID string, branchID string) (Bran
 	return v, nil
 }
 
-// SetPrimaryProjectBranch DEPRECATED. Use `/set_as_default` endpoint.
-// Sets the specified branch as the project's primary branch.
-// The primary designation is automatically removed from the previous primary branch.
-// You can obtain a `project_id` by listing the projects for your Neon account.
-// You can obtain the `branch_id` by listing the project's branches.
-// For more information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) SetPrimaryProjectBranch(projectID string, branchID string) (BranchOperations, error) {
-	var v BranchOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/set_as_primary", "POST", nil, &v); err != nil {
-		return BranchOperations{}, err
-	}
-	return v, nil
-}
-
 // StartProjectEndpoint Starts a compute endpoint. The compute endpoint is ready to use
 // after the last operation in chain finishes successfully.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -901,6 +898,15 @@ func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganization
 	var v EmptyResponse
 	if err := c.requestHandler(c.baseURL+"/users/me/projects/transfer", "POST", cfg, &v); err != nil {
 		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateOrganizationMember Only an admin can perform this action.
+func (c Client) UpdateOrganizationMember(orgID string, memberID string, cfg OrganizationMemberUpdateRequest) (Member, error) {
+	var v Member
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members/"+memberID, "PATCH", cfg, &v); err != nil {
+		return Member{}, err
 	}
 	return v, nil
 }
@@ -1835,6 +1841,10 @@ type OrganizationInviteCreateRequest struct {
 
 type OrganizationInvitesCreateRequest struct {
 	Invitations []OrganizationInviteCreateRequest `json:"invitations"`
+}
+
+type OrganizationMemberUpdateRequest struct {
+	Role MemberRole `json:"role"`
 }
 
 type OrganizationMembersResponse struct {

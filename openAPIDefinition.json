@@ -1662,76 +1662,6 @@
                 }
             }
         },
-        "/projects/{project_id}/branches/{branch_id}/set_as_primary": {
-            "parameters": [
-                {
-                    "name": "project_id",
-                    "in": "path",
-                    "description": "The Neon project ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
-                    }
-                },
-                {
-                    "name": "branch_id",
-                    "in": "path",
-                    "description": "The branch ID",
-                    "required": true,
-                    "schema": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
-                    }
-                }
-            ],
-            "post": {
-                "tags": [
-                    "Branch"
-                ],
-                "summary": "Set branch as primary",
-                "deprecated": true,
-                "description": "DEPRECATED. Use `/set_as_default` endpoint.\nSets the specified branch as the project's primary branch.\nThe primary designation is automatically removed from the previous primary branch.\nYou can obtain a `project_id` by listing the projects for your Neon account.\nYou can obtain the `branch_id` by listing the project's branches.\nFor more information, see [Manage branches](https://neon.tech/docs/manage/branches/).\n",
-                "operationId": "setPrimaryProjectBranch",
-                "responses": {
-                    "200": {
-                        "description": "Updated the specified branch",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BranchOperations"
-                                },
-                                "example": {
-                                    "branch": {
-                                        "cpu_used_sec": 1,
-                                        "active_time_seconds": 1,
-                                        "compute_time_seconds": 1,
-                                        "written_data_bytes": 100,
-                                        "data_transfer_bytes": 100,
-                                        "id": "br-icy-dream-250089",
-                                        "project_id": "shiny-wind-028834",
-                                        "parent_id": "br-aged-salad-637688",
-                                        "parent_lsn": "0/1E19478",
-                                        "name": "mybranch",
-                                        "current_state": "ready",
-                                        "state_changed_at": "2022-11-30T20:09:48Z",
-                                        "created_at": "2022-11-23T17:42:25Z",
-                                        "updated_at": "2022-11-23T17:42:26Z",
-                                        "default": true,
-                                        "protected": false,
-                                        "creation_source": "console"
-                                    },
-                                    "operations": []
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "$ref": "#/components/responses/GeneralError"
-                    }
-                }
-            }
-        },
         "/projects/{project_id}/branches/{branch_id}/set_as_default": {
             "parameters": [
                 {
@@ -3795,6 +3725,65 @@
                         "$ref": "#/components/responses/GeneralError"
                     }
                 }
+            },
+            "patch": {
+                "summary": "Update the role for an organization member",
+                "description": "Only an admin can perform this action.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "updateOrganizationMember",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationMemberUpdateRequest"
+                            },
+                            "example": {
+                                "role": "admin"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated organization member",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Member"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove member from the organization",
+                "description": "Remove member from the organization.\nOnly an admin of the organization can perform this action.\nIf another admin is being removed, it will not be allows in case it is the only admin left in the organization.\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "removeOrganizationMember",
+                "responses": {
+                    "200": {
+                        "description": "Removed organization member",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmptyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
             }
         },
         "/organizations/{org_id}/invitations": {
@@ -4017,7 +4006,7 @@
                             }
                         }
                     },
-                    "501": {
+                    "422": {
                         "description": "One or more of project ids provided is linked by Github or Vercel integration. Transferring integration projects is currently not supported",
                         "content": {
                             "application/json": {
