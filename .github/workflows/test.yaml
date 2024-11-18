@@ -29,6 +29,6 @@ jobs:
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
