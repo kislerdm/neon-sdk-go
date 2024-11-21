@@ -1717,6 +1717,19 @@ type ListSharedProjectsRespObj struct {
 	ProjectsResponse
 }
 
+// MaintenanceWindow A maintenance window is a time period during which Neon may perform maintenance on the project's infrastructure.
+// During this time, the project's compute endpoints may be unavailable and existing connections can be
+// interrupted.
+type MaintenanceWindow struct {
+	// EndTime End time of the maintenance window, in the format of "HH:MM". Uses UTC.
+	EndTime string `json:"end_time"`
+	// StartTime Start time of the maintenance window, in the format of "HH:MM". Uses UTC.
+	StartTime string `json:"start_time"`
+	// Weekdays A list of weekdays when the maintenance window is active.
+	// Encoded as ints, where 1 - Monday, and 7 - Sunday.
+	Weekdays []int `json:"weekdays"`
+}
+
 type Member struct {
 	ID       string     `json:"id"`
 	JoinedAt *time.Time `json:"joined_at,omitempty"`
@@ -2104,8 +2117,9 @@ type ProjectSettingsData struct {
 	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
 	// All active endpoints will be suspended.
 	// Once enabled, logical replication cannot be disabled.
-	EnableLogicalReplication *bool         `json:"enable_logical_replication,omitempty"`
-	Quota                    *ProjectQuota `json:"quota,omitempty"`
+	EnableLogicalReplication *bool              `json:"enable_logical_replication,omitempty"`
+	MaintenanceWindow        *MaintenanceWindow `json:"maintenance_window,omitempty"`
+	Quota                    *ProjectQuota      `json:"quota,omitempty"`
 }
 
 type ProjectUpdateRequest struct {
