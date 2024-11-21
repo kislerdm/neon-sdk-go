@@ -5067,6 +5067,9 @@
                     "enable_logical_replication": {
                         "description": "Sets wal_level=logical for all compute endpoints in this project.\nAll active endpoints will be suspended.\nOnce enabled, logical replication cannot be disabled.\n",
                         "type": "boolean"
+                    },
+                    "maintenance_window": {
+                        "$ref": "#/components/schemas/MaintenanceWindow"
                     }
                 }
             },
@@ -5948,6 +5951,32 @@
                         "deprecated": true,
                         "description": "DEPRECATED: Use `protected_branches_only`.\nIf true, the list will be applied only to the default branch.\n",
                         "type": "boolean"
+                    }
+                }
+            },
+            "MaintenanceWindow": {
+                "description": "A maintenance window is a time period during which Neon may perform maintenance on the project's infrastructure.\nDuring this time, the project's compute endpoints may be unavailable and existing connections can be \ninterrupted.\n",
+                "type": "object",
+                "required": [
+                    "weekdays",
+                    "start_time",
+                    "end_time"
+                ],
+                "properties": {
+                    "weekdays": {
+                        "description": "A list of weekdays when the maintenance window is active.\nEncoded as ints, where 1 - Monday, and 7 - Sunday.\n",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "start_time": {
+                        "description": "Start time of the maintenance window, in the format of \"HH:MM\". Uses UTC.\n",
+                        "type": "string"
+                    },
+                    "end_time": {
+                        "description": "End time of the maintenance window, in the format of \"HH:MM\". Uses UTC.\n",
+                        "type": "string"
                     }
                 }
             },
