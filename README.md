@@ -31,7 +31,7 @@
     + [Commands](#commands)
 - [Contribution](#contribution)
 
-The SDK to manage the [Neon Platform](https://neon.tech) programmatically.
+An SDK to manage the [Neon Platform](https://neon.tech) programmatically.
 
 > Neon is a serverless Postgres platform designed to help you build reliable and scalable applications faster. Neon
 > separates compute and storage to offer modern developer features such as autoscaling, branching, point-in-time restore,
