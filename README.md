@@ -31,11 +31,11 @@
     + [Commands](#commands)
 - [Contribution](#contribution)
 
-The SDK to manage [Neon Platform](https://neon.tech) programmatically.
+An SDK to manage the [Neon Platform](https://neon.tech) programmatically.
 
-> Neon is a fully managed serverless PostgreSQL with a generous free tier. Neon separates storage and compute and offers
-> modern developer features such as serverless, branching, bottomless storage, and more. Neon is open source and written
-> in Rust.
+> Neon is a serverless Postgres platform designed to help you build reliable and scalable applications faster. Neon
+> separates compute and storage to offer modern developer features such as autoscaling, branching, point-in-time restore,
+> and more. Neon is open source and written in Rust.
 
 Find more about Neon [here](https://neon.tech/docs/introduction/about/).
 
@@ -94,7 +94,7 @@ func main() {
 
 ### Custom HTTP client
 
-The SDK can initialized with a custom HTTP client.
+The SDK can be initialized with a custom HTTP client.
 
 ```go
 package main
@@ -155,7 +155,7 @@ func main() {
 ## Development
 
 The SDK codebase is generated using the [OpenAPI](https://spec.openapis.org/) from
-the [API reference page](https://neon.tech/api-reference/v2/). The generator application codebase can be
+the [Neon API reference page](https://neon.tech/api-reference/v2/). The generator application codebase can be
 found [here](generator).
 
 ### Commands
@@ -216,7 +216,7 @@ make build DIR=generator
 
 ## Contribution
 
-The SDK is distributed under the [MIT license](LICENSE), find full list of dependencies'
+The SDK is distributed under the [MIT license](LICENSE). You can find a full list of dependency
 licenses [here](https://app.fossa.com/reports/fcbd29f3-1d63-4437-9946-cb320a567c42).
 
-Please feel free to open an issue ticket, or PR to contribute.
+Please feel free to open an issue ticket or PR to contribute.
