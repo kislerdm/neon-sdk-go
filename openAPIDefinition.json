@@ -4306,7 +4306,8 @@
                 "properties": {
                     "key_name": {
                         "type": "string",
-                        "description": "A user-specified API key name. This value is required when creating an API key."
+                        "description": "A user-specified API key name. This value is required when creating an API key.",
+                        "maxLength": 64
                     }
                 }
             },
@@ -5331,6 +5332,7 @@
                             "max_active_endpoints",
                             "max_read_only_endpoints",
                             "max_allowed_ips",
+                            "max_vpc_endpoints",
                             "max_monitoring_retention_hours",
                             "max_history_retention_seconds",
                             "min_autosuspend_seconds",
@@ -5375,6 +5377,9 @@
                                 "type": "integer"
                             },
                             "max_allowed_ips": {
+                                "type": "integer"
+                            },
+                            "max_vpc_endpoints": {
                                 "type": "integer"
                             },
                             "max_monitoring_retention_hours": {
@@ -5615,6 +5620,10 @@
                             },
                             "protected": {
                                 "description": "Whether the branch is protected\n",
+                                "type": "boolean"
+                            },
+                            "archived": {
+                                "description": "Whether to create the branch as archived\n",
                                 "type": "boolean"
                             }
                         }
@@ -5955,7 +5964,7 @@
                 }
             },
             "MaintenanceWindow": {
-                "description": "A maintenance window is a time period during which Neon may perform maintenance on the project's infrastructure.\nDuring this time, the project's compute endpoints may be unavailable and existing connections can be \ninterrupted.\n",
+                "description": "A maintenance window is a time period during which Neon may perform maintenance on the project's infrastructure.\nDuring this time, the project's compute endpoints may be unavailable and existing connections can be\ninterrupted.\n",
                 "type": "object",
                 "required": [
                     "weekdays",
@@ -6794,7 +6803,8 @@
                 ],
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 64
                     }
                 }
             },
@@ -6821,7 +6831,9 @@
                 "properties": {
                     "email": {
                         "type": "string",
-                        "format": "email"
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 500
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -6941,8 +6953,9 @@
                         "type": "object",
                         "properties": {
                             "name": {
-                                "description": "The organization name",
-                                "type": "string"
+                                "type": "string",
+                                "maxLength": 64,
+                                "description": "The organization name"
                             },
                             "invitations": {
                                 "description": "Emails with roles to invite to the organization",
@@ -6977,6 +6990,7 @@
                             "max_active_endpoints",
                             "max_read_only_endpoints",
                             "max_allowed_ips",
+                            "max_vpc_endpoints",
                             "max_monitoring_retention_hours",
                             "max_history_retention_seconds",
                             "max_compute_time_non_primary",
@@ -7012,6 +7026,9 @@
                                 "type": "integer"
                             },
                             "max_allowed_ips": {
+                                "type": "integer"
+                            },
+                            "max_vpc_endpoints": {
                                 "type": "integer"
                             },
                             "max_monitoring_retention_hours": {
@@ -7241,7 +7258,8 @@
                 ],
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 64
                     }
                 }
             },
@@ -7550,6 +7568,39 @@
                 "enum": [
                     "project_count"
                 ]
+            },
+            "ListProjectIdentityIntegrationsResponse": {
+                "type": "object",
+                "required": [
+                    "data"
+                ],
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/IdentityIntegration"
+                        }
+                    }
+                }
+            },
+            "IdentityIntegration": {
+                "type": "object",
+                "required": [
+                    "auth_provider",
+                    "created_at"
+                ],
+                "properties": {
+                    "auth_provider": {
+                        "type": "string"
+                    },
+                    "auth_provider_project_id": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
             },
             "GeneralError": {
                 "type": "object",
