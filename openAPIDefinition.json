@@ -2944,7 +2944,7 @@
                             },
                             "example": {
                                 "endpoint": {
-                                    "branch_id": "br-tiny-grass-283160"
+                                    "suspend_timeout_seconds": 300
                                 }
                             }
                         }
@@ -5319,95 +5319,110 @@
                 ],
                 "properties": {
                     "limits": {
-                        "type": "object",
-                        "required": [
-                            "active_time",
-                            "max_projects",
-                            "max_branches",
-                            "max_protected_branches",
-                            "max_autoscaling_cu",
-                            "max_fixed_size_cu",
-                            "cpu_seconds",
-                            "max_compute_time_non_primary",
-                            "max_active_endpoints",
-                            "max_read_only_endpoints",
-                            "max_allowed_ips",
-                            "max_vpc_endpoints",
-                            "max_monitoring_retention_hours",
-                            "max_history_retention_seconds",
-                            "min_autosuspend_seconds",
-                            "max_data_transfer",
-                            "min_idle_seconds_to_autoarchive",
-                            "min_age_seconds_to_autoarchive"
-                        ],
-                        "properties": {
-                            "active_time": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "max_projects": {
-                                "type": "integer"
-                            },
-                            "max_branches": {
-                                "type": "integer"
-                            },
-                            "max_protected_branches": {
-                                "type": "integer"
-                            },
-                            "max_autoscaling_cu": {
-                                "type": "number",
-                                "format": "float64"
-                            },
-                            "max_fixed_size_cu": {
-                                "type": "number",
-                                "format": "float64"
-                            },
-                            "cpu_seconds": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "max_compute_time_non_primary": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "max_active_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_read_only_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_allowed_ips": {
-                                "type": "integer"
-                            },
-                            "max_vpc_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_monitoring_retention_hours": {
-                                "type": "integer"
-                            },
-                            "max_history_retention_seconds": {
-                                "type": "integer",
-                                "format": "int32"
-                            },
-                            "min_autosuspend_seconds": {
-                                "type": "integer"
-                            },
-                            "max_data_transfer": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "min_idle_seconds_to_autoarchive": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "min_age_seconds_to_autoarchive": {
-                                "type": "integer",
-                                "format": "int64"
-                            }
-                        }
+                        "$ref": "#/components/schemas/Limits"
                     },
                     "features": {
                         "$ref": "#/components/schemas/Features"
+                    }
+                }
+            },
+            "Limits": {
+                "type": "object",
+                "required": [
+                    "active_time",
+                    "max_projects",
+                    "max_branches",
+                    "max_protected_branches",
+                    "max_autoscaling_cu",
+                    "max_fixed_size_cu",
+                    "cpu_seconds",
+                    "max_compute_time_non_primary",
+                    "max_active_endpoints",
+                    "max_read_only_endpoints",
+                    "max_allowed_ips",
+                    "max_vpc_endpoints_per_region",
+                    "max_monitoring_retention_hours",
+                    "max_history_retention_seconds",
+                    "min_autosuspend_seconds",
+                    "max_data_transfer",
+                    "min_idle_seconds_to_autoarchive",
+                    "min_age_seconds_to_autoarchive",
+                    "max_branch_roles",
+                    "max_branch_databases",
+                    "max_concurrent_scheduled_operation_chains_per_project"
+                ],
+                "properties": {
+                    "active_time": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "max_projects": {
+                        "type": "integer"
+                    },
+                    "max_branches": {
+                        "type": "integer"
+                    },
+                    "max_protected_branches": {
+                        "type": "integer"
+                    },
+                    "max_autoscaling_cu": {
+                        "type": "number",
+                        "format": "float64"
+                    },
+                    "max_fixed_size_cu": {
+                        "type": "number",
+                        "format": "float64"
+                    },
+                    "cpu_seconds": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "max_compute_time_non_primary": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "max_active_endpoints": {
+                        "type": "integer"
+                    },
+                    "max_read_only_endpoints": {
+                        "type": "integer"
+                    },
+                    "max_allowed_ips": {
+                        "type": "integer"
+                    },
+                    "max_vpc_endpoints_per_region": {
+                        "type": "integer"
+                    },
+                    "max_monitoring_retention_hours": {
+                        "type": "integer"
+                    },
+                    "max_history_retention_seconds": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "min_autosuspend_seconds": {
+                        "type": "integer"
+                    },
+                    "max_data_transfer": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "min_idle_seconds_to_autoarchive": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "min_age_seconds_to_autoarchive": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "max_branch_roles": {
+                        "type": "integer"
+                    },
+                    "max_branch_databases": {
+                        "type": "integer"
+                    },
+                    "max_concurrent_scheduled_operation_chains_per_project": {
+                        "type": "integer"
                     }
                 }
             },
@@ -5955,11 +5970,6 @@
                     "protected_branches_only": {
                         "description": "If true, the list will be applied only to protected branches.",
                         "type": "boolean"
-                    },
-                    "primary_branch_only": {
-                        "deprecated": true,
-                        "description": "DEPRECATED: Use `protected_branches_only`.\nIf true, the list will be applied only to the default branch.\n",
-                        "type": "boolean"
                     }
                 }
             },
@@ -6063,7 +6073,8 @@
                             "branch_id": {
                                 "type": "string",
                                 "pattern": "^[a-z0-9-]{1,60}$",
-                                "description": "The destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n"
+                                "deprecated": true,
+                                "description": "DEPRECATED: This field will be removed in a future release.\nThe destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n"
                             },
                             "autoscaling_limit_min_cu": {
                                 "description": "The minimum number of Compute Units. The minimum value is `0.25`.\nSee [Compute size and Autoscaling configuration](https://neon.tech/docs/manage/endpoints#compute-size-and-autoscaling-configuration)\nfor more information.\n",
@@ -6135,6 +6146,46 @@
                         "items": {
                             "$ref": "#/components/schemas/ConnectionDetails"
                         }
+                    }
+                }
+            },
+            "VPCEndpointsResponse": {
+                "type": "object",
+                "required": [
+                    "endpoints"
+                ],
+                "properties": {
+                    "endpoints": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/VPCEndpoint"
+                        }
+                    }
+                }
+            },
+            "VPCEndpoint": {
+                "type": "object",
+                "required": [
+                    "vpc_endpoint_id",
+                    "label"
+                ],
+                "properties": {
+                    "vpc_endpoint_id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                }
+            },
+            "VPCEndpointAssignment": {
+                "type": "object",
+                "required": [
+                    "label"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
                     }
                 }
             },
@@ -6979,73 +7030,7 @@
                 ],
                 "properties": {
                     "limits": {
-                        "type": "object",
-                        "required": [
-                            "active_time",
-                            "max_projects",
-                            "max_branches",
-                            "max_autoscaling_cu",
-                            "max_fixed_size_cu",
-                            "cpu_seconds",
-                            "max_active_endpoints",
-                            "max_read_only_endpoints",
-                            "max_allowed_ips",
-                            "max_vpc_endpoints",
-                            "max_monitoring_retention_hours",
-                            "max_history_retention_seconds",
-                            "max_compute_time_non_primary",
-                            "min_autosuspend_seconds"
-                        ],
-                        "properties": {
-                            "active_time": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "max_projects": {
-                                "type": "integer"
-                            },
-                            "max_branches": {
-                                "type": "integer"
-                            },
-                            "max_autoscaling_cu": {
-                                "type": "number",
-                                "format": "float64"
-                            },
-                            "max_fixed_size_cu": {
-                                "type": "number",
-                                "format": "float64"
-                            },
-                            "cpu_seconds": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "max_active_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_read_only_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_allowed_ips": {
-                                "type": "integer"
-                            },
-                            "max_vpc_endpoints": {
-                                "type": "integer"
-                            },
-                            "max_monitoring_retention_hours": {
-                                "type": "integer"
-                            },
-                            "max_history_retention_seconds": {
-                                "type": "integer",
-                                "format": "int32"
-                            },
-                            "max_compute_time_non_primary": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "min_autosuspend_seconds": {
-                                "type": "integer"
-                            }
-                        }
+                        "$ref": "#/components/schemas/Limits"
                     },
                     "features": {
                         "$ref": "#/components/schemas/Features"
@@ -7567,6 +7552,12 @@
                 "type": "string",
                 "enum": [
                     "project_count"
+                ]
+            },
+            "IdentitySupportedAuthProvider": {
+                "type": "string",
+                "enum": [
+                    "mock"
                 ]
             },
             "ListProjectIdentityIntegrationsResponse": {

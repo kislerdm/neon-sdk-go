@@ -988,9 +988,6 @@ type AddProjectJWKSRequest struct {
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
 	Ips *[]string `json:"ips,omitempty"`
-	// PrimaryBranchOnly DEPRECATED: Use `protected_branches_only`.
-	// If true, the list will be applied only to the default branch.
-	PrimaryBranchOnly *bool `json:"primary_branch_only,omitempty"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
 	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
 }
@@ -1607,7 +1604,8 @@ type EndpointUpdateRequest struct {
 type EndpointUpdateRequestEndpoint struct {
 	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
-	// BranchID The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
+	// BranchID DEPRECATED: This field will be removed in a future release.
+	// The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
 	BranchID *string `json:"branch_id,omitempty"`
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
