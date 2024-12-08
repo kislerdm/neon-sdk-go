@@ -5349,7 +5349,8 @@
                     "min_age_seconds_to_autoarchive",
                     "max_branch_roles",
                     "max_branch_databases",
-                    "max_concurrent_scheduled_operation_chains_per_project"
+                    "max_concurrent_scheduled_operation_chains_per_project",
+                    "max_concurrent_executing_operation_chains_per_project"
                 ],
                 "properties": {
                     "active_time": {
@@ -5422,6 +5423,9 @@
                         "type": "integer"
                     },
                     "max_concurrent_scheduled_operation_chains_per_project": {
+                        "type": "integer"
+                    },
+                    "max_concurrent_executing_operation_chains_per_project": {
                         "type": "integer"
                     }
                 }
@@ -7557,7 +7561,8 @@
             "IdentitySupportedAuthProvider": {
                 "type": "string",
                 "enum": [
-                    "mock"
+                    "mock",
+                    "stack"
                 ]
             },
             "ListProjectIdentityIntegrationsResponse": {
