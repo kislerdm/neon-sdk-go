@@ -4,7 +4,7 @@ The example illustrates how to create a Neon project using the Neon Go SDK and t
 
 ## Prerequisites
 
-- [go ~> 1.18](https://go.dev/dl/)
+- [go](https://go.dev/dl/)
 - [API Key](https://neon.tech/docs/manage/api-keys/)
 
 ## Steps
