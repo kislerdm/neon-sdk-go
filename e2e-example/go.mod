@@ -1,8 +1,6 @@
 module github.com/kislerdm/neon-sdk-go/e2e-example
 
-go 1.21
-
-toolchain go1.23.1
+go 1.18
 
 require (
 	github.com/jackc/pgx/v5 v5.7.1
