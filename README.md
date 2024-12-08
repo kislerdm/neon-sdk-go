@@ -27,6 +27,7 @@
         - [Default HTTP Client](#default-http-client)
         - [Custom HTTP Client](#custom-http-client)
         - [Mock](#mock)
+    + [End-to-end example](./e2e-example/README.md)
 - [Development](#development)
     + [Commands](#commands)
 - [Contribution](#contribution)
@@ -151,6 +152,11 @@ func main() {
 	log.Printf("%d projects found", len(v.Projects))
 }
 ```
+
+## [End-to-end example](./e2e-example/README.md)
+
+Find [here](./e2e-example/README.md) the example of how to use the SDK to create a Neon project and use its default 
+database afterward.
 
 ## Development
 
