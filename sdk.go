@@ -534,7 +534,7 @@ func (c Client) GetProjectBranchRolePassword(projectID string, branchID string, 
 	return v, nil
 }
 
-// GetProjectBranchSchema Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head .
+// GetProjectBranchSchema Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head.
 func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName string, lsn *string, timestamp *time.Time) (BranchSchemaResponse, error) {
 	var (
 		queryElements []string
@@ -1799,6 +1799,7 @@ const (
 	OperationActionStartReservedCompute       OperationAction = "start_reserved_compute"
 	OperationActionSuspendCompute             OperationAction = "suspend_compute"
 	OperationActionSwitchPageserver           OperationAction = "switch_pageserver"
+	OperationActionSyncDbsAndRolesFromCompute OperationAction = "sync_dbs_and_roles_from_compute"
 	OperationActionTenantAttach               OperationAction = "tenant_attach"
 	OperationActionTenantDetach               OperationAction = "tenant_detach"
 	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
@@ -2114,6 +2115,12 @@ type ProjectResponse struct {
 
 type ProjectSettingsData struct {
 	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
+	// BlockPublicConnections When set, connections from the public internet
+	// are disallowed. This supersedes the AllowedIPs list.
+	BlockPublicConnections *bool `json:"block_public_connections,omitempty"`
+	// BlockVpcConnections When set, connections using VPC endpoints
+	// are disallowed.
+	BlockVpcConnections *bool `json:"block_vpc_connections,omitempty"`
 	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
 	// All active endpoints will be suspended.
 	// Once enabled, logical replication cannot be disabled.
