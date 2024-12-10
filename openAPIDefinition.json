@@ -1595,7 +1595,7 @@
                     "Branch"
                 ],
                 "summary": "Get the database schema",
-                "description": "Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head .",
+                "description": "Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head.",
                 "operationId": "getProjectBranchSchema",
                 "parameters": [
                     {
@@ -4600,7 +4600,8 @@
                     "detach_parent_branch",
                     "timeline_archive",
                     "timeline_unarchive",
-                    "start_reserved_compute"
+                    "start_reserved_compute",
+                    "sync_dbs_and_roles_from_compute"
                 ]
             },
             "OperationStatus": {
@@ -5071,6 +5072,14 @@
                     },
                     "maintenance_window": {
                         "$ref": "#/components/schemas/MaintenanceWindow"
+                    },
+                    "block_public_connections": {
+                        "description": "When set, connections from the public internet\nare disallowed. This supersedes the AllowedIPs list.\n",
+                        "type": "boolean"
+                    },
+                    "block_vpc_connections": {
+                        "description": "When set, connections using VPC endpoints\nare disallowed.\n",
+                        "type": "boolean"
                     }
                 }
             },
@@ -5709,6 +5718,14 @@
                 "type": "object",
                 "properties": {
                     "sql": {
+                        "type": "string"
+                    }
+                }
+            },
+            "BranchSchemaCompareResponse": {
+                "type": "object",
+                "properties": {
+                    "diff": {
                         "type": "string"
                     }
                 }
