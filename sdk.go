@@ -1152,6 +1152,7 @@ const (
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
 	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
+	BillingSubscriptionTypeVercelPgLegacy BillingSubscriptionType = "vercel_pg_legacy"
 )
 
 type Branch struct {
