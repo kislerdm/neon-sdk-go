@@ -6570,7 +6570,8 @@
                     "free_v2",
                     "launch",
                     "scale",
-                    "business"
+                    "business",
+                    "vercel_pg_legacy"
                 ]
             },
             "BillingPaymentMethod": {
