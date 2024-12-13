@@ -48,6 +48,24 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/organizations/{org_id}/api_keys": {
+		"GET": mockResponse{
+			Content: `[{"created_at":"2022-11-15T20:13:35Z","created_by":{"id":"629982cc-de05-43db-ae16-28f2399c4910","image":"http://link.to.image","name":"John Smith"},"id":165432,"last_used_at":"2022-11-15T20:22:51Z","last_used_from_addr":"192.0.2.255","name":"orgkey_1"},{"created_at":"2022-11-15T20:12:36Z","created_by":{"id":"629982cc-de05-43db-ae16-28f2399c4910","image":"http://link.to.image","name":"John Smith"},"id":165433,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"orgkey_2"}]`,
+			Code:    200,
+		},
+		"POST": mockResponse{
+			Content: `{"created_at":"2022-11-15T20:13:35Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165434,"key":"9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3","name":"orgkey"}`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/api_keys/{key_id}": {
+		"DELETE": mockResponse{
+			Content: `{"created_at":"2022-11-15T20:13:35Z","created_by":"629982cc-de05-43db-ae16-28f2399c4910","id":165435,"last_used_at":"2022-11-15T20:15:04Z","last_used_from_addr":"192.0.2.255","name":"orgkey","revoked":true}`,
+			Code:    200,
+		},
+	},
+
 	"/organizations/{org_id}/invitations": {
 		"GET": mockResponse{
 			Content: `{"invitations":[{"email":"invited1@email.com","id":"db8faf32-b07f-4b0f-94c8-5c288909f5d3","invited_at":"2024-02-23T17:42:25Z","invited_by":"some@email.com","org_id":"my-organization-morning-bread-81040908","role":"admin"},{"email":"invited2@email.com","id":"c52f0d22-ebd9-4708-ae44-2872cae49a83","invited_at":"2024-02-23T12:42:25Z","invited_by":"some@email.com","org_id":"my-organization-morning-bread-81040908","role":"member"}]}`,

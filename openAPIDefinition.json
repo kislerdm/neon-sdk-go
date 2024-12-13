@@ -3444,8 +3444,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string",
-                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$",
+                                "type": "string"
                             },
                             "minItems": 0,
                             "maxItems": 100
@@ -3598,6 +3598,173 @@
                                     "managed_by": "console",
                                     "created_at": "2024-02-23T17:42:25Z",
                                     "updated_at": "2024-02-26T20:41:25Z"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/organizations/{org_id}/api_keys": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get a list of organization API keys",
+                "description": "Retrieves the API keys for the specified organization.\nThe response does not include API key tokens. A token is only provided when creating an API key.\nAPI keys can also be managed in the Neon Console.\nFor more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "listOrgApiKeys",
+                "responses": {
+                    "200": {
+                        "description": "Returned the API keys for the specified organization",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/OrgApiKeysListResponseItem"
+                                    },
+                                    "example": [
+                                        {
+                                            "id": 165432,
+                                            "name": "orgkey_1",
+                                            "created_at": "2022-11-15T20:13:35Z",
+                                            "created_by": {
+                                                "id": "629982cc-de05-43db-ae16-28f2399c4910",
+                                                "name": "John Smith",
+                                                "image": "http://link.to.image"
+                                            },
+                                            "last_used_at": "2022-11-15T20:22:51Z",
+                                            "last_used_from_addr": "192.0.2.255"
+                                        },
+                                        {
+                                            "id": 165433,
+                                            "name": "orgkey_2",
+                                            "created_at": "2022-11-15T20:12:36Z",
+                                            "created_by": {
+                                                "id": "629982cc-de05-43db-ae16-28f2399c4910",
+                                                "name": "John Smith",
+                                                "image": "http://link.to.image"
+                                            },
+                                            "last_used_at": "2022-11-15T20:15:04Z",
+                                            "last_used_from_addr": "192.0.2.255"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create an organization API key",
+                "description": "Creates an API key for the specified organization.\nThe `key_name` is a user-specified name for the key.\nThis method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.\nAPI keys can also be managed in the Neon Console.\nSee [Manage API keys](https://neon.tech/docs/manage/api-keys/).\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "createOrgApiKey",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrgApiKeyCreateRequest"
+                            },
+                            "example": {
+                                "key_name": "orgkey"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Created an organization API key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrgApiKeyCreateResponse"
+                                },
+                                "example": {
+                                    "id": 165434,
+                                    "key": "9v1faketcjbl4sn1013keyd43n2a8qlfakeog8yvp40hx16keyjo1bpds4y2dfms3",
+                                    "name": "orgkey",
+                                    "created_at": "2022-11-15T20:13:35Z",
+                                    "created_by": "629982cc-de05-43db-ae16-28f2399c4910"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/organizations/{org_id}/api_keys/{key_id}": {
+            "parameters": [
+                {
+                    "name": "org_id",
+                    "in": "path",
+                    "description": "The Neon organization ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                }
+            ],
+            "delete": {
+                "summary": "Revoke an organization API key",
+                "description": "Revokes the specified organization API key.\nAn API key that is no longer needed can be revoked.\nThis action cannot be reversed.\nYou can obtain `key_id` values by listing the API keys for an organization.\nAPI keys can also be managed in the Neon Console.\nSee [Manage API keys](https://neon.tech/docs/manage/api-keys/).\n",
+                "tags": [
+                    "Organizations"
+                ],
+                "operationId": "revokeOrgApiKey",
+                "parameters": [
+                    {
+                        "name": "key_id",
+                        "in": "path",
+                        "description": "The API key ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revoked the specified organization API key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrgApiKeyRevokeResponse"
+                                },
+                                "example": {
+                                    "id": 165435,
+                                    "name": "orgkey",
+                                    "created_at": "2022-11-15T20:13:35Z",
+                                    "created_by": "629982cc-de05-43db-ae16-28f2399c4910",
+                                    "last_used_at": "2022-11-15T20:15:04Z",
+                                    "last_used_from_addr": "192.0.2.255",
+                                    "revoked": true
                                 }
                             }
                         }
@@ -4216,9 +4383,9 @@
                         "type": "string"
                     },
                     "branch_id": {
+                        "description": "Branch ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "Branch ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "jwt_audience": {
                         "description": "The name of the required JWT Audience to be used",
@@ -4250,14 +4417,14 @@
                         "type": "string"
                     },
                     "project_id": {
+                        "description": "Project ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "Project ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "branch_id": {
+                        "description": "Branch ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "Branch ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "jwks_url": {
                         "description": "The URL that lists the JWKS",
@@ -4311,6 +4478,23 @@
                     }
                 }
             },
+            "OrgApiKeyCreateRequest": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ApiKeyCreateRequest"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "project_id": {
+                                "description": "If set, the API key can access only this project",
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$"
+                            }
+                        }
+                    }
+                ]
+            },
             "ApiKeyCreateResponse": {
                 "type": "object",
                 "required": [
@@ -4345,6 +4529,23 @@
                         "format": "uuid"
                     }
                 }
+            },
+            "OrgApiKeyCreateResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ApiKeyCreateResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "project_id": {
+                                "description": "If set, the API key can access only this project",
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$"
+                            }
+                        }
+                    }
+                ]
             },
             "ApiKeyRevokeResponse": {
                 "type": "object",
@@ -4392,6 +4593,23 @@
                     }
                 }
             },
+            "OrgApiKeyRevokeResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ApiKeyRevokeResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "project_id": {
+                                "description": "If set, the API key can access only this project",
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$"
+                            }
+                        }
+                    }
+                ]
+            },
             "ApiKeysListResponseItem": {
                 "type": "object",
                 "required": [
@@ -4430,6 +4648,23 @@
                         "type": "string"
                     }
                 }
+            },
+            "OrgApiKeysListResponseItem": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/ApiKeysListResponseItem"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "project_id": {
+                                "description": "If set, the API key can access only this project",
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$"
+                            }
+                        }
+                    }
+                ]
             },
             "ApiKeyCreatorData": {
                 "description": "The user data of the user that created this API key.",
@@ -4474,19 +4709,19 @@
                         "format": "uuid"
                     },
                     "project_id": {
+                        "description": "The Neon project ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The Neon project ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "branch_id": {
+                        "description": "The branch ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The branch ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "endpoint_id": {
+                        "description": "The endpoint ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The endpoint ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "action": {
                         "$ref": "#/components/schemas/OperationAction"
@@ -4641,9 +4876,9 @@
                 ],
                 "properties": {
                     "id": {
+                        "description": "The project ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The project ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -4738,9 +4973,9 @@
                         "format": "date-time"
                     },
                     "org_id": {
+                        "description": "Organization id if a project belongs to organization.\nPermissions for the project will be given to organization members as defined by the organization admins.\nThe permissions of the project do not depend on the user that created the project if a project belongs to an organization.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "Organization id if a project belongs to organization.\nPermissions for the project will be given to organization members as defined by the organization admins.\nThe permissions of the project do not depend on the user that created the project if a project belongs to an organization.\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     }
                 },
                 "example": {
@@ -4822,9 +5057,9 @@
                         "deprecated": true
                     },
                     "id": {
+                        "description": "The project ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The project ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -5019,9 +5254,9 @@
                                 "maximum": 2592000
                             },
                             "org_id": {
+                                "description": "Organization id in case the project created belongs to an organization.\nIf not present, project is owned by a user and not by org.\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$",
-                                "description": "Organization id in case the project created belongs to an organization.\nIf not present, project is owned by a user and not by org.\n"
+                                "pattern": "^[a-z0-9-]{1,60}$"
                             }
                         }
                     }
@@ -5189,9 +5424,9 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
+                        "description": "The project ID",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The project ID"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "periods": {
                         "type": "array",
@@ -5460,19 +5695,19 @@
                 ],
                 "properties": {
                     "id": {
+                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "project_id": {
+                        "description": "The ID of the project to which the branch belongs\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The ID of the project to which the branch belongs\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "parent_id": {
+                        "description": "The `branch_id` of the parent branch\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The `branch_id` of the parent branch\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "parent_lsn": {
                         "description": "The Log Sequence Number (LSN) on the parent branch from which this branch was created\n",
@@ -5629,9 +5864,9 @@
                         "type": "object",
                         "properties": {
                             "parent_id": {
+                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$",
-                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n"
+                                "pattern": "^[a-z0-9-]{1,60}$"
                             },
                             "name": {
                                 "description": "The branch name\n",
@@ -5653,6 +5888,13 @@
                             "archived": {
                                 "description": "Whether to create the branch as archived\n",
                                 "type": "boolean"
+                            },
+                            "schema_initialization_type": {
+                                "description": "The type of schema initialization. Defines how the schema is initialized, currently only empty is supported. This parameter is under\nactive development and may change its semantics in the future.\n",
+                                "type": "string",
+                                "enum": [
+                                    "empty"
+                                ]
                             }
                         }
                     }
@@ -5684,9 +5926,9 @@
                 ],
                 "properties": {
                     "source_branch_id": {
+                        "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "source_lsn": {
                         "description": "A Log Sequence Number (LSN) on the source branch. The branch will be restored with data from this LSN.\n",
@@ -5834,19 +6076,19 @@
                         "type": "string"
                     },
                     "id": {
+                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "project_id": {
+                        "description": "The ID of the project to which the compute endpoint belongs\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The ID of the project to which the compute endpoint belongs\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "branch_id": {
+                        "description": "The ID of the branch that the compute endpoint is associated with\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The ID of the branch that the compute endpoint is associated with\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "autoscaling_limit_min_cu": {
                         "description": "The minimum number of Compute Units\n",
@@ -6034,9 +6276,9 @@
                         ],
                         "properties": {
                             "branch_id": {
+                                "description": "The ID of the branch the compute endpoint will be associated with\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$",
-                                "description": "The ID of the branch the compute endpoint will be associated with\n"
+                                "pattern": "^[a-z0-9-]{1,60}$"
                             },
                             "region_id": {
                                 "description": "The region where the compute endpoint will be created. Only the project's `region_id` is permitted.\n",
@@ -6092,10 +6334,10 @@
                         "type": "object",
                         "properties": {
                             "branch_id": {
-                                "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$",
                                 "deprecated": true,
-                                "description": "DEPRECATED: This field will be removed in a future release.\nThe destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n"
+                                "description": "DEPRECATED: This field will be removed in a future release.\nThe destination branch ID. The destination branch must not have an exsiting read-write endpoint.\n",
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]{1,60}$"
                             },
                             "autoscaling_limit_min_cu": {
                                 "description": "The minimum number of Compute Units. The minimum value is `0.25`.\nSee [Compute size and Autoscaling configuration](https://neon.tech/docs/manage/endpoints#compute-size-and-autoscaling-configuration)\nfor more information.\n",
@@ -6196,6 +6438,41 @@
                     },
                     "label": {
                         "type": "string"
+                    }
+                }
+            },
+            "VPCEndpointDetails": {
+                "type": "object",
+                "required": [
+                    "vpc_endpoint_id",
+                    "label",
+                    "state",
+                    "num_restricted_projects",
+                    "example_restricted_projects"
+                ],
+                "properties": {
+                    "vpc_endpoint_id": {
+                        "description": "The ID of the VPC endpoint",
+                        "type": "string"
+                    },
+                    "label": {
+                        "description": "The custom descriptive label for the VPC endpoint",
+                        "type": "string"
+                    },
+                    "state": {
+                        "description": "The current state of the VPC endpoint. Possible values are\n`new` (just configured, pending acceptance) or `accepted`\n(VPC connection was accepted by Neon).\n",
+                        "type": "string"
+                    },
+                    "num_restricted_projects": {
+                        "description": "The number of projects that are restricted to use this VPC endpoint.\n",
+                        "type": "integer"
+                    },
+                    "example_restricted_projects": {
+                        "description": "A list of example projects that are restricted to use this VPC endpoint.\nThere are at most 3 projects in the list, even if more projects are restricted.\n",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -6310,9 +6587,9 @@
                 ],
                 "properties": {
                     "branch_id": {
+                        "description": "The ID of the branch to which the role belongs\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The ID of the branch to which the role belongs\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "name": {
                         "description": "The role name\n",
@@ -6607,9 +6884,9 @@
                         "format": "int64"
                     },
                     "branch_id": {
+                        "description": "The ID of the branch to which the database belongs\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "The ID of the branch to which the database belongs\n"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "name": {
                         "description": "The database name\n",
@@ -6731,9 +7008,9 @@
                         "format": "email"
                     },
                     "org_id": {
+                        "description": "Organization id as it is stored in Neon",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$",
-                        "description": "Organization id as it is stored in Neon"
+                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "invited_by": {
                         "description": "UUID for the user_id who extended the invitation",
@@ -7026,9 +7303,9 @@
                         "type": "object",
                         "properties": {
                             "name": {
+                                "description": "The organization name",
                                 "type": "string",
-                                "maxLength": 64,
-                                "description": "The organization name"
+                                "maxLength": 64
                             },
                             "invitations": {
                                 "description": "Emails with roles to invite to the organization",
@@ -7275,7 +7552,8 @@
                 "required": [
                     "password_stored",
                     "auth_accounts",
-                    "linked_accounts"
+                    "linked_accounts",
+                    "provider"
                 ],
                 "properties": {
                     "password_stored": {
@@ -7292,6 +7570,9 @@
                         "items": {
                             "$ref": "#/components/schemas/LinkedAuthAccount"
                         }
+                    },
+                    "provider": {
+                        "type": "string"
                     }
                 }
             },
@@ -7624,6 +7905,9 @@
                     "code"
                 ],
                 "properties": {
+                    "request_id": {
+                        "type": "string"
+                    },
                     "code": {
                         "$ref": "#/components/schemas/ErrorCode"
                     },
