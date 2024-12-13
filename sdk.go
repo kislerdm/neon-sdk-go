@@ -131,6 +131,19 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	return v, nil
 }
 
+// CreateOrgApiKey Creates an API key for the specified organization.
+// The `key_name` is a user-specified name for the key.
+// This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
+// API keys can also be managed in the Neon Console.
+// See [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) CreateOrgApiKey(orgID string, cfg OrgApiKeyCreateRequest) (OrgApiKeyCreateResponse, error) {
+	var v OrgApiKeyCreateResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/api_keys", "POST", cfg, &v); err != nil {
+		return OrgApiKeyCreateResponse{}, err
+	}
+	return v, nil
+}
+
 // CreateOrganizationInvitations Creates invitations for a specific organization.
 // If the invited user has an existing account, they automatically join as a member.
 // If they don't yet have an account, they are invited to create one, after which they become a member.
@@ -613,6 +626,18 @@ func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
 	return v, nil
 }
 
+// ListOrgApiKeys Retrieves the API keys for the specified organization.
+// The response does not include API key tokens. A token is only provided when creating an API key.
+// API keys can also be managed in the Neon Console.
+// For more information, see [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) ListOrgApiKeys(orgID string) ([]OrgApiKeysListResponseItem, error) {
+	var v []OrgApiKeysListResponseItem
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/api_keys", "GET", nil, &v); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // ListProjectBranchDatabases Retrieves a list of databases for the specified branch.
 // A branch can have multiple databases.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -840,6 +865,20 @@ func (c Client) RevokeApiKey(keyID int64) (ApiKeyRevokeResponse, error) {
 	var v ApiKeyRevokeResponse
 	if err := c.requestHandler(c.baseURL+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
 		return ApiKeyRevokeResponse{}, err
+	}
+	return v, nil
+}
+
+// RevokeOrgApiKey Revokes the specified organization API key.
+// An API key that is no longer needed can be revoked.
+// This action cannot be reversed.
+// You can obtain `key_id` values by listing the API keys for an organization.
+// API keys can also be managed in the Neon Console.
+// See [Manage API keys](https://neon.tech/docs/manage/api-keys/).
+func (c Client) RevokeOrgApiKey(orgID string, keyID int64) (OrgApiKeyRevokeResponse, error) {
+	var v OrgApiKeyRevokeResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/api_keys/"+strconv.FormatInt(keyID, 10), "DELETE", nil, &v); err != nil {
+		return OrgApiKeyRevokeResponse{}, err
 	}
 	return v, nil
 }
@@ -1221,6 +1260,9 @@ type BranchCreateRequestBranch struct {
 	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
 	// Protected Whether the branch is protected
 	Protected *bool `json:"protected,omitempty"`
+	// SchemaInitializationType The type of schema initialization. Defines how the schema is initialized, currently only empty is supported. This parameter is under
+	// active development and may change its semantics in the future.
+	SchemaInitializationType *string `json:"schema_initialization_type,omitempty"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
@@ -1829,6 +1871,22 @@ const (
 
 type OperationsResponse struct {
 	Operations []Operation `json:"operations"`
+}
+
+type OrgApiKeyCreateRequest struct {
+	ApiKeyCreateRequest
+}
+
+type OrgApiKeyCreateResponse struct {
+	ApiKeyCreateResponse
+}
+
+type OrgApiKeyRevokeResponse struct {
+	ApiKeyRevokeResponse
+}
+
+type OrgApiKeysListResponseItem struct {
+	ApiKeysListResponseItem
 }
 
 type Organization struct {

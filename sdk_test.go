@@ -567,6 +567,66 @@ func Test_client_CreateApiKey(t *testing.T) {
 	}
 }
 
+func Test_client_CreateOrgApiKey(t *testing.T) {
+	deserializeResp := func(s string) OrgApiKeyCreateResponse {
+		var v OrgApiKeyCreateResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+		cfg   OrgApiKeyCreateRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    OrgApiKeyCreateResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+				cfg:   OrgApiKeyCreateRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/api_keys"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+				cfg:   OrgApiKeyCreateRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    OrgApiKeyCreateResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateOrgApiKey(tt.args.orgID, tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateOrgApiKey() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateOrgApiKey() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_CreateOrganizationInvitations(t *testing.T) {
 	deserializeResp := func(s string) OrganizationInvitationsResponse {
 		var v OrganizationInvitationsResponse
@@ -2483,6 +2543,63 @@ func Test_client_ListApiKeys(t *testing.T) {
 	}
 }
 
+func Test_client_ListOrgApiKeys(t *testing.T) {
+	deserializeResp := func(s string) []OrgApiKeysListResponseItem {
+		var v []OrgApiKeysListResponseItem
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    []OrgApiKeysListResponseItem
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/api_keys"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListOrgApiKeys(tt.args.orgID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListOrgApiKeys() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListOrgApiKeys() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_ListProjectBranchDatabases(t *testing.T) {
 	deserializeResp := func(s string) DatabasesResponse {
 		var v DatabasesResponse
@@ -3269,6 +3386,66 @@ func Test_client_RevokeApiKey(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("RevokeApiKey() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_RevokeOrgApiKey(t *testing.T) {
+	deserializeResp := func(s string) OrgApiKeyRevokeResponse {
+		var v OrgApiKeyRevokeResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		orgID string
+		keyID int64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    OrgApiKeyRevokeResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				orgID: "foo",
+				keyID: 1,
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/api_keys/{key_id}"]["DELETE"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				orgID: "foo",
+				keyID: 1,
+			},
+			apiKey:  "invalidApiKey",
+			want:    OrgApiKeyRevokeResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.RevokeOrgApiKey(tt.args.orgID, tt.args.keyID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("RevokeOrgApiKey() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("RevokeOrgApiKey() got = %v, want %v", got, tt.want)
 				}
 			},
 		)
