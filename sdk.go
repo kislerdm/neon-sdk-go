@@ -2176,9 +2176,11 @@ type ProjectSettingsData struct {
 	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
 	// BlockPublicConnections When set, connections from the public internet
 	// are disallowed. This supersedes the AllowedIPs list.
+	// (IN DEVELOPMENT - NOT AVAILABLE YET)
 	BlockPublicConnections *bool `json:"block_public_connections,omitempty"`
 	// BlockVpcConnections When set, connections using VPC endpoints
 	// are disallowed.
+	// (IN DEVELOPMENT - NOT AVAILABLE YET)
 	BlockVpcConnections *bool `json:"block_vpc_connections,omitempty"`
 	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
 	// All active endpoints will be suspended.

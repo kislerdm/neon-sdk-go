@@ -5309,11 +5309,11 @@
                         "$ref": "#/components/schemas/MaintenanceWindow"
                     },
                     "block_public_connections": {
-                        "description": "When set, connections from the public internet\nare disallowed. This supersedes the AllowedIPs list.\n",
+                        "description": "When set, connections from the public internet\nare disallowed. This supersedes the AllowedIPs list.\n(IN DEVELOPMENT - NOT AVAILABLE YET)\n",
                         "type": "boolean"
                     },
                     "block_vpc_connections": {
-                        "description": "When set, connections using VPC endpoints\nare disallowed.\n",
+                        "description": "When set, connections using VPC endpoints\nare disallowed.\n(IN DEVELOPMENT - NOT AVAILABLE YET)\n",
                         "type": "boolean"
                     }
                 }
@@ -7882,6 +7882,9 @@
                 "type": "object",
                 "required": [
                     "auth_provider",
+                    "auth_provider_project_id",
+                    "branch_id",
+                    "db_name",
                     "created_at"
                 ],
                 "properties": {
@@ -7889,6 +7892,13 @@
                         "type": "string"
                     },
                     "auth_provider_project_id": {
+                        "type": "string"
+                    },
+                    "branch_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "db_name": {
                         "type": "string"
                     },
                     "created_at": {
