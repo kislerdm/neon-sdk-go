@@ -14,7 +14,7 @@ import (
 
 // NewClient initialised the Client to communicate to the Neon Platform.
 func NewClient(cfg Config) (*Client, error) {
-    if _, ok := (cfg.HTTPClient).(mockHTTPClient); !ok && cfg.Key == "" {
+    if _, ok := (cfg.HTTPClient).(MockHTTPClient); !ok && cfg.Key == "" {
 		return nil, errors.New(
 			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
 		)

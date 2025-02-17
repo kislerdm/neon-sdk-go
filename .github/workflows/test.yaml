@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Overwrite Go version to use http.ServerMux
+        run: mv go.mod.test go.mod
       - name: Set up Go
         uses: actions/setup-go@v5
         with:

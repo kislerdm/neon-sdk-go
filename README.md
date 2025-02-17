@@ -168,7 +168,7 @@ found [here](generator).
 
 **Prerequisites**:
 
-- go ~> 1.18
+- go ~> 1.22
 - gnuMake / cmake
 
 Run to see all available commands:

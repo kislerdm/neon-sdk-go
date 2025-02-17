@@ -26,7 +26,7 @@ var templatesFS embed.FS
 var (
 	templateNameSDK    = []string{"sdk.go.templ", "sdk_test.go.templ"}
 	templateNameMock   = []string{"mockhttp.go.templ", "mockhttp_test.go.templ"}
-	templateNameStatic = []string{"go.mod.templ", "doc.go.templ", "error.go.templ"}
+	templateNameStatic = []string{"go.mod.templ", "doc.go.templ", "error.go.templ", "go.mod.test.templ"}
 )
 
 // Config generator configurations.
@@ -72,7 +72,9 @@ func Run(cfg Config) error {
 
 	var e error
 	if v, _ := strconv.ParseBool(os.Getenv("SKIP_TEST")); !v {
+		setGoMod122(cfg.PathOutput)
 		e = testGeneratedCode(cfg.PathOutput)
+		setGoModOriginal(cfg.PathOutput)
 	}
 
 	if v, _ := strconv.ParseBool(os.Getenv("SKIP_FORMATTING")); !v {
@@ -80,6 +82,28 @@ func Run(cfg Config) error {
 	}
 
 	return e
+}
+
+func setGoModOriginal(p string) {
+	cmd := exec.Command("mv", "go.mod.dump", "go.mod")
+	cmd.Dir = p
+	if err := cmd.Start(); err == nil {
+		_ = cmd.Wait()
+	}
+}
+
+func setGoMod122(p string) {
+	cmd := exec.Command("cp", "go.mod", "go.mod.dump")
+	cmd.Dir = p
+	if err := cmd.Start(); err == nil {
+		_ = cmd.Wait()
+	}
+
+	cmd = exec.Command("cp", "go.mod.test", "go.mod")
+	cmd.Dir = p
+	if err := cmd.Start(); err == nil {
+		_ = cmd.Wait()
+	}
 }
 
 func formatGeneratedCode(p string) error {
@@ -530,15 +554,16 @@ func filterModels(modelsSource models, output models, m model) {
 }
 
 func testGeneratedCode(p string) error {
+	var err error
 	cmd := exec.Command("go", "test", ".")
 	cmd.Dir = p
-	if err := cmd.Start(); err != nil {
+	if err = cmd.Start(); err != nil {
 		panic(err)
 	}
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("failed test: %w", err)
+	if err = cmd.Wait(); err != nil {
+		err = fmt.Errorf("failed test: %w", err)
 	}
-	return nil
+	return err
 }
 
 type openAPISpec struct {
@@ -1423,7 +1448,7 @@ func generateEndpointsImplementationMethods(
 			pp := p.Parameters
 			pp = append(pp, ops.Parameters...)
 
-			for _, p := range extractParameters(pp) {
+			for _, p := range extractParameters(pp, o.Components) {
 				if p.isInPath {
 					e.RequestParametersPath = append(e.RequestParametersPath, p)
 				}
@@ -1473,31 +1498,38 @@ func generateEndpointsImplementationMethods(
 	return
 }
 
-func extractParameters(params openapi3.Parameters) []field {
+func extractParameters(params openapi3.Parameters, components openapi3.Components) []field {
 	o := make([]field, len(params))
 	for i, p := range params {
-		o[i] = field{
-			k:           p.Value.Name,
-			description: p.Value.Description,
-			required:    p.Value.Required,
-			isInPath:    p.Value.In == openapi3.ParameterInPath,
-			isInQuery:   p.Value.In == openapi3.ParameterInQuery,
+		val := p.Value
+
+		if r, err := components.Parameters.JSONLookup(modelNameFromRef(p.Ref)); err == nil {
+			rr := r.(*openapi3.Parameter)
+			val = rr
 		}
 
-		if p.Value.Schema.Value != nil {
-			tmp := extractItemFromRef(p.Value.Schema)
+		o[i] = field{
+			k:           val.Name,
+			description: val.Description,
+			required:    val.Required,
+			isInPath:    val.In == openapi3.ParameterInPath,
+			isInQuery:   val.In == openapi3.ParameterInQuery,
+		}
+
+		if val.Schema.Value != nil {
+			tmp := extractItemFromRef(val.Schema)
 			o[i].v = tmp.v
 			o[i].format = tmp.format
 
-			if p.Value.Schema.Value.Type == "array" {
-				item := extractItemFromRef(p.Value.Schema.Value.Items)
+			if val.Schema.Value.Type == "array" {
+				item := extractItemFromRef(val.Schema.Value.Items)
 				o[i].v = item.v
 				o[i].format = item.format
 				o[i].isArray = true
 			}
 
 		} else {
-			o[i].v = modelNameFromRef(p.Value.Schema.Ref)
+			o[i].v = modelNameFromRef(val.Schema.Ref)
 		}
 	}
 	return o

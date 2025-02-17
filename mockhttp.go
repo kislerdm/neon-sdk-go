@@ -1,13 +1,19 @@
 package sdk
 
 import (
-	"io"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
+// endpointResponseExamples denotes response mock split by
+//   - the object notifier from the request path:
+//     /projects - for projects
+//     /project/branches - for branches
+//     /project/branches/endpoints - for endpoints
+//   - request REST method
 var endpointResponseExamples = map[string]map[string]mockResponse{
 	"/api_keys": {
 		"GET": mockResponse{
@@ -94,6 +100,35 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 			Code:    200,
 		},
 		"PATCH": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/projects/transfer": {
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}": {
+		"DELETE": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+		"POST": mockResponse{
 			Content: `null`,
 			Code:    200,
 		},
@@ -242,7 +277,7 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 
 	"/projects/{project_id}/branches": {
 		"GET": mockResponse{
-			Content: `{"annotations":{"br-aged-salad-637688":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}}},"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}]}`,
+			Content: `{"annotations":{"br-aged-salad-637688":{"created_at":"2022-11-23T17:42:25Z","object":{"id":"br-aged-salad-637688","type":"console/branch"},"updated_at":"2022-11-23T17:42:26Z","value":{"vercel-commit-ref":"test"}}},"branches":[{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T19:09:48Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-sweet-breeze-497520","logical_size":28,"name":"dev2","parent_id":"br-aged-salad-637688","parent_lsn":"0/1DE2850","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T19:09:49Z","written_data_bytes":100800},{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-30T17:36:57Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-raspy-hill-832856","logical_size":21,"name":"dev1","parent_id":"br-aged-salad-637688","parent_lsn":"0/19623D8","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-30T17:36:57Z","written_data_bytes":100800}],"pagination":{"next":"eyJjcmVhdGV","sort_by":"updated_at","sort_order":"desc"}}`,
 			Code:    200,
 		},
 		"POST": mockResponse{
@@ -315,6 +350,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/{project_id}/branches/count": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/projects/{project_id}/branches/{branch_id}": {
 		"DELETE": mockResponse{
 			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-aged-salad-637688","logical_size":28,"name":"main","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[{"action":"suspend_compute","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","endpoint_id":"ep-soft-violet-752733","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"running","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"},{"action":"delete_timeline","branch_id":"br-sweet-breeze-497520","created_at":"2022-12-01T19:53:05Z","failures_count":0,"id":"b6afbc21-2990-4a76-980b-b57d8c2948f2","project_id":"shiny-wind-028834","status":"scheduling","total_duration_ms":100,"updated_at":"2022-12-01T19:53:05Z"}]}`,
@@ -326,6 +368,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 		"PATCH": mockResponse{
 			Content: `{"branch":{"active_time_seconds":100,"compute_time_seconds":100,"cpu_used_sec":100,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","current_state":"ready","data_transfer_bytes":1000000,"default":true,"id":"br-icy-dream-250089","name":"mybranch","parent_id":"br-aged-salad-637688","parent_lsn":"0/1E19478","project_id":"shiny-wind-028834","protected":false,"state_changed_at":"2022-11-30T20:09:48Z","updated_at":"2022-11-23T17:42:26Z","written_data_bytes":100800},"operations":[]}`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/branches/{branch_id}/compare_schema": {
+		"GET": mockResponse{
+			Content: `null`,
 			Code:    200,
 		},
 	},
@@ -586,6 +635,24 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/{project_id}/vpc_endpoints": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
+	"/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}": {
+		"DELETE": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/regions": {
 		"GET": mockResponse{
 			Content: `null`,
@@ -621,12 +688,38 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 // - 404 is returned if either of the following:
 //   - the string value `notFound` is used as the string argument, e.g. projectID
 //   - a negative int/float value is used as the int/float argument, e.g. database ID
-func NewMockHTTPClient() HTTPClient {
+func NewMockHTTPClient() MockHTTPClient {
+	router := http.NewServeMux()
 	u, _ := url.Parse(baseURL)
-	return mockHTTPClient{
-		endpoints:   endpointResponseExamples,
-		routePrefix: u.Path,
+	var prefix = u.Path
+	for p, httpMethodResp := range endpointResponseExamples {
+		for httpMethod, resp := range httpMethodResp {
+			router.HandleFunc(fmt.Sprintf("%s %s%s", httpMethod, prefix, p), func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+
+				switch returnNotFound(r.URL.Path) {
+				case true:
+					w.WriteHeader(http.StatusNotFound)
+					_, _ = w.Write([]byte("authorization failed"))
+
+				case false:
+					w.WriteHeader(resp.Code)
+					_, _ = w.Write([]byte(resp.Content))
+				}
+
+			})
+		}
 	}
+	return MockHTTPClient{
+		router: router,
+	}
+}
+
+func returnNotFound(s string) bool {
+	return strings.Contains(s, "notFound") ||
+		strings.Contains(s, "notExist") ||
+		strings.Contains(s, "notExists") ||
+		strings.Contains(s, "missing")
 }
 
 type mockResponse struct {
@@ -634,128 +727,30 @@ type mockResponse struct {
 	Code    int
 }
 
-// mockHTTPClient defines http client to mock the SDK client.
-type mockHTTPClient struct {
-	// endpoints denotes response mock split by
-	// - the object notifier from the request path:
-	// 		/projects - for projects
-	// 		/project/branches - for branches
-	// 		/project/branches/endpoints - for endpoints
-	// - request REST method
-	endpoints map[string]map[string]mockResponse
-
-	routePrefix string
+// MockHTTPClient defines http client to mock the SDK client.
+type MockHTTPClient struct {
+	router *http.ServeMux
 }
 
-func (m mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
-	if r := authErrorResp(req); r != nil {
-		return r, nil
-	}
+func (m MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	var err error
+	var resp *http.Response
+	if resp = authErrorResp(req); resp == nil {
+		_, path := m.router.Handler(req)
+		switch path != "" {
+		case true:
+			rec := httptest.NewRecorder()
+			m.router.ServeHTTP(rec, req)
+			resp = rec.Result()
 
-	p := parsePath(strings.TrimPrefix(req.URL.Path, m.routePrefix))
-
-	endpoint, ok := m.endpoints[p.path]
-	if !ok {
-		o := Error{HTTPCode: http.StatusBadRequest}
-		o.errorResp.Message = "unknown endpoint"
-		return o.httpResp(), nil
-	}
-
-	resp, ok := endpoint[req.Method]
-	if !ok {
-		o := Error{HTTPCode: http.StatusMethodNotAllowed}
-		o.errorResp.Message = "method not allowed"
-		return o.httpResp(), nil
-	}
-
-	if p.objNotFound {
-		o := Error{HTTPCode: http.StatusNotFound}
-		o.errorResp.Message = "object not found"
-		return o.httpResp(), nil
-	}
-
-	return &http.Response{
-		Status:        "OK",
-		StatusCode:    resp.Code,
-		Body:          io.NopCloser(strings.NewReader(resp.Content)),
-		ContentLength: int64(len(resp.Content)),
-		Request:       req,
-	}, nil
-}
-
-type objPath struct {
-	path        string
-	objNotFound bool
-}
-
-func parsePath(s string) objPath {
-	switch s {
-	// pass through
-	case "/consumption_history/account",
-		"/consumption_history/projects":
-		return objPath{
-			path: s,
+		case false:
+			o := Error{HTTPCode: http.StatusInternalServerError}
+			o.errorResp.Message = "endpoint is not defined"
+			resp = o.httpResp()
 		}
 	}
 
-	if strings.HasPrefix(s, "/users/me") {
-		return objPath{
-			path: s,
-		}
-	}
-
-	s = strings.TrimPrefix(s, "/")
-	o := ""
-	var notFoundReq bool
-	splt := strings.Split(s, "/")
-
-	switch splt[len(splt)-1] {
-	case "shared":
-		return objPath{
-			path:        "/" + s,
-			objNotFound: notFoundReq,
-		}
-	}
-
-	for i, el := range splt {
-		if len(el) == 0 {
-			continue
-		}
-
-		if i%2 == 0 {
-			o += "/" + el
-			continue
-		}
-
-		if el == "notFound" || el == "notExist" || el == "notExists" || el == "missing" {
-			notFoundReq = true
-		}
-
-		if v, err := strconv.ParseFloat(el, 64); nil == err && v < 0 {
-			notFoundReq = true
-		}
-
-		switch v := splt[i-1]; v {
-		case "projects", "endpoints", "operations", "members":
-			o += "/{" + v[:len(v)-1] + "_id}"
-		case "databases", "roles":
-			o += "/{" + v[:len(v)-1] + "_name}"
-		case "api_keys":
-			o += "/{key_id}"
-		case "branches":
-			o += "/{branch_id}"
-		case "consumption", "users":
-			o += "/" + splt[i]
-		case "organizations":
-			o += "/{org_id}"
-		case "jwks":
-			o += "/{jwks_id}"
-		}
-	}
-	return objPath{
-		path:        o,
-		objNotFound: notFoundReq,
-	}
+	return resp, err
 }
 
 func authErrorResp(req *http.Request) *http.Response {

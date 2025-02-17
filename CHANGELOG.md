@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.12.0] - 2025-02-17
+
+### Added
+
+- Added the method `GetProjectBranchSchemaComparison` to compare the schema of the database in one branch to the schema of that database from another branch.   
+- Added the method `CountProjectBranches` to retrieve the total number of branches in the project.
+- Added the methods to manage VPC endpoints:
+  - `AssignOrganizationVPCEndpoint`: assigns a VPC endpoint to the project in the organization.
+  - `GetOrganizationVPCEndpointDetails`: reads details about the VPC endpoint assigned to the project in the organization.
+  - `DeleteOrganizationVPCEndpoint`: deletes the VPC endpoint for the project in the organization.
+  - `ListOrganizationVPCEndpoints`: lists VPC endpoints for the organization.
+  - `AssignProjectVPCEndpoint`: sets, or updates VPC endpoint restrictions for the project.
+  - `ListProjectVPCEndpoints`: lists VPC endpoints restrictions for the project.
+- Added support for sorting and pagination for the method `ListProjectBranches` to improve branches listing experience.
+- Added explicit timeout to limit the delay when listing the projects using the methods `ListProjects` and `ListSharedProjects`.
+- Added the method `TransferProjectsFromOrgToOrg` to migrate the project to the organization.
+- Added the field `InitSource` to the type `BranchCreateRequestBranch`.
+- Added the field `MaintenanceScheduledFor` to the type `Project` to indicate when the project's computes might be restarted.
+- Added the field `NoLogin` to the type `RoleCreateRequestRole` to create roles without login permissions.
+- Added the field `UnavailableProjectIDs` to the type `ProjectsResponse` to indicate existing projects which details could not be retrieved within the set time scope of a single request. 
+- Added the following `OperationAction` categories:
+  - `OperationActionApplySchemaFromBranch`: apply_schema_from_branch;
+  - `OperationActionImportData`: "apply_schema_from_branch".
+- Added the following `IdentityProviderId` category:
+  - `IdentityProviderIdMicrosoftv2`: "microsoftv2"
+
+### Changed
+
+- **[BREAKING]** Changed the type `AddProjectJWKSRequest`: the field's type `RoleNames` is the slice instead of the pointer to a slice.
+
+### Removed
+
+- **[BREAKING]** Removed the field `SchemaInitializationType` from the type `BranchCreateRequestBranch`. 
+
 ## [v0.11.0] - 2024-12-08
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2024-12-08 10:35:00 GMT.

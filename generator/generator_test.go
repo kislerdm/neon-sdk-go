@@ -74,6 +74,7 @@ func TestRun(t *testing.T) {
 			wantErr: false,
 			files: map[string]struct{}{
 				"go.mod":           {},
+				"go.mod.test":      {},
 				"doc.go":           {},
 				"sdk.go":           {},
 				"sdk_test.go":      {},
@@ -1974,7 +1975,8 @@ func Test_extractParameters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, extractParameters(tt.args.params), "extractParameters(%v)", tt.args.params)
+			assert.Equalf(t, tt.want, extractParameters(tt.args.params, openapi3.Components{}),
+				"extractParameters(%v)", tt.args.params)
 		})
 	}
 }

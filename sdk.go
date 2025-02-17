@@ -14,7 +14,7 @@ import (
 
 // NewClient initialised the Client to communicate to the Neon Platform.
 func NewClient(cfg Config) (*Client, error) {
-	if _, ok := (cfg.HTTPClient).(mockHTTPClient); !ok && cfg.Key == "" {
+	if _, ok := (cfg.HTTPClient).(MockHTTPClient); !ok && cfg.Key == "" {
 		return nil, errors.New(
 			"authorization key must be provided: https://neon.tech/docs/reference/api-reference/#authentication",
 		)
@@ -114,6 +114,40 @@ func (c Client) AddProjectJWKS(projectID string, cfg AddProjectJWKSRequest) (JWK
 	var v JWKSCreationOperation
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/jwks", "POST", cfg, &v); err != nil {
 		return JWKSCreationOperation{}, err
+	}
+	return v, nil
+}
+
+// AssignOrganizationVPCEndpoint Assigns a VPC endpoint to a Neon organization or updates its existing assignment.
+func (c Client) AssignOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string, cfg VPCEndpointAssignment) error {
+	return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "POST", cfg, nil)
+}
+
+// AssignProjectVPCEndpoint Sets or updates a VPC endpoint restriction for a Neon project.
+// When a VPC endpoint restriction is set, the project only accepts connections
+// from the specified VPC.
+// A VPC endpoint can be set as a restriction only after it is assigned to the
+// parent organization of the Neon project.
+func (c Client) AssignProjectVPCEndpoint(projectID string, vpcEndpointID string, cfg VPCEndpointAssignment) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/vpc_endpoints/"+vpcEndpointID, "POST", cfg, nil)
+}
+
+// CountProjectBranches Retrieves the total number of branches in the specified project.
+// You can obtain a `project_id` by listing the projects for your Neon account.
+func (c Client) CountProjectBranches(projectID string, search *string) (CountProjectBranchesRespObj, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if search != nil {
+		queryElements = append(queryElements, "search="+*search)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v CountProjectBranchesRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/count"+query, "GET", nil, &v); err != nil {
+		return CountProjectBranchesRespObj{}, err
 	}
 	return v, nil
 }
@@ -231,6 +265,11 @@ func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReques
 	return v, nil
 }
 
+// DeleteOrganizationVPCEndpoint Deletes the VPC endpoint from the specified Neon organization.
+func (c Client) DeleteOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string) error {
+	return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
+}
+
 // DeleteProject Deletes the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // Deleting a project is a permanent action.
@@ -311,7 +350,12 @@ func (c Client) DeleteProjectJWKS(projectID string, jwksID string) (JWKS, error)
 	return v, nil
 }
 
-// GetActiveRegions Retrieves the list of supported Neon regions
+// DeleteProjectVPCEndpoint Removes the specified VPC endpoint restriction from a Neon project.
+func (c Client) DeleteProjectVPCEndpoint(projectID string, vpcEndpointID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
+}
+
+// GetActiveRegions Lists supported Neon regions
 func (c Client) GetActiveRegions() (ActiveRegionsResponse, error) {
 	var v ActiveRegionsResponse
 	if err := c.requestHandler(c.baseURL+"/regions", "GET", nil, &v); err != nil {
@@ -355,8 +399,7 @@ func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID 
 	return v, nil
 }
 
-// GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale and Business plan accounts. History begins at the time of upgrade.
-// Available for Scale and Business plan users only.
+// GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale, Business, and Enterprise plan accounts. History begins at the time of upgrade.
 func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (ConsumptionHistoryPerAccountResponse, error) {
 	var (
 		queryElements []string
@@ -386,8 +429,7 @@ func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, gr
 	return v, nil
 }
 
-// GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale and Business plan projects. History begins at the time of upgrade.
-// Available for Scale and Business plan users only.
+// GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale, Business, and Enterprise plan projects. History begins at the time of upgrade.
 // Issuing a call to this API does not wake a project's compute endpoint.
 func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (GetConsumptionHistoryPerProjectRespObj, error) {
 	var (
@@ -481,6 +523,15 @@ func (c Client) GetOrganizationMembers(orgID string) (OrganizationMembersRespons
 	return v, nil
 }
 
+// GetOrganizationVPCEndpointDetails Retrieves the current state and configuration details of a specified VPC endpoint.
+func (c Client) GetOrganizationVPCEndpointDetails(orgID string, regionID string, vpcEndpointID string) (VPCEndpointDetails, error) {
+	var v VPCEndpointDetails
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "GET", nil, &v); err != nil {
+		return VPCEndpointDetails{}, err
+	}
+	return v, nil
+}
+
 // GetProject Retrieves information about the specified project.
 // A project is the top-level object in the Neon object hierarchy.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -570,6 +621,38 @@ func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName
 	return v, nil
 }
 
+// GetProjectBranchSchemaComparison Compares the schema from the specified database with another branch's schema.
+func (c Client) GetProjectBranchSchemaComparison(projectID string, branchID string, baseBranchID *string, dbName string, lsn *string, timestamp *time.Time, baseLsn *string, baseTimestamp *time.Time) (BranchSchemaCompareResponse, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	queryElements = append(queryElements, "db_name="+dbName)
+	if baseBranchID != nil {
+		queryElements = append(queryElements, "base_branch_id="+*baseBranchID)
+	}
+	if lsn != nil {
+		queryElements = append(queryElements, "lsn="+*lsn)
+	}
+	if timestamp != nil {
+		queryElements = append(queryElements, "timestamp="+timestamp.Format(time.RFC3339))
+	}
+	if baseLsn != nil {
+		queryElements = append(queryElements, "base_lsn="+*baseLsn)
+	}
+	if baseTimestamp != nil {
+		queryElements = append(queryElements, "base_timestamp="+baseTimestamp.Format(time.RFC3339))
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v BranchSchemaCompareResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/compare_schema"+query, "GET", nil, &v); err != nil {
+		return BranchSchemaCompareResponse{}, err
+	}
+	return v, nil
+}
+
 // GetProjectEndpoint Retrieves information about the specified compute endpoint.
 // A compute endpoint is a Neon compute instance.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -584,7 +667,7 @@ func (c Client) GetProjectEndpoint(projectID string, endpointID string) (Endpoin
 	return v, nil
 }
 
-// GetProjectJWKS Returns all the available JWKS URLs that can be used for verifying JWTs used as the authentication mechanism for the specified project.
+// GetProjectJWKS Returns the JWKS URLs available for verifying JWTs used as the authentication mechanism for the specified project.
 func (c Client) GetProjectJWKS(projectID string) (ProjectJWKSResponse, error) {
 	var v ProjectJWKSResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/jwks", "GET", nil, &v); err != nil {
@@ -638,6 +721,15 @@ func (c Client) ListOrgApiKeys(orgID string) ([]OrgApiKeysListResponseItem, erro
 	return v, nil
 }
 
+// ListOrganizationVPCEndpoints Retrieves the list of VPC endpoints for the specified Neon organization.
+func (c Client) ListOrganizationVPCEndpoints(orgID string, regionID string) (VPCEndpointsResponse, error) {
+	var v VPCEndpointsResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints", "GET", nil, &v); err != nil {
+		return VPCEndpointsResponse{}, err
+	}
+	return v, nil
+}
+
 // ListProjectBranchDatabases Retrieves a list of databases for the specified branch.
 // A branch can have multiple databases.
 // You can obtain a `project_id` by listing the projects for your Neon account.
@@ -683,13 +775,25 @@ func (c Client) ListProjectBranchRoles(projectID string, branchID string) (Roles
 // A project may contain child branches that were branched from `main` or from another branch.
 // A parent branch is identified by the `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
-func (c Client) ListProjectBranches(projectID string, search *string) (ListProjectBranchesRespObj, error) {
+func (c Client) ListProjectBranches(projectID string, search *string, sortBy *string, cursor *string, sortOrder *string, limit *int) (ListProjectBranchesRespObj, error) {
 	var (
 		queryElements []string
 		query         string
 	)
 	if search != nil {
 		queryElements = append(queryElements, "search="+*search)
+	}
+	if sortBy != nil {
+		queryElements = append(queryElements, "sort_by="+*sortBy)
+	}
+	if cursor != nil {
+		queryElements = append(queryElements, "cursor="+*cursor)
+	}
+	if sortOrder != nil {
+		queryElements = append(queryElements, "sort_order="+*sortOrder)
+	}
+	if limit != nil {
+		queryElements = append(queryElements, "limit="+strconv.FormatInt(int64(*limit), 10))
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
@@ -748,10 +852,19 @@ func (c Client) ListProjectPermissions(projectID string) (ProjectPermissions, er
 	return v, nil
 }
 
+// ListProjectVPCEndpoints Lists VPC endpoint restrictions for the specified Neon project.
+func (c Client) ListProjectVPCEndpoints(projectID string) (VPCEndpointsResponse, error) {
+	var v VPCEndpointsResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/vpc_endpoints", "GET", nil, &v); err != nil {
+		return VPCEndpointsResponse{}, err
+	}
+	return v, nil
+}
+
 // ListProjects Retrieves a list of projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *string) (ListProjectsRespObj, error) {
+func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *string, timeout *int) (ListProjectsRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -768,6 +881,9 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 	if orgID != nil {
 		queryElements = append(queryElements, "org_id="+*orgID)
 	}
+	if timeout != nil {
+		queryElements = append(queryElements, "timeout="+strconv.FormatInt(int64(*timeout), 10))
+	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
 	}
@@ -781,7 +897,7 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 // ListSharedProjects Retrieves a list of shared projects for the Neon account.
 // A project is the top-level object in the Neon object hierarchy.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
-func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (ListSharedProjectsRespObj, error) {
+func (c Client) ListSharedProjects(cursor *string, limit *int, search *string, timeout *int) (ListSharedProjectsRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -794,6 +910,9 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string) (
 	}
 	if search != nil {
 		queryElements = append(queryElements, "search="+*search)
+	}
+	if timeout != nil {
+		queryElements = append(queryElements, "timeout="+strconv.FormatInt(int64(*timeout), 10))
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
@@ -883,7 +1002,7 @@ func (c Client) RevokeOrgApiKey(orgID string, keyID int64) (OrgApiKeyRevokeRespo
 	return v, nil
 }
 
-// RevokePermissionFromProject Revokes project access from the user associted with the specified permisison `id`. You can retrieve a user's permission `id` by listing project access.
+// RevokePermissionFromProject Revokes project access from the user associated with the specified permission `id`. You can retrieve a user's permission `id` by listing project access.
 func (c Client) RevokePermissionFromProject(projectID string, permissionID string) (ProjectPermission, error) {
 	var v ProjectPermission
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/permissions/"+permissionID, "DELETE", nil, &v); err != nil {
@@ -932,6 +1051,15 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 	return v, nil
 }
 
+// TransferProjectsFromOrgToOrg Transfers selected projects, identified by their IDs, from your organization to another specified organization.
+func (c Client) TransferProjectsFromOrgToOrg(orgID string, cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/projects/transfer", "POST", cfg, &v); err != nil {
+		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
 // TransferProjectsFromUserToOrg Transfers selected projects, identified by their IDs, from your personal account to a specified organization.
 func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
 	var v EmptyResponse
@@ -952,7 +1080,6 @@ func (c Client) UpdateOrganizationMember(orgID string, memberID string, cfg Orga
 
 // UpdateProject Updates the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
-// Neon permits updating the project name only.
 func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error) {
 	var v UpdateProjectRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
@@ -1018,7 +1145,7 @@ type AddProjectJWKSRequest struct {
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
 	// RoleNames The roles the JWKS should be mapped to
-	RoleNames *[]string `json:"role_names,omitempty"`
+	RoleNames []string `json:"role_names"`
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
@@ -1249,6 +1376,10 @@ type BranchCreateRequest struct {
 type BranchCreateRequestBranch struct {
 	// Archived Whether to create the branch as archived
 	Archived *bool `json:"archived,omitempty"`
+	// InitSource The source of initialization for the branch. Valid values are `schema-only` and `parent-data` (default).
+	//   - `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
+	//   - `parent-data` - creates the branch with both schema and data from the parent.
+	InitSource *string `json:"init_source,omitempty"`
 	// Name The branch name
 	Name *string `json:"name,omitempty"`
 	// ParentID The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.
@@ -1260,9 +1391,6 @@ type BranchCreateRequestBranch struct {
 	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
 	// Protected Whether the branch is protected
 	Protected *bool `json:"protected,omitempty"`
-	// SchemaInitializationType The type of schema initialization. Defines how the schema is initialized, currently only empty is supported. This parameter is under
-	// active development and may change its semantics in the future.
-	SchemaInitializationType *string `json:"schema_initialization_type,omitempty"`
 }
 
 type BranchCreateRequestEndpointOptions struct {
@@ -1305,6 +1433,10 @@ type BranchRestoreRequest struct {
 	SourceTimestamp *time.Time `json:"source_timestamp,omitempty"`
 }
 
+type BranchSchemaCompareResponse struct {
+	Diff *string `json:"diff,omitempty"`
+}
+
 type BranchSchemaResponse struct {
 	Sql *string `json:"sql,omitempty"`
 }
@@ -1322,6 +1454,10 @@ type BranchUpdateRequest struct {
 type BranchUpdateRequestBranch struct {
 	Name      *string `json:"name,omitempty"`
 	Protected *bool   `json:"protected,omitempty"`
+}
+
+type BranchesCountResponse struct {
+	Count int `json:"count"`
 }
 
 type BranchesResponse struct {
@@ -1415,6 +1551,10 @@ type ConsumptionHistoryPerTimeframe struct {
 	WrittenDataBytes int `json:"written_data_bytes"`
 }
 
+type CountProjectBranchesRespObj struct {
+	BranchesCountResponse
+}
+
 type CreateProjectBranchReqObj struct {
 	AnnotationCreateValueRequest
 	BranchCreateRequest
@@ -1467,6 +1607,17 @@ type CurrentUserInfoResponse struct {
 	ProjectsLimit       int64       `json:"projects_limit"`
 }
 
+// CursorPagination To paginate the response, issue an initial request with `limit` value. Then, add the value returned in the response `.pagination.next` attribute into the request under the `cursor` query parameter to the subsequent request to retrieve next page in pagination. The contents on cursor `next` are opaque, clients are not expected to make any assumptions on the format of the data inside the cursor.
+type CursorPagination struct {
+	Next      *string `json:"next,omitempty"`
+	SortBy    *string `json:"sort_by,omitempty"`
+	SortOrder *string `json:"sort_order,omitempty"`
+}
+
+type CursorPaginationResponse struct {
+	Pagination *CursorPagination `json:"pagination,omitempty"`
+}
+
 type Database struct {
 	// BranchID The ID of the branch to which the database belongs
 	BranchID string `json:"branch_id"`
@@ -1487,7 +1638,7 @@ type DatabaseCreateRequest struct {
 }
 
 type DatabaseCreateRequestDatabase struct {
-	// Name The name of the datbase
+	// Name The name of the database
 	Name string `json:"name"`
 	// OwnerName The name of the role that owns the database
 	OwnerName string `json:"owner_name"`
@@ -1648,7 +1799,7 @@ type EndpointUpdateRequestEndpoint struct {
 	AutoscalingLimitMaxCu *ComputeUnit `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit `json:"autoscaling_limit_min_cu,omitempty"`
 	// BranchID DEPRECATED: This field will be removed in a future release.
-	// The destination branch ID. The destination branch must not have an exsiting read-write endpoint.
+	// The destination branch ID. The destination branch must not have an existing read-write endpoint.
 	BranchID *string `json:"branch_id,omitempty"`
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
@@ -1688,13 +1839,14 @@ type GrantPermissionToProjectRequest struct {
 type IdentityProviderId string
 
 const (
-	IdentityProviderIdGithub    IdentityProviderId = "github"
-	IdentityProviderIdGoogle    IdentityProviderId = "google"
-	IdentityProviderIdHasura    IdentityProviderId = "hasura"
-	IdentityProviderIdKeycloak  IdentityProviderId = "keycloak"
-	IdentityProviderIdMicrosoft IdentityProviderId = "microsoft"
-	IdentityProviderIdTest      IdentityProviderId = "test"
-	IdentityProviderIdVercelmp  IdentityProviderId = "vercelmp"
+	IdentityProviderIdGithub      IdentityProviderId = "github"
+	IdentityProviderIdGoogle      IdentityProviderId = "google"
+	IdentityProviderIdHasura      IdentityProviderId = "hasura"
+	IdentityProviderIdKeycloak    IdentityProviderId = "keycloak"
+	IdentityProviderIdMicrosoft   IdentityProviderId = "microsoft"
+	IdentityProviderIdMicrosoftv2 IdentityProviderId = "microsoftv2"
+	IdentityProviderIdTest        IdentityProviderId = "test"
+	IdentityProviderIdVercelmp    IdentityProviderId = "vercelmp"
 )
 
 type Invitation struct {
@@ -1746,6 +1898,7 @@ type ListOperations struct {
 type ListProjectBranchesRespObj struct {
 	AnnotationsMapResponse
 	BranchesResponse
+	CursorPaginationResponse
 }
 
 type ListProjectsRespObj struct {
@@ -1806,7 +1959,7 @@ type Operation struct {
 	CreatedAt time.Time `json:"created_at"`
 	// EndpointID The endpoint ID
 	EndpointID *string `json:"endpoint_id,omitempty"`
-	// Error The error that occured
+	// Error The error that occurred
 	Error *string `json:"error,omitempty"`
 	// FailuresCount The number of times the operation failed
 	FailuresCount int32 `json:"failures_count"`
@@ -1828,6 +1981,7 @@ type OperationAction string
 
 const (
 	OperationActionApplyConfig                OperationAction = "apply_config"
+	OperationActionApplySchemaFromBranch      OperationAction = "apply_schema_from_branch"
 	OperationActionApplyStorageConfig         OperationAction = "apply_storage_config"
 	OperationActionCheckAvailability          OperationAction = "check_availability"
 	OperationActionCreateBranch               OperationAction = "create_branch"
@@ -1836,6 +1990,7 @@ const (
 	OperationActionDeleteTimeline             OperationAction = "delete_timeline"
 	OperationActionDetachParentBranch         OperationAction = "detach_parent_branch"
 	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
+	OperationActionImportData                 OperationAction = "import_data"
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
 	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
 	OperationActionStartCompute               OperationAction = "start_compute"
@@ -1976,7 +2131,7 @@ type Project struct {
 	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
 	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
 	//
-	// Omitted when observed no actitivy for endpoints of this project.
+	// Omitted when observed no activity for endpoints of this project.
 	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by the project's compute endpoints, including compute endpoints that have been deleted.
 	// The value has some lag. The value is reset at the beginning of each billing period.
@@ -2005,6 +2160,8 @@ type Project struct {
 	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
 	ID string `json:"id"`
+	// MaintenanceScheduledFor A timestamp indicating when project update begins. If set, computes might experience a brief restart around this time.
+	MaintenanceScheduledFor *time.Time `json:"maintenance_scheduled_for,omitempty"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
 	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
 	// Name The project name
@@ -2047,7 +2204,7 @@ type ProjectCreateRequestProject struct {
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	// The default is 1 day (86400 seconds).
 	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
-	// Name The project name
+	// Name The project name. If not specified, the name will be identical to the generated project ID
 	Name *string `json:"name,omitempty"`
 	// OrgID Organization id in case the project created belongs to an organization.
 	// If not present, project is owned by a user and not by org.
@@ -2085,7 +2242,7 @@ type ProjectListItem struct {
 	BranchLogicalSizeLimitBytes int64 `json:"branch_logical_size_limit_bytes"`
 	// ComputeLastActiveAt The most recent time when any endpoint of this project was active.
 	//
-	// Omitted when observed no actitivy for endpoints of this project.
+	// Omitted when observed no activity for endpoints of this project.
 	ComputeLastActiveAt *time.Time `json:"compute_last_active_at,omitempty"`
 	// CpuUsedSec DEPRECATED. Use data from the getProject endpoint instead.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
@@ -2176,11 +2333,10 @@ type ProjectSettingsData struct {
 	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
 	// BlockPublicConnections When set, connections from the public internet
 	// are disallowed. This supersedes the AllowedIPs list.
-	// (IN DEVELOPMENT - NOT AVAILABLE YET)
+	// This parameter is under active development and its semantics may change in the future.
 	BlockPublicConnections *bool `json:"block_public_connections,omitempty"`
-	// BlockVpcConnections When set, connections using VPC endpoints
-	// are disallowed.
-	// (IN DEVELOPMENT - NOT AVAILABLE YET)
+	// BlockVpcConnections When set, connections using VPC endpoints are disallowed.
+	// This parameter is under active development and its semantics may change in the future.
 	BlockVpcConnections *bool `json:"block_vpc_connections,omitempty"`
 	// EnableLogicalReplication Sets wal_level=logical for all compute endpoints in this project.
 	// All active endpoints will be suspended.
@@ -2220,6 +2376,9 @@ type ProjectsIntegrationsMapResponseIntegrations map[string]interface{}
 
 type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`
+	// UnavailableProjectIDs A list of project IDs indicating which projects are known to exist, but whose details could not
+	// be fetched within the requested (or implicit) time limit
+	UnavailableProjectIDs *[]string `json:"unavailable_project_ids,omitempty"`
 }
 
 // Provisioner The Neon compute provisioner.
@@ -2267,6 +2426,8 @@ type RoleCreateRequest struct {
 type RoleCreateRequestRole struct {
 	// Name The role name. Cannot exceed 63 bytes in length.
 	Name string `json:"name"`
+	// NoLogin Whether to create a role that cannot login.
+	NoLogin *bool `json:"no_login,omitempty"`
 }
 
 type RoleOperations struct {
@@ -2288,14 +2449,15 @@ type RolesResponse struct {
 }
 
 // SuspendTimeoutSeconds Duration of inactivity in seconds after which the compute endpoint is
-// automatically suspended. The value `0` means use the global default.
+// automatically suspended. The value `0` means use the default value.
 // The value `-1` means never suspend. The default value is `300` seconds (5 minutes).
 // The minimum value is `60` seconds (1 minute).
 // The maximum value is `604800` seconds (1 week). For more information, see
-// [Auto-suspend configuration](https://neon.tech/docs/manage/endpoints#auto-suspend-configuration).
+// [Scale to zero configuration](https://neon.tech/docs/manage/endpoints#scale-to-zero-configuration).
 type SuspendTimeoutSeconds int64
 
 type TransferProjectsToOrganizationRequest struct {
+	// OrgID The source organization identifier
 	OrgID string `json:"org_id"`
 	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
 	ProjectIDs []string `json:"project_ids"`
@@ -2304,4 +2466,35 @@ type TransferProjectsToOrganizationRequest struct {
 type UpdateProjectRespObj struct {
 	OperationsResponse
 	ProjectResponse
+}
+
+type VPCEndpoint struct {
+	// Label A descriptive label for the VPC endpoint
+	Label string `json:"label"`
+	// VpcEndpointID The VPC endpoint ID
+	VpcEndpointID string `json:"vpc_endpoint_id"`
+}
+
+type VPCEndpointAssignment struct {
+	Label string `json:"label"`
+}
+
+type VPCEndpointDetails struct {
+	// ExampleRestrictedProjects A list of example projects that are restricted to use this VPC endpoint.
+	// There are at most 3 projects in the list, even if more projects are restricted.
+	ExampleRestrictedProjects []string `json:"example_restricted_projects"`
+	// Label A descriptive label for the VPC endpoint
+	Label string `json:"label"`
+	// NumRestrictedProjects The number of projects that are restricted to use this VPC endpoint.
+	NumRestrictedProjects int `json:"num_restricted_projects"`
+	// State The current state of the VPC endpoint. Possible values are
+	// `new` (just configured, pending acceptance) or `accepted`
+	// (VPC connection was accepted by Neon).
+	State string `json:"state"`
+	// VpcEndpointID The VPC endpoint ID
+	VpcEndpointID string `json:"vpc_endpoint_id"`
+}
+
+type VPCEndpointsResponse struct {
+	Endpoints []VPCEndpoint `json:"endpoints"`
 }
