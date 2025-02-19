@@ -265,6 +265,26 @@ func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReques
 	return v, nil
 }
 
+// CreateProjectIdentityAuthProviderSDKKeys Generates SDK or API Keys for the auth provider. These might be called different things depending
+// on the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.
+func (c Client) CreateProjectIdentityAuthProviderSDKKeys(cfg IdentityCreateAuthProviderSDKKeysRequest) (IdentityCreateIntegrationResponse, error) {
+	var v IdentityCreateIntegrationResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/keys", "POST", cfg, &v); err != nil {
+		return IdentityCreateIntegrationResponse{}, err
+	}
+	return v, nil
+}
+
+// CreateProjectIdentityIntegration Creates a project on a third-party authentication provider's platform for use with Neon Auth.
+// Use this endpoint if the frontend integration flow can't be used.
+func (c Client) CreateProjectIdentityIntegration(cfg IdentityCreateIntegrationRequest) (IdentityCreateIntegrationResponse, error) {
+	var v IdentityCreateIntegrationResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/create", "POST", cfg, &v); err != nil {
+		return IdentityCreateIntegrationResponse{}, err
+	}
+	return v, nil
+}
+
 // DeleteOrganizationVPCEndpoint Deletes the VPC endpoint from the specified Neon organization.
 func (c Client) DeleteOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string) error {
 	return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
@@ -339,6 +359,10 @@ func (c Client) DeleteProjectEndpoint(projectID string, endpointID string) (Endp
 		return EndpointOperations{}, err
 	}
 	return v, nil
+}
+
+func (c Client) DeleteProjectIdentityIntegration(projectID string, authProvider IdentitySupportedAuthProvider) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integration/"+string(authProvider), "DELETE", nil, nil)
 }
 
 // DeleteProjectJWKS Deletes a JWKS URL from the specified project
@@ -817,6 +841,14 @@ func (c Client) ListProjectEndpoints(projectID string) (EndpointsResponse, error
 	return v, nil
 }
 
+func (c Client) ListProjectIdentityIntegrations(projectID string) (ListProjectIdentityIntegrationsResponse, error) {
+	var v ListProjectIdentityIntegrationsResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integrations", "GET", nil, &v); err != nil {
+		return ListProjectIdentityIntegrationsResponse{}, err
+	}
+	return v, nil
+}
+
 // ListProjectOperations Retrieves a list of operations for the specified Neon project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // The number of operations returned can be large.
@@ -1047,6 +1079,15 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 	var v EndpointOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID+"/suspend", "POST", nil, &v); err != nil {
 		return EndpointOperations{}, err
+	}
+	return v, nil
+}
+
+// TransferProjectIdentityAuthProviderProject Transfer ownership of your Neon-managed auth project to your own auth provider account.
+func (c Client) TransferProjectIdentityAuthProviderProject(cfg IdentityTransferAuthProviderProjectRequest) (IdentityTransferAuthProviderProjectResponse, error) {
+	var v IdentityTransferAuthProviderProjectResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/transfer_ownership", "POST", cfg, &v); err != nil {
+		return IdentityTransferAuthProviderProjectResponse{}, err
 	}
 	return v, nil
 }
@@ -1835,6 +1876,54 @@ type GrantPermissionToProjectRequest struct {
 	Email string `json:"email"`
 }
 
+type IdentityAuthProviderProjectOwnedBy string
+
+const (
+	IdentityAuthProviderProjectOwnedByNeon IdentityAuthProviderProjectOwnedBy = "neon"
+	IdentityAuthProviderProjectOwnedByUser IdentityAuthProviderProjectOwnedBy = "user"
+)
+
+type IdentityAuthProviderProjectTransferStatus string
+
+const (
+	IdentityAuthProviderProjectTransferStatusFinished  IdentityAuthProviderProjectTransferStatus = "finished"
+	IdentityAuthProviderProjectTransferStatusInitiated IdentityAuthProviderProjectTransferStatus = "initiated"
+)
+
+type IdentityCreateAuthProviderSDKKeysRequest struct {
+	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type IdentityCreateIntegrationRequest struct {
+	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
+	BranchID     string                        `json:"branch_id"`
+	DatabaseName string                        `json:"database_name"`
+	ProjectID    string                        `json:"project_id"`
+	RoleName     string                        `json:"role_name"`
+}
+
+type IdentityCreateIntegrationResponse struct {
+	AuthProvider          IdentitySupportedAuthProvider `json:"auth_provider"`
+	AuthProviderProjectID string                        `json:"auth_provider_project_id"`
+	JwksURL               string                        `json:"jwks_url"`
+	PubClientKey          string                        `json:"pub_client_key"`
+	SchemaName            string                        `json:"schema_name"`
+	SecretServerKey       string                        `json:"secret_server_key"`
+	TableName             string                        `json:"table_name"`
+}
+
+type IdentityIntegration struct {
+	AuthProvider          string                                     `json:"auth_provider"`
+	AuthProviderProjectID string                                     `json:"auth_provider_project_id"`
+	BranchID              string                                     `json:"branch_id"`
+	CreatedAt             time.Time                                  `json:"created_at"`
+	DbName                string                                     `json:"db_name"`
+	JwksURL               string                                     `json:"jwks_url"`
+	OwnedBy               IdentityAuthProviderProjectOwnedBy         `json:"owned_by"`
+	TransferStatus        *IdentityAuthProviderProjectTransferStatus `json:"transfer_status,omitempty"`
+}
+
 // IdentityProviderId Identity provider id from keycloak
 type IdentityProviderId string
 
@@ -1848,6 +1937,23 @@ const (
 	IdentityProviderIdTest        IdentityProviderId = "test"
 	IdentityProviderIdVercelmp    IdentityProviderId = "vercelmp"
 )
+
+type IdentitySupportedAuthProvider string
+
+const (
+	IdentitySupportedAuthProviderMock  IdentitySupportedAuthProvider = "mock"
+	IdentitySupportedAuthProviderStack IdentitySupportedAuthProvider = "stack"
+)
+
+type IdentityTransferAuthProviderProjectRequest struct {
+	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type IdentityTransferAuthProviderProjectResponse struct {
+	// URL for completing the process of ownership transfer
+	URL string `json:"url"`
+}
 
 type Invitation struct {
 	// Email of the invited user
@@ -1899,6 +2005,10 @@ type ListProjectBranchesRespObj struct {
 	AnnotationsMapResponse
 	BranchesResponse
 	CursorPaginationResponse
+}
+
+type ListProjectIdentityIntegrationsResponse struct {
+	Data []IdentityIntegration `json:"data"`
 }
 
 type ListProjectsRespObj struct {
