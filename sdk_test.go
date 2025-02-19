@@ -1153,6 +1153,120 @@ func Test_client_CreateProjectEndpoint(t *testing.T) {
 	}
 }
 
+func Test_client_CreateProjectIdentityAuthProviderSDKKeys(t *testing.T) {
+	deserializeResp := func(s string) IdentityCreateIntegrationResponse {
+		var v IdentityCreateIntegrationResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cfg IdentityCreateAuthProviderSDKKeysRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    IdentityCreateIntegrationResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: IdentityCreateAuthProviderSDKKeysRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/auth/keys"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cfg: IdentityCreateAuthProviderSDKKeysRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    IdentityCreateIntegrationResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProjectIdentityAuthProviderSDKKeys(tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProjectIdentityAuthProviderSDKKeys() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProjectIdentityAuthProviderSDKKeys() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_CreateProjectIdentityIntegration(t *testing.T) {
+	deserializeResp := func(s string) IdentityCreateIntegrationResponse {
+		var v IdentityCreateIntegrationResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cfg IdentityCreateIntegrationRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    IdentityCreateIntegrationResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: IdentityCreateIntegrationRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/auth/create"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cfg: IdentityCreateIntegrationRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    IdentityCreateIntegrationResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateProjectIdentityIntegration(tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateProjectIdentityIntegration() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateProjectIdentityIntegration() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_DeleteOrganizationVPCEndpoint(t *testing.T) {
 	type args struct {
 		orgID         string
@@ -1500,6 +1614,53 @@ func Test_client_DeleteProjectEndpoint(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("DeleteProjectEndpoint() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_DeleteProjectIdentityIntegration(t *testing.T) {
+	type args struct {
+		projectID    string
+		authProvider IdentitySupportedAuthProvider
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID:    "foo",
+				authProvider: "foo",
+			},
+			apiKey:  "foo",
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID:    "foo",
+				authProvider: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				err = c.DeleteProjectIdentityIntegration(tt.args.projectID, tt.args.authProvider)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("DeleteProjectIdentityIntegration() error = %v, wantErr %v", err, tt.wantErr)
+					return
 				}
 			},
 		)
@@ -3370,6 +3531,63 @@ func Test_client_ListProjectEndpoints(t *testing.T) {
 	}
 }
 
+func Test_client_ListProjectIdentityIntegrations(t *testing.T) {
+	deserializeResp := func(s string) ListProjectIdentityIntegrationsResponse {
+		var v ListProjectIdentityIntegrationsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    ListProjectIdentityIntegrationsResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/auth/integrations"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    ListProjectIdentityIntegrationsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.ListProjectIdentityIntegrations(tt.args.projectID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("ListProjectIdentityIntegrations() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ListProjectIdentityIntegrations() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_ListProjectOperations(t *testing.T) {
 	deserializeResp := func(s string) ListOperations {
 		var v ListOperations
@@ -4162,6 +4380,63 @@ func Test_client_SuspendProjectEndpoint(t *testing.T) {
 				}
 				if !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("SuspendProjectEndpoint() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
+func Test_client_TransferProjectIdentityAuthProviderProject(t *testing.T) {
+	deserializeResp := func(s string) IdentityTransferAuthProviderProjectResponse {
+		var v IdentityTransferAuthProviderProjectResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cfg IdentityTransferAuthProviderProjectRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    IdentityTransferAuthProviderProjectResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: IdentityTransferAuthProviderProjectRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/auth/transfer_ownership"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cfg: IdentityTransferAuthProviderProjectRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    IdentityTransferAuthProviderProjectResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.TransferProjectIdentityAuthProviderProject(tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("TransferProjectIdentityAuthProviderProject() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("TransferProjectIdentityAuthProviderProject() got = %v, want %v", got, tt.want)
 				}
 			},
 		)

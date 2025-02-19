@@ -67,6 +67,10 @@
         {
             "name": "Organizations",
             "description": "These methods allow you to manage your Neon organizations."
+        },
+        {
+            "name": "Auth",
+            "description": "These methods allow you to create and manage Neon Auth projects."
         }
     ],
     "paths": {
@@ -1047,6 +1051,185 @@
                                 }
                             }
                         }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/auth/create": {
+            "post": {
+                "summary": "Create Neon Auth integration",
+                "description": "Creates a project on a third-party authentication provider's platform for use with Neon Auth.\nUse this endpoint if the frontend integration flow can't be used.\n",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "createProjectIdentityIntegration",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/IdentityCreateIntegrationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creates Neon Auth integration",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityCreateIntegrationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/auth/keys": {
+            "post": {
+                "summary": "Create Auth Provider SDK keys",
+                "description": "Generates SDK or API Keys for the auth provider. These might be called different things depending\non the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.\n",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "createProjectIdentityAuthProviderSDKKeys",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/IdentityCreateAuthProviderSDKKeysRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creates Auth Provider SDK keys",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityCreateIntegrationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/auth/transfer_ownership": {
+            "post": {
+                "summary": "Transfer Neon-managed auth project to your own account",
+                "description": "Transfer ownership of your Neon-managed auth project to your own auth provider account.\n",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "transferProjectIdentityAuthProviderProject",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/IdentityTransferAuthProviderProjectRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transfer initiated. Follow the URL to complete the process in your auth provider's UI.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IdentityTransferAuthProviderProjectResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/auth/integrations": {
+            "get": {
+                "summary": "Lists active integrations with auth providers",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "listProjectIdentityIntegrations",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "description": "The Neon project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return management API keys metadata",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListProjectIdentityIntegrationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/auth/integration/{auth_provider}": {
+            "delete": {
+                "summary": "Delete integration with auth provider",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "deleteProjectIdentityIntegration",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "description": "The Neon project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
+                        }
+                    },
+                    {
+                        "name": "auth_provider",
+                        "in": "path",
+                        "description": "The authentication provider name",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delete the integration with the authentication provider"
                     },
                     "default": {
                         "$ref": "#/components/responses/GeneralError"
@@ -6122,7 +6305,8 @@
                     "max_branch_databases",
                     "max_concurrent_scheduled_operation_chains_per_project",
                     "max_concurrent_executing_operation_chains_per_project",
-                    "max_root_branches"
+                    "max_root_branches",
+                    "max_import_size"
                 ],
                 "properties": {
                     "active_time": {
@@ -6202,6 +6386,10 @@
                     },
                     "max_root_branches": {
                         "type": "integer"
+                    },
+                    "max_import_size": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -8425,6 +8613,35 @@
                     "initiated",
                     "finished"
                 ]
+            },
+            "IdentityCreateIntegrationRequest": {
+                "type": "object",
+                "required": [
+                    "auth_provider",
+                    "project_id",
+                    "branch_id",
+                    "database_name",
+                    "role_name"
+                ],
+                "properties": {
+                    "auth_provider": {
+                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                    },
+                    "project_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "branch_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "database_name": {
+                        "type": "string"
+                    },
+                    "role_name": {
+                        "type": "string"
+                    }
+                }
             },
             "IdentityCreateIntegrationResponse": {
                 "type": "object",
