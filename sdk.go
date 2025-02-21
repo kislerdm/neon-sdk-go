@@ -1093,9 +1093,9 @@ func (c Client) TransferProjectIdentityAuthProviderProject(cfg IdentityTransferA
 }
 
 // TransferProjectsFromOrgToOrg Transfers selected projects, identified by their IDs, from your organization to another specified organization.
-func (c Client) TransferProjectsFromOrgToOrg(orgID string, cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
+func (c Client) TransferProjectsFromOrgToOrg(sourceOrgID string, cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
 	var v EmptyResponse
-	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/projects/transfer", "POST", cfg, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"/organizations/"+sourceOrgID+"/projects/transfer", "POST", cfg, &v); err != nil {
 		return EmptyResponse{}, err
 	}
 	return v, nil
@@ -1382,6 +1382,10 @@ type Branch struct {
 	Default bool `json:"default"`
 	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
 	ID string `json:"id"`
+	// InitSource The source of initialization for the branch. Valid values are `schema-only` and `parent-data` (default).
+	//   - `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
+	//   - `parent-data` - creates the branch with both schema and data from the parent.
+	InitSource string `json:"init_source"`
 	// LastResetAt A timestamp indicating when the branch was last reset
 	LastResetAt *time.Time `json:"last_reset_at,omitempty"`
 	// LogicalSize The logical size of the branch, in bytes
@@ -2567,8 +2571,8 @@ type RolesResponse struct {
 type SuspendTimeoutSeconds int64
 
 type TransferProjectsToOrganizationRequest struct {
-	// OrgID The source organization identifier
-	OrgID string `json:"org_id"`
+	// DestinationOrgID The destination organization identifier
+	DestinationOrgID string `json:"destination_org_id"`
 	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
 	ProjectIDs []string `json:"project_ids"`
 }
