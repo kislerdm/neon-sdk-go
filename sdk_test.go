@@ -4452,8 +4452,8 @@ func Test_client_TransferProjectsFromOrgToOrg(t *testing.T) {
 		return v
 	}
 	type args struct {
-		orgID string
-		cfg   TransferProjectsToOrganizationRequest
+		sourceOrgID string
+		cfg         TransferProjectsToOrganizationRequest
 	}
 	tests := []struct {
 		name    string
@@ -4465,18 +4465,18 @@ func Test_client_TransferProjectsFromOrgToOrg(t *testing.T) {
 		{
 			name: "happy path",
 			args: args{
-				orgID: "foo",
-				cfg:   TransferProjectsToOrganizationRequest{},
+				sourceOrgID: "foo",
+				cfg:         TransferProjectsToOrganizationRequest{},
 			},
 			apiKey:  "foo",
-			want:    deserializeResp(endpointResponseExamples["/organizations/{org_id}/projects/transfer"]["POST"].Content),
+			want:    deserializeResp(endpointResponseExamples["/organizations/{source_org_id}/projects/transfer"]["POST"].Content),
 			wantErr: false,
 		},
 		{
 			name: "unhappy path",
 			args: args{
-				orgID: "foo",
-				cfg:   TransferProjectsToOrganizationRequest{},
+				sourceOrgID: "foo",
+				cfg:         TransferProjectsToOrganizationRequest{},
 			},
 			apiKey:  "invalidApiKey",
 			want:    EmptyResponse{},
@@ -4490,7 +4490,7 @@ func Test_client_TransferProjectsFromOrgToOrg(t *testing.T) {
 				if err != nil {
 					panic(err)
 				}
-				got, err := c.TransferProjectsFromOrgToOrg(tt.args.orgID, tt.args.cfg)
+				got, err := c.TransferProjectsFromOrgToOrg(tt.args.sourceOrgID, tt.args.cfg)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("TransferProjectsFromOrgToOrg() error = %v, wantErr %v", err, tt.wantErr)
 					return
