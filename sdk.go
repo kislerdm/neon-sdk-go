@@ -1385,7 +1385,7 @@ type Branch struct {
 	// InitSource The source of initialization for the branch. Valid values are `schema-only` and `parent-data` (default).
 	//   - `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
 	//   - `parent-data` - creates the branch with both schema and data from the parent.
-	InitSource string `json:"init_source"`
+	InitSource *string `json:"init_source,omitempty"`
 	// LastResetAt A timestamp indicating when the branch was last reset
 	LastResetAt *time.Time `json:"last_reset_at,omitempty"`
 	// LogicalSize The logical size of the branch, in bytes
