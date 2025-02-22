@@ -6422,8 +6422,7 @@
                     "active_time_seconds",
                     "compute_time_seconds",
                     "written_data_bytes",
-                    "data_transfer_bytes",
-                    "init_source"
+                    "data_transfer_bytes"
                 ],
                 "properties": {
                     "id": {
