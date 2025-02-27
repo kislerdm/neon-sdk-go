@@ -6029,6 +6029,9 @@
                     "block_vpc_connections": {
                         "description": "When set, connections using VPC endpoints are disallowed.\nThis parameter is under active development and its semantics may change in the future.\n",
                         "type": "boolean"
+                    },
+                    "audit_log_level": {
+                        "$ref": "#/components/schemas/ProjectAuditLogLevel"
                     }
                 }
             },
@@ -6404,6 +6407,12 @@
                         "format": "int64"
                     }
                 }
+            },
+            "ProjectAuditLogLevel": {
+                "type": "string",
+                "enum": [
+                    "hipaa"
+                ]
             },
             "Branch": {
                 "type": "object",

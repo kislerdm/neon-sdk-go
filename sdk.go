@@ -2306,6 +2306,12 @@ type Project struct {
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 
+type ProjectAuditLogLevel string
+
+const (
+	ProjectAuditLogLevelHipaa ProjectAuditLogLevel = "hipaa"
+)
+
 type ProjectCreateRequest struct {
 	Project ProjectCreateRequestProject `json:"project"`
 }
@@ -2444,7 +2450,8 @@ type ProjectResponse struct {
 }
 
 type ProjectSettingsData struct {
-	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
+	AllowedIps    *AllowedIps           `json:"allowed_ips,omitempty"`
+	AuditLogLevel *ProjectAuditLogLevel `json:"audit_log_level,omitempty"`
 	// BlockPublicConnections When set, connections from the public internet
 	// are disallowed. This supersedes the AllowedIPs list.
 	// This parameter is under active development and its semantics may change in the future.
