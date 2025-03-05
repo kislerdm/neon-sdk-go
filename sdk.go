@@ -388,6 +388,15 @@ func (c Client) GetActiveRegions() (ActiveRegionsResponse, error) {
 	return v, nil
 }
 
+// GetAuthDetails Returns auth information about the passed credentials. It can refer to an API key, Bearer token or OAuth session.
+func (c Client) GetAuthDetails() (AuthDetailsResponse, error) {
+	var v AuthDetailsResponse
+	if err := c.requestHandler(c.baseURL+"/auth", "GET", nil, &v); err != nil {
+		return AuthDetailsResponse{}, err
+	}
+	return v, nil
+}
+
 // GetConnectionURI Retrieves a connection URI for the specified database.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `database_name` by listing the databases for a branch.
@@ -1285,6 +1294,12 @@ type ApiKeysListResponseItem struct {
 	LastUsedFromAddr string `json:"last_used_from_addr"`
 	// Name The user-specified API key name
 	Name string `json:"name"`
+}
+
+type AuthDetailsResponse struct {
+	AccountID  string  `json:"account_id"`
+	AuthData   *string `json:"auth_data,omitempty"`
+	AuthMethod string  `json:"auth_method"`
 }
 
 type BillingAccount struct {
