@@ -33,6 +33,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/auth": {
+		"GET": mockResponse{
+			Content: `null`,
+			Code:    200,
+		},
+	},
+
 	"/consumption_history/account": {
 		"GET": mockResponse{
 			Content: `null`,

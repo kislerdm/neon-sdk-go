@@ -1821,6 +1821,53 @@ func Test_client_GetActiveRegions(t *testing.T) {
 	}
 }
 
+func Test_client_GetAuthDetails(t *testing.T) {
+	deserializeResp := func(s string) AuthDetailsResponse {
+		var v AuthDetailsResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	tests := []struct {
+		name    string
+		apiKey  string
+		want    AuthDetailsResponse
+		wantErr bool
+	}{
+		{
+			name:    "happy path",
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/auth"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name:    "unhappy path",
+			apiKey:  "invalidApiKey",
+			want:    AuthDetailsResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetAuthDetails()
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetAuthDetails() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetAuthDetails() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetConnectionURI(t *testing.T) {
 	deserializeResp := func(s string) ConnectionURIResponse {
 		var v ConnectionURIResponse

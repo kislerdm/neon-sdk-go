@@ -54,6 +54,10 @@
             "description": "These methods allow you to create and manage compute endpoints in your Neon project. For related information, see [Manage compute endpoints](https://neon.tech/docs/manage/endpoints)."
         },
         {
+            "name": "Snapshot",
+            "description": "These methods allow you to create and manage snapshots."
+        },
+        {
             "name": "Preview",
             "description": "New API methods that are in a Preview state and may be subject to changes."
         },
@@ -4891,6 +4895,31 @@
                     }
                 }
             }
+        },
+        "/auth": {
+            "get": {
+                "summary": "Get request authentication details",
+                "description": "Returns auth information about the passed credentials. It can refer to an API key, Bearer token or OAuth session.\n",
+                "tags": [
+                    "Users"
+                ],
+                "operationId": "getAuthDetails",
+                "responses": {
+                    "200": {
+                        "description": "Returned auth information about the current auth entity\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthDetailsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -8336,6 +8365,31 @@
                     }
                 }
             },
+            "AuthDetailsResponse": {
+                "type": "object",
+                "required": [
+                    "account_id",
+                    "auth_method"
+                ],
+                "properties": {
+                    "account_id": {
+                        "type": "string"
+                    },
+                    "auth_method": {
+                        "type": "string",
+                        "enum": [
+                            "keycloak",
+                            "session_cookie",
+                            "api_key_user",
+                            "api_key_org",
+                            "oauth"
+                        ]
+                    },
+                    "auth_data": {
+                        "type": "string"
+                    }
+                }
+            },
             "TransferProjectsToOrganizationRequest": {
                 "type": "object",
                 "required": [
@@ -9108,6 +9162,43 @@
                         "type": "string"
                     },
                     "sort_order": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Snapshot": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "created_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "lsn": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "source_branch_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "source_schedule_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "expires_at": {
                         "type": "string"
                     }
                 }
