@@ -1074,12 +1074,12 @@
                 "tags": [
                     "Auth"
                 ],
-                "operationId": "createProjectIdentityIntegration",
+                "operationId": "createNeonAuthIntegration",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/IdentityCreateIntegrationRequest"
+                                "$ref": "#/components/schemas/NeonAuthCreateIntegrationRequest"
                             }
                         }
                     },
@@ -1091,7 +1091,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/IdentityCreateIntegrationResponse"
+                                    "$ref": "#/components/schemas/NeonAuthCreateIntegrationResponse"
                                 }
                             }
                         }
@@ -1109,12 +1109,12 @@
                 "tags": [
                     "Auth"
                 ],
-                "operationId": "createProjectIdentityAuthProviderSDKKeys",
+                "operationId": "createNeonAuthProviderSDKKeys",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/IdentityCreateAuthProviderSDKKeysRequest"
+                                "$ref": "#/components/schemas/NeonAuthCreateAuthProviderSDKKeysRequest"
                             }
                         }
                     },
@@ -1126,7 +1126,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/IdentityCreateIntegrationResponse"
+                                    "$ref": "#/components/schemas/NeonAuthCreateIntegrationResponse"
                                 }
                             }
                         }
@@ -1144,12 +1144,12 @@
                 "tags": [
                     "Auth"
                 ],
-                "operationId": "transferProjectIdentityAuthProviderProject",
+                "operationId": "transferNeonAuthProviderProject",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/IdentityTransferAuthProviderProjectRequest"
+                                "$ref": "#/components/schemas/NeonAuthTransferAuthProviderProjectRequest"
                             }
                         }
                     },
@@ -1161,7 +1161,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/IdentityTransferAuthProviderProjectResponse"
+                                    "$ref": "#/components/schemas/NeonAuthTransferAuthProviderProjectResponse"
                                 }
                             }
                         }
@@ -1178,7 +1178,7 @@
                 "tags": [
                     "Auth"
                 ],
-                "operationId": "listProjectIdentityIntegrations",
+                "operationId": "listNeonAuthIntegrations",
                 "parameters": [
                     {
                         "name": "project_id",
@@ -1197,7 +1197,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ListProjectIdentityIntegrationsResponse"
+                                    "$ref": "#/components/schemas/ListNeonAuthIntegrationsResponse"
                                 }
                             }
                         }
@@ -1214,7 +1214,7 @@
                 "tags": [
                     "Auth"
                 ],
-                "operationId": "deleteProjectIdentityIntegration",
+                "operationId": "deleteNeonAuthIntegration",
                 "parameters": [
                     {
                         "name": "project_id",
@@ -1232,7 +1232,7 @@
                         "description": "The authentication provider name",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                            "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                         }
                     }
                 ],
@@ -6109,7 +6109,10 @@
                         "type": "string"
                     },
                     "granted_to_email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "granted_at": {
                         "type": "string",
@@ -6142,7 +6145,10 @@
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     }
                 }
             },
@@ -7571,7 +7577,10 @@
                     },
                     "email": {
                         "description": "Billing email, to receive emails related to invoices and subscriptions.\n",
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "address_city": {
                         "description": "Billing address city.\n",
@@ -7794,7 +7803,9 @@
                     "email": {
                         "description": "Email of the invited user",
                         "type": "string",
-                        "format": "email"
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "org_id": {
                         "description": "Organization id as it is stored in Neon",
@@ -7861,7 +7872,10 @@
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     }
                 }
             },
@@ -7972,7 +7986,7 @@
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 500
+                        "maxLength": 256
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -7998,7 +8012,9 @@
                 "properties": {
                     "email": {
                         "type": "string",
-                        "format": "email"
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -8029,7 +8045,10 @@
                         "type": "string"
                     },
                     "user_email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "project_id": {
                         "type": "string",
@@ -8074,7 +8093,10 @@
                 "properties": {
                     "email": {
                         "description": "Email to invite",
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -8183,7 +8205,10 @@
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "image": {
                         "type": "string"
@@ -8227,7 +8252,10 @@
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "id": {
                         "type": "string",
@@ -8285,7 +8313,10 @@
                         }
                     },
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "id": {
                         "type": "string"
@@ -8559,7 +8590,10 @@
                 ],
                 "properties": {
                     "email": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "name": {
                         "type": "string"
@@ -8673,28 +8707,28 @@
                     "project_count"
                 ]
             },
-            "IdentitySupportedAuthProvider": {
+            "NeonAuthSupportedAuthProvider": {
                 "type": "string",
                 "enum": [
                     "mock",
                     "stack"
                 ]
             },
-            "IdentityAuthProviderProjectOwnedBy": {
+            "NeonAuthProviderProjectOwnedBy": {
                 "type": "string",
                 "enum": [
                     "user",
                     "neon"
                 ]
             },
-            "IdentityAuthProviderProjectTransferStatus": {
+            "NeonAuthProviderProjectTransferStatus": {
                 "type": "string",
                 "enum": [
                     "initiated",
                     "finished"
                 ]
             },
-            "IdentityCreateIntegrationRequest": {
+            "NeonAuthCreateIntegrationRequest": {
                 "type": "object",
                 "required": [
                     "auth_provider",
@@ -8705,7 +8739,7 @@
                 ],
                 "properties": {
                     "auth_provider": {
-                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     },
                     "project_id": {
                         "type": "string",
@@ -8723,7 +8757,7 @@
                     }
                 }
             },
-            "IdentityCreateIntegrationResponse": {
+            "NeonAuthCreateIntegrationResponse": {
                 "type": "object",
                 "required": [
                     "auth_provider",
@@ -8736,7 +8770,7 @@
                 ],
                 "properties": {
                     "auth_provider": {
-                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     },
                     "auth_provider_project_id": {
                         "type": "string"
@@ -8758,7 +8792,7 @@
                     }
                 }
             },
-            "IdentityCreateAuthProviderSDKKeysRequest": {
+            "NeonAuthCreateAuthProviderSDKKeysRequest": {
                 "type": "object",
                 "required": [
                     "project_id",
@@ -8770,11 +8804,11 @@
                         "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "auth_provider": {
-                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     }
                 }
             },
-            "IdentityCreateNewUserRequest": {
+            "NeonAuthCreateNewUserRequest": {
                 "type": "object",
                 "required": [
                     "project_id",
@@ -8787,12 +8821,13 @@
                         "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "auth_provider": {
-                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     },
                     "email": {
                         "type": "string",
                         "format": "email",
-                        "maxLength": 255
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "name": {
                         "type": "string",
@@ -8801,7 +8836,7 @@
                     }
                 }
             },
-            "IdentityCreateNewUserResponse": {
+            "NeonAuthCreateNewUserResponse": {
                 "type": "object",
                 "required": [
                     "id"
@@ -8813,7 +8848,7 @@
                     }
                 }
             },
-            "IdentityTransferAuthProviderProjectRequest": {
+            "NeonAuthTransferAuthProviderProjectRequest": {
                 "type": "object",
                 "required": [
                     "project_id",
@@ -8825,11 +8860,11 @@
                         "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "auth_provider": {
-                        "$ref": "#/components/schemas/IdentitySupportedAuthProvider"
+                        "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     }
                 }
             },
-            "IdentityTransferAuthProviderProjectResponse": {
+            "NeonAuthTransferAuthProviderProjectResponse": {
                 "type": "object",
                 "required": [
                     "url"
@@ -8841,7 +8876,7 @@
                     }
                 }
             },
-            "ListProjectIdentityIntegrationsResponse": {
+            "ListNeonAuthIntegrationsResponse": {
                 "type": "object",
                 "required": [
                     "data"
@@ -8850,12 +8885,12 @@
                     "data": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/IdentityIntegration"
+                            "$ref": "#/components/schemas/NeonAuthIntegration"
                         }
                     }
                 }
             },
-            "IdentityIntegration": {
+            "NeonAuthIntegration": {
                 "type": "object",
                 "required": [
                     "auth_provider",
@@ -8885,10 +8920,10 @@
                         "format": "date-time"
                     },
                     "owned_by": {
-                        "$ref": "#/components/schemas/IdentityAuthProviderProjectOwnedBy"
+                        "$ref": "#/components/schemas/NeonAuthProviderProjectOwnedBy"
                     },
                     "transfer_status": {
-                        "$ref": "#/components/schemas/IdentityAuthProviderProjectTransferStatus"
+                        "$ref": "#/components/schemas/NeonAuthProviderProjectTransferStatus"
                     },
                     "jwks_url": {
                         "type": "string"
