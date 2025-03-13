@@ -5950,7 +5950,8 @@
                                 "properties": {
                                     "name": {
                                         "description": "The default branch name. If not specified, the default branch name, `main`, will be used.\n",
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 256
                                     },
                                     "role_name": {
                                         "description": "The role name. If not specified, the default role name, `{database_name}_owner`, will be used.\n",
@@ -6061,6 +6062,9 @@
                     },
                     "audit_log_level": {
                         "$ref": "#/components/schemas/ProjectAuditLogLevel"
+                    },
+                    "preload_libraries": {
+                        "$ref": "#/components/schemas/PreloadLibraries"
                     }
                 }
             },
@@ -6650,7 +6654,8 @@
                             },
                             "name": {
                                 "description": "The branch name\n",
-                                "type": "string"
+                                "type": "string",
+                                "maxLength": 256
                             },
                             "parent_lsn": {
                                 "description": "A Log Sequence Number (LSN) on the parent branch. The branch will be created with data from this LSN.\n",
@@ -6687,7 +6692,8 @@
                         "type": "object",
                         "properties": {
                             "name": {
-                                "type": "string"
+                                "type": "string",
+                                "maxLength": 256
                             },
                             "protected": {
                                 "type": "boolean"
@@ -7048,6 +7054,21 @@
                     "end_time": {
                         "description": "End time of the maintenance window, in the format of \"HH:MM\". Uses UTC.\n",
                         "type": "string"
+                    }
+                }
+            },
+            "PreloadLibraries": {
+                "description": "The shared libraries to preload into the project's compute instances.\n",
+                "type": "object",
+                "properties": {
+                    "use_defaults": {
+                        "type": "boolean"
+                    },
+                    "enabled_libraries": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -9223,10 +9244,6 @@
                         "type": "string"
                     },
                     "source_branch_id": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
-                    },
-                    "source_schedule_id": {
                         "type": "string",
                         "pattern": "^[a-z0-9-]{1,60}$"
                     },

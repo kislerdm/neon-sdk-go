@@ -2249,6 +2249,12 @@ type PgVersion int
 // PgbouncerSettingsData A raw representation of PgBouncer settings
 type PgbouncerSettingsData map[string]interface{}
 
+// PreloadLibraries The shared libraries to preload into the project's compute instances.
+type PreloadLibraries struct {
+	EnabledLibraries *[]string `json:"enabled_libraries,omitempty"`
+	UseDefaults      *bool     `json:"use_defaults,omitempty"`
+}
+
 type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
@@ -2479,6 +2485,7 @@ type ProjectSettingsData struct {
 	// Once enabled, logical replication cannot be disabled.
 	EnableLogicalReplication *bool              `json:"enable_logical_replication,omitempty"`
 	MaintenanceWindow        *MaintenanceWindow `json:"maintenance_window,omitempty"`
+	PreloadLibraries         *PreloadLibraries  `json:"preload_libraries,omitempty"`
 	Quota                    *ProjectQuota      `json:"quota,omitempty"`
 }
 
