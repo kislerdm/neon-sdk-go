@@ -290,6 +290,8 @@ func (c Client) DeleteNeonAuthIntegration(projectID string, authProvider NeonAut
 }
 
 // DeleteOrganizationVPCEndpoint Deletes the VPC endpoint from the specified Neon organization.
+// If you delete a VPC endpoint from a Neon organization, that VPC endpoint cannot
+// be added back to the Neon organization.
 func (c Client) DeleteOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string) error {
 	return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
 }

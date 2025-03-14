@@ -4750,7 +4750,7 @@
             },
             "delete": {
                 "summary": "Delete VPC endpoint",
-                "description": "Deletes the VPC endpoint from the specified Neon organization.\n",
+                "description": "Deletes the VPC endpoint from the specified Neon organization.\nIf you delete a VPC endpoint from a Neon organization, that VPC endpoint cannot\nbe added back to the Neon organization.\n",
                 "tags": [
                     "Organizations"
                 ],
