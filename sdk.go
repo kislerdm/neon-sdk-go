@@ -399,6 +399,15 @@ func (c Client) GetAuthDetails() (AuthDetailsResponse, error) {
 	return v, nil
 }
 
+// GetAvailablePreloadLibraries Return available shared preload libraries
+func (c Client) GetAvailablePreloadLibraries(projectID string) (AvailablePreloadLibraries, error) {
+	var v AvailablePreloadLibraries
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/available_preload_libraries", "GET", nil, &v); err != nil {
+		return AvailablePreloadLibraries{}, err
+	}
+	return v, nil
+}
+
 // GetConnectionURI Retrieves a connection URI for the specified database.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // You can obtain the `database_name` by listing the databases for a branch.
@@ -1302,6 +1311,18 @@ type AuthDetailsResponse struct {
 	AccountID  string  `json:"account_id"`
 	AuthData   *string `json:"auth_data,omitempty"`
 	AuthMethod string  `json:"auth_method"`
+}
+
+type AvailablePreloadLibraries struct {
+	Libraries *[]AvailablePreloadLibrary `json:"libraries,omitempty"`
+}
+
+type AvailablePreloadLibrary struct {
+	Description    string `json:"description"`
+	IsDefault      bool   `json:"is_default"`
+	IsExperimental bool   `json:"is_experimental"`
+	LibraryName    string `json:"library_name"`
+	Version        string `json:"version"`
 }
 
 type BillingAccount struct {
