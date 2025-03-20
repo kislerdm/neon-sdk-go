@@ -1868,6 +1868,63 @@ func Test_client_GetAuthDetails(t *testing.T) {
 	}
 }
 
+func Test_client_GetAvailablePreloadLibraries(t *testing.T) {
+	deserializeResp := func(s string) AvailablePreloadLibraries {
+		var v AvailablePreloadLibraries
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		projectID string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    AvailablePreloadLibraries
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/{project_id}/available_preload_libraries"]["GET"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				projectID: "foo",
+			},
+			apiKey:  "invalidApiKey",
+			want:    AvailablePreloadLibraries{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.GetAvailablePreloadLibraries(tt.args.projectID)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("GetAvailablePreloadLibraries() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("GetAvailablePreloadLibraries() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_GetConnectionURI(t *testing.T) {
 	deserializeResp := func(s string) ConnectionURIResponse {
 		var v ConnectionURIResponse

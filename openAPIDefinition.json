@@ -951,6 +951,42 @@
                 }
             }
         },
+        "/projects/{project_id}/available_preload_libraries": {
+            "get": {
+                "summary": "Return available shared preload libraries",
+                "description": "Return available shared preload libraries",
+                "tags": [
+                    "Project"
+                ],
+                "operationId": "getAvailablePreloadLibraries",
+                "parameters": [
+                    {
+                        "name": "project_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully returned available shared preload libraries",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AvailablePreloadLibraries"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/jwks": {
             "parameters": [
                 {
@@ -6360,7 +6396,9 @@
                     "max_concurrent_scheduled_operation_chains_per_project",
                     "max_concurrent_executing_operation_chains_per_project",
                     "max_root_branches",
-                    "max_import_size"
+                    "max_import_size",
+                    "max_organization_members",
+                    "per_project"
                 ],
                 "properties": {
                     "active_time": {
@@ -6444,6 +6482,35 @@
                     "max_import_size": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "max_organization_members": {
+                        "type": "integer"
+                    },
+                    "per_project": {
+                        "type": "object",
+                        "properties": {
+                            "compute_time_seconds": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "written_data_bytes": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "data_transfer_bytes": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "suspend_default_branch": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "compute_time_seconds",
+                            "written_data_bytes",
+                            "data_transfer_bytes",
+                            "suspend_default_branch"
+                        ]
                     }
                 }
             },
@@ -6452,6 +6519,44 @@
                 "enum": [
                     "hipaa"
                 ]
+            },
+            "AvailablePreloadLibrary": {
+                "type": "object",
+                "required": [
+                    "library_name",
+                    "description",
+                    "is_default",
+                    "is_experimental",
+                    "version"
+                ],
+                "properties": {
+                    "library_name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "is_experimental": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AvailablePreloadLibraries": {
+                "type": "object",
+                "properties": {
+                    "libraries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AvailablePreloadLibrary"
+                        }
+                    }
+                }
             },
             "Branch": {
                 "type": "object",
@@ -8727,6 +8832,47 @@
                 "enum": [
                     "project_count"
                 ]
+            },
+            "NeonSupernovaCreatePostgRESTRequest": {
+                "description": "Create a PostgREST service for a branch",
+                "type": "object",
+                "required": [
+                    "branch_id",
+                    "database_name",
+                    "role_name",
+                    "db_schemas"
+                ],
+                "properties": {
+                    "branch_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "database_name": {
+                        "type": "string"
+                    },
+                    "role_name": {
+                        "type": "string"
+                    },
+                    "db_schemas": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "NeonSupernovaCreatePostgRESTResponse": {
+                "description": "PostgREST service created successfully",
+                "type": "object",
+                "required": [
+                    "url"
+                ],
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                }
             },
             "NeonAuthSupportedAuthProvider": {
                 "type": "string",
