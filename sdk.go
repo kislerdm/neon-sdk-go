@@ -1432,9 +1432,13 @@ type Branch struct {
 	Name string `json:"name"`
 	// ParentID The `branch_id` of the parent branch
 	ParentID *string `json:"parent_id,omitempty"`
-	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created
+	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created.
+	// When restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,
+	// this value isn’t finalized until all operations related to the restore have completed successfully.
 	ParentLsn *string `json:"parent_lsn,omitempty"`
-	// ParentTimestamp The point in time on the parent branch from which this branch was created
+	// ParentTimestamp The point in time on the parent branch from which this branch was created.
+	// When restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,
+	// this value isn’t finalized until all operations related to the restore have completed successfully.
 	ParentTimestamp *time.Time   `json:"parent_timestamp,omitempty"`
 	PendingState    *BranchState `json:"pending_state,omitempty"`
 	// Primary DEPRECATED. Use `default` field.
