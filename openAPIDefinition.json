@@ -6594,11 +6594,11 @@
                         "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "parent_lsn": {
-                        "description": "The Log Sequence Number (LSN) on the parent branch from which this branch was created\n",
+                        "description": "The Log Sequence Number (LSN) on the parent branch from which this branch was created.\nWhen restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,\nthis value isn\u2019t finalized until all operations related to the restore have completed successfully.\n",
                         "type": "string"
                     },
                     "parent_timestamp": {
-                        "description": "The point in time on the parent branch from which this branch was created\n",
+                        "description": "The point in time on the parent branch from which this branch was created.\nWhen restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,\nthis value isn\u2019t finalized until all operations related to the restore have completed successfully.\n",
                         "type": "string",
                         "format": "date-time"
                     },
