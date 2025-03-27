@@ -1803,8 +1803,10 @@ type Endpoint struct {
 	// ProxyHost DEPRECATED. Use the "host" property instead.
 	ProxyHost string `json:"proxy_host"`
 	// RegionID The region identifier
-	RegionID              string                `json:"region_id"`
-	Settings              EndpointSettingsData  `json:"settings"`
+	RegionID string               `json:"region_id"`
+	Settings EndpointSettingsData `json:"settings"`
+	// StartedAt A timestamp indicating when the compute endpoint was last started
+	StartedAt             *time.Time            `json:"started_at,omitempty"`
 	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
 	Type                  EndpointType          `json:"type"`
 	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
