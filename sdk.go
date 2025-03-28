@@ -1395,6 +1395,7 @@ const (
 	BillingSubscriptionTypeBusiness       BillingSubscriptionType = "business"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
+	BillingSubscriptionTypeFreeV3         BillingSubscriptionType = "free_v3"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
 	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
 	BillingSubscriptionTypeVercelPgLegacy BillingSubscriptionType = "vercel_pg_legacy"
@@ -1803,8 +1804,10 @@ type Endpoint struct {
 	// ProxyHost DEPRECATED. Use the "host" property instead.
 	ProxyHost string `json:"proxy_host"`
 	// RegionID The region identifier
-	RegionID              string                `json:"region_id"`
-	Settings              EndpointSettingsData  `json:"settings"`
+	RegionID string               `json:"region_id"`
+	Settings EndpointSettingsData `json:"settings"`
+	// StartedAt A timestamp indicating when the compute endpoint was last started
+	StartedAt             *time.Time            `json:"started_at,omitempty"`
 	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
 	Type                  EndpointType          `json:"type"`
 	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
