@@ -5274,6 +5274,10 @@
                     "created_at",
                     "created_by"
                 ],
+                "x-sensitive": [
+                    "key",
+                    "name"
+                ],
                 "properties": {
                     "id": {
                         "description": "The API key ID",
@@ -5748,6 +5752,11 @@
                         "description": "Organization id if a project belongs to organization.\nPermissions for the project will be given to organization members as defined by the organization admins.\nThe permissions of the project do not depend on the user that created the project if a project belongs to an organization.\n",
                         "type": "string",
                         "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "history_retention_seconds": {
+                        "description": "The number of seconds to retain the shared history for all branches in this project.\n",
+                        "type": "integer",
+                        "format": "int32"
                     }
                 },
                 "example": {
@@ -5885,7 +5894,7 @@
                         "type": "string"
                     },
                     "history_retention_seconds": {
-                        "description": "The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).\n",
+                        "description": "The number of seconds to retain the shared history for all branches in this project.\n",
                         "type": "integer",
                         "format": "int32"
                     },
@@ -6144,6 +6153,9 @@
                     "granted_to_email",
                     "granted_at"
                 ],
+                "x-sensitive": [
+                    "granted_to_email"
+                ],
                 "properties": {
                     "id": {
                         "type": "string"
@@ -6181,6 +6193,9 @@
             "GrantPermissionToProjectRequest": {
                 "type": "object",
                 "required": [
+                    "email"
+                ],
+                "x-sensitive": [
                     "email"
                 ],
                 "properties": {
@@ -6895,6 +6910,12 @@
                     "host",
                     "pooler_host"
                 ],
+                "x-sensitive": [
+                    "database",
+                    "host",
+                    "pooler_host",
+                    "password"
+                ],
                 "properties": {
                     "database": {
                         "description": "Database name\n",
@@ -6923,6 +6944,9 @@
                 "required": [
                     "connection_uri",
                     "connection_parameters"
+                ],
+                "x-sensitive": [
+                    "connection_uri"
                 ],
                 "properties": {
                     "connection_uri": {
@@ -6969,6 +6993,9 @@
                     "proxy_host",
                     "suspend_timeout_seconds",
                     "provisioner"
+                ],
+                "x-sensitive": [
+                    "host"
                 ],
                 "properties": {
                     "host": {
@@ -7312,6 +7339,9 @@
                 "required": [
                     "connection_uris"
                 ],
+                "x-sensitive": [
+                    "connection_uris"
+                ],
                 "properties": {
                     "connection_uris": {
                         "type": "array",
@@ -7371,6 +7401,9 @@
                     "state",
                     "num_restricted_projects",
                     "example_restricted_projects"
+                ],
+                "x-sensitive": [
+                    "state"
                 ],
                 "properties": {
                     "vpc_endpoint_id": {
@@ -7444,6 +7477,9 @@
                 "required": [
                     "query"
                 ],
+                "x-sensitive": [
+                    "query"
+                ],
                 "properties": {
                     "data": {
                         "$ref": "#/components/schemas/StatementData"
@@ -7506,6 +7542,9 @@
                     "name",
                     "created_at",
                     "updated_at"
+                ],
+                "x-sensitive": [
+                    "password"
                 ],
                 "properties": {
                     "branch_id": {
@@ -7595,6 +7634,9 @@
                 "required": [
                     "roles"
                 ],
+                "x-sensitive": [
+                    "roles"
+                ],
                 "properties": {
                     "roles": {
                         "type": "array",
@@ -7607,6 +7649,9 @@
             "RolePasswordResponse": {
                 "type": "object",
                 "required": [
+                    "password"
+                ],
+                "x-sensitive": [
                     "password"
                 ],
                 "properties": {
@@ -7677,6 +7722,18 @@
                     "quota_reset_at_last",
                     "name",
                     "email",
+                    "address_city",
+                    "address_country",
+                    "address_line1",
+                    "address_line2",
+                    "address_postal_code",
+                    "address_state"
+                ],
+                "x-sensitive": [
+                    "name",
+                    "email",
+                    "state",
+                    "tax_id",
                     "address_city",
                     "address_country",
                     "address_line1",
@@ -7851,6 +7908,9 @@
                 "required": [
                     "database"
                 ],
+                "x-sensitive": [
+                    "database"
+                ],
                 "properties": {
                     "database": {
                         "type": "object",
@@ -7876,6 +7936,9 @@
                 "required": [
                     "database"
                 ],
+                "x-sensitive": [
+                    "database"
+                ],
                 "properties": {
                     "database": {
                         "type": "object",
@@ -7895,6 +7958,9 @@
             "DatabaseResponse": {
                 "type": "object",
                 "required": [
+                    "database"
+                ],
+                "x-sensitive": [
                     "database"
                 ],
                 "properties": {
@@ -7926,6 +7992,9 @@
                     "invited_by",
                     "invited_at",
                     "role"
+                ],
+                "x-sensitive": [
+                    "email"
                 ],
                 "properties": {
                     "id": {
@@ -8000,6 +8069,9 @@
             "MemberUserInfo": {
                 "type": "object",
                 "required": [
+                    "email"
+                ],
+                "x-sensitive": [
                     "email"
                 ],
                 "properties": {
@@ -8113,6 +8185,9 @@
                     "email",
                     "role"
                 ],
+                "x-sensitive": [
+                    "email"
+                ],
                 "properties": {
                     "email": {
                         "type": "string",
@@ -8141,6 +8216,9 @@
             },
             "OrganizationInviteUpdateRequest": {
                 "type": "object",
+                "x-sensitive": [
+                    "email"
+                ],
                 "properties": {
                     "email": {
                         "type": "string",
@@ -8221,6 +8299,9 @@
                 "required": [
                     "email",
                     "role"
+                ],
+                "x-sensitive": [
+                    "email"
                 ],
                 "properties": {
                     "email": {
@@ -8335,6 +8416,11 @@
                     "login",
                     "image"
                 ],
+                "x-sensitive": [
+                    "email",
+                    "name",
+                    "login"
+                ],
                 "properties": {
                     "email": {
                         "type": "string",
@@ -8382,6 +8468,13 @@
                 "required": [
                     "id"
                 ],
+                "x-sensitive": [
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "password",
+                    "new_password"
+                ],
                 "properties": {
                     "email": {
                         "type": "string",
@@ -8428,6 +8521,12 @@
                     "max_autoscaling_limit",
                     "auth_accounts",
                     "plan"
+                ],
+                "x-sensitive": [
+                    "email",
+                    "name",
+                    "last_name",
+                    "login"
                 ],
                 "properties": {
                     "active_seconds_limit": {
@@ -8582,6 +8681,9 @@
                 "required": [
                     "password"
                 ],
+                "x-sensitive": [
+                    "password"
+                ],
                 "properties": {
                     "password": {
                         "type": "string"
@@ -8720,6 +8822,10 @@
                     "branches_limit",
                     "subscription_type"
                 ],
+                "x-sensitive": [
+                    "email",
+                    "name"
+                ],
                 "properties": {
                     "email": {
                         "type": "string",
@@ -8848,6 +8954,9 @@
                     "role_name",
                     "db_schemas"
                 ],
+                "x-sensitive": [
+                    "database_name"
+                ],
                 "properties": {
                     "branch_id": {
                         "type": "string",
@@ -8910,6 +9019,9 @@
                     "database_name",
                     "role_name"
                 ],
+                "x-sensitive": [
+                    "database_name"
+                ],
                 "properties": {
                     "auth_provider": {
                         "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
@@ -8940,6 +9052,10 @@
                     "jwks_url",
                     "schema_name",
                     "table_name"
+                ],
+                "x-sensitive": [
+                    "pub_client_key",
+                    "secret_server_key"
                 ],
                 "properties": {
                     "auth_provider": {
@@ -8987,6 +9103,10 @@
                     "project_id",
                     "auth_provider",
                     "email"
+                ],
+                "x-sensitive": [
+                    "email",
+                    "name"
                 ],
                 "properties": {
                     "project_id": {
@@ -9073,6 +9193,9 @@
                     "created_at",
                     "owned_by",
                     "jwks_url"
+                ],
+                "x-sensitive": [
+                    "db_name"
                 ],
                 "properties": {
                     "auth_provider": {

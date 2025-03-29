@@ -2321,7 +2321,7 @@ type Project struct {
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
 	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
 	ID string `json:"id"`
@@ -2422,6 +2422,8 @@ type ProjectListItem struct {
 	// CreationSource The project creation source
 	CreationSource          string                   `json:"creation_source"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// ID The project ID
 	ID string `json:"id"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
