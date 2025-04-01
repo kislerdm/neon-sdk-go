@@ -1809,7 +1809,9 @@ type Endpoint struct {
 	// StartedAt A timestamp indicating when the compute endpoint was last started
 	StartedAt             *time.Time            `json:"started_at,omitempty"`
 	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
-	Type                  EndpointType          `json:"type"`
+	// SuspendedAt A timestamp indicating when the compute endpoint was last suspended
+	SuspendedAt *time.Time   `json:"suspended_at,omitempty"`
+	Type        EndpointType `json:"type"`
 	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 }

@@ -7080,6 +7080,11 @@
                         "format": "date-time",
                         "description": "A timestamp indicating when the compute endpoint was last started\n"
                     },
+                    "suspended_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "A timestamp indicating when the compute endpoint was last suspended\n"
+                    },
                     "proxy_host": {
                         "description": "DEPRECATED. Use the \"host\" property instead.\n",
                         "type": "string"
