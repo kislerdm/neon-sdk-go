@@ -1395,11 +1395,13 @@ const (
 	BillingSubscriptionTypeUNKNOWN        BillingSubscriptionType = "UNKNOWN"
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeBusiness       BillingSubscriptionType = "business"
+	BillingSubscriptionTypeBusinessV3     BillingSubscriptionType = "business_v3"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
 	BillingSubscriptionTypeFreeV3         BillingSubscriptionType = "free_v3"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
 	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
+	BillingSubscriptionTypeServerlessV3   BillingSubscriptionType = "serverless_v3"
 	BillingSubscriptionTypeVercelPgLegacy BillingSubscriptionType = "vercel_pg_legacy"
 )
 
