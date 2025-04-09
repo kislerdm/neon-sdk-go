@@ -5038,6 +5038,23 @@
                     }
                 }
             },
+            "RestoredSnapshot": {
+                "description": "Branch restored from snapshot and its operations.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/BranchResponse"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/OperationsResponse"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
             "GeneralError": {
                 "description": "General Error",
                 "content": {
@@ -8516,7 +8533,6 @@
                 "type": "object",
                 "required": [
                     "active_seconds_limit",
-                    "billing_account",
                     "id",
                     "email",
                     "login",
@@ -8957,9 +8973,7 @@
                 "type": "object",
                 "required": [
                     "branch_id",
-                    "database_name",
-                    "role_name",
-                    "db_schemas"
+                    "database_name"
                 ],
                 "x-sensitive": [
                     "database_name"
@@ -8971,15 +8985,6 @@
                     },
                     "database_name": {
                         "type": "string"
-                    },
-                    "role_name": {
-                        "type": "string"
-                    },
-                    "db_schemas": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
                     }
                 }
             },
@@ -8987,12 +8992,20 @@
                 "description": "PostgREST service created successfully",
                 "type": "object",
                 "required": [
-                    "url"
+                    "url",
+                    "postgrest_anon_role",
+                    "postgrest_user_role"
                 ],
                 "properties": {
                     "url": {
                         "type": "string",
                         "format": "uri"
+                    },
+                    "postgrest_anon_role": {
+                        "type": "string"
+                    },
+                    "postgrest_user_role": {
+                        "type": "string"
                     }
                 }
             },
