@@ -1684,7 +1684,7 @@ type CurrentUserInfoResponse struct {
 	// ActiveSecondsLimit Control plane observes active endpoints of a user this amount of wall-clock time.
 	ActiveSecondsLimit  int64                    `json:"active_seconds_limit"`
 	AuthAccounts        []CurrentUserAuthAccount `json:"auth_accounts"`
-	BillingAccount      BillingAccount           `json:"billing_account"`
+	BillingAccount      *BillingAccount          `json:"billing_account,omitempty"`
 	BranchesLimit       int64                    `json:"branches_limit"`
 	ComputeSecondsLimit *int64                   `json:"compute_seconds_limit,omitempty"`
 	Email               string                   `json:"email"`
