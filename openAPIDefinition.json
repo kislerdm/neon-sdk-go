@@ -5774,6 +5774,11 @@
                         "description": "The number of seconds to retain the shared history for all branches in this project.\n",
                         "type": "integer",
                         "format": "int32"
+                    },
+                    "hipaa_enabled_at": {
+                        "description": "A timestamp indicating when HIPAA was enabled for this project",
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "example": {
@@ -5965,6 +5970,11 @@
                         "description": "A timestamp indicating when project update begins. If set, computes might experience a brief restart around this time.\n",
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "hipaa_enabled_at": {
+                        "description": "A timestamp indicating when HIPAA was enabled for this project",
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "example": {
@@ -6124,6 +6134,9 @@
                     },
                     "audit_log_level": {
                         "$ref": "#/components/schemas/ProjectAuditLogLevel"
+                    },
+                    "hipaa": {
+                        "type": "boolean"
                     },
                     "preload_libraries": {
                         "$ref": "#/components/schemas/PreloadLibraries"
@@ -8741,7 +8754,7 @@
             },
             "ProjectQuota": {
                 "type": "object",
-                "description": "Per-project consumption quota. If the quota is exceeded, all active computes\nare automatically suspended and it will not be possible to start them with\nan API method call or incoming proxy connections. The only exception is\n`logical_size_bytes`, which is applied on per-branch basis, i.e., only the\ncompute on the branch that exceeds the `logical_size` quota will be suspended.\n\nQuotas are enforced based on per-project consumption metrics with the same names,\nwhich are reset at the end of each billing period (the first day of the month).\nLogical size is also an exception in this case, as it represents the total size\nof data stored in a branch, so it is not reset.\n\nA zero or empty quota value means 'unlimited'.\n",
+                "description": "Per-project consumption quotas. If a quota is exceeded, all active computes\nare automatically suspended and cannot be started via API calls or incoming connections.\n\nThe exception is `logical_size_bytes`, which is enforced per branch.\nIf a branch exceeds its `logical_size_bytes` quota, computes can still be started,\nbut write operations will fail\u2014allowing data to be deleted to free up space.\nComputes on other branches are not affected.\n\nSetting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.\n\nQuotas are enforced using per-project consumption metrics with the same names.\nThese metrics reset at the start of each billing period. `logical_size_bytes`\nis also an exception\u2014it reflects the total data stored in a branch and does not reset.\n\nA zero or empty quota value means \u201cunlimited.\u201d\n",
                 "properties": {
                     "active_time_seconds": {
                         "description": "The total amount of wall-clock time allowed to be spent by the project's compute endpoints.\n",
