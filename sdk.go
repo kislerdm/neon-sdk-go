@@ -2327,6 +2327,8 @@ type Project struct {
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
 	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// HipaaEnabledAt A timestamp indicating when HIPAA was enabled for this project
+	HipaaEnabledAt *time.Time `json:"hipaa_enabled_at,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
@@ -2428,6 +2430,8 @@ type ProjectListItem struct {
 	// CreationSource The project creation source
 	CreationSource          string                   `json:"creation_source"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// HipaaEnabledAt A timestamp indicating when HIPAA was enabled for this project
+	HipaaEnabledAt *time.Time `json:"hipaa_enabled_at,omitempty"`
 	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// ID The project ID
@@ -2479,18 +2483,21 @@ type ProjectPermissions struct {
 	ProjectPermissions []ProjectPermission `json:"project_permissions"`
 }
 
-// ProjectQuota Per-project consumption quota. If the quota is exceeded, all active computes
-// are automatically suspended and it will not be possible to start them with
-// an API method call or incoming proxy connections. The only exception is
-// `logical_size_bytes`, which is applied on per-branch basis, i.e., only the
-// compute on the branch that exceeds the `logical_size` quota will be suspended.
+// ProjectQuota Per-project consumption quotas. If a quota is exceeded, all active computes
+// are automatically suspended and cannot be started via API calls or incoming connections.
 //
-// Quotas are enforced based on per-project consumption metrics with the same names,
-// which are reset at the end of each billing period (the first day of the month).
-// Logical size is also an exception in this case, as it represents the total size
-// of data stored in a branch, so it is not reset.
+// The exception is `logical_size_bytes`, which is enforced per branch.
+// If a branch exceeds its `logical_size_bytes` quota, computes can still be started,
+// but write operations will fail—allowing data to be deleted to free up space.
+// Computes on other branches are not affected.
 //
-// A zero or empty quota value means 'unlimited'.
+// Setting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.
+//
+// Quotas are enforced using per-project consumption metrics with the same names.
+// These metrics reset at the start of each billing period. `logical_size_bytes`
+// is also an exception—it reflects the total data stored in a branch and does not reset.
+//
+// A zero or empty quota value means “unlimited.”
 type ProjectQuota struct {
 	// ActiveTimeSeconds The total amount of wall-clock time allowed to be spent by the project's compute endpoints.
 	ActiveTimeSeconds *int64 `json:"active_time_seconds,omitempty"`
@@ -2522,6 +2529,7 @@ type ProjectSettingsData struct {
 	// All active endpoints will be suspended.
 	// Once enabled, logical replication cannot be disabled.
 	EnableLogicalReplication *bool              `json:"enable_logical_replication,omitempty"`
+	Hipaa                    *bool              `json:"hipaa,omitempty"`
 	MaintenanceWindow        *MaintenanceWindow `json:"maintenance_window,omitempty"`
 	PreloadLibraries         *PreloadLibraries  `json:"preload_libraries,omitempty"`
 	Quota                    *ProjectQuota      `json:"quota,omitempty"`
