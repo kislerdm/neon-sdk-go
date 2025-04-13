@@ -1173,6 +1173,41 @@
                 }
             }
         },
+        "/projects/auth/user": {
+            "post": {
+                "summary": "Create new auth user",
+                "description": "Creates a new user in Neon Auth. \nThe user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned. \n",
+                "tags": [
+                    "Auth"
+                ],
+                "operationId": "createNeonAuthNewUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NeonAuthCreateNewUserRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Creates new user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NeonAuthCreateNewUserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/auth/transfer_ownership": {
             "post": {
                 "summary": "Transfer Neon-managed auth project to your own account",

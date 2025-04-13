@@ -787,6 +787,63 @@ func Test_client_CreateNeonAuthIntegration(t *testing.T) {
 	}
 }
 
+func Test_client_CreateNeonAuthNewUser(t *testing.T) {
+	deserializeResp := func(s string) NeonAuthCreateNewUserResponse {
+		var v NeonAuthCreateNewUserResponse
+		if err := json.Unmarshal([]byte(s), &v); err != nil {
+			panic(err)
+		}
+		return v
+	}
+	type args struct {
+		cfg NeonAuthCreateNewUserRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		apiKey  string
+		want    NeonAuthCreateNewUserResponse
+		wantErr bool
+	}{
+		{
+			name: "happy path",
+			args: args{
+				cfg: NeonAuthCreateNewUserRequest{},
+			},
+			apiKey:  "foo",
+			want:    deserializeResp(endpointResponseExamples["/projects/auth/user"]["POST"].Content),
+			wantErr: false,
+		},
+		{
+			name: "unhappy path",
+			args: args{
+				cfg: NeonAuthCreateNewUserRequest{},
+			},
+			apiKey:  "invalidApiKey",
+			want:    NeonAuthCreateNewUserResponse{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				c, err := NewClient(Config{tt.apiKey, NewMockHTTPClient()})
+				if err != nil {
+					panic(err)
+				}
+				got, err := c.CreateNeonAuthNewUser(tt.args.cfg)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("CreateNeonAuthNewUser() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("CreateNeonAuthNewUser() got = %v, want %v", got, tt.want)
+				}
+			},
+		)
+	}
+}
+
 func Test_client_CreateNeonAuthProviderSDKKeys(t *testing.T) {
 	deserializeResp := func(s string) NeonAuthCreateIntegrationResponse {
 		var v NeonAuthCreateIntegrationResponse

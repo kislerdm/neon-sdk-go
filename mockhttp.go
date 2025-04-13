@@ -281,6 +281,13 @@ var endpointResponseExamples = map[string]map[string]mockResponse{
 		},
 	},
 
+	"/projects/auth/user": {
+		"POST": mockResponse{
+			Content: `null`,
+			Code:    201,
+		},
+	},
+
 	"/projects/shared": {
 		"GET": mockResponse{
 			Content: `{"projects":[{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:42:25Z","creation_source":"console","id":"shiny-wind-028834","name":"shiny-wind-028834","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:42:25Z"},{"active_time":100,"branch_logical_size_limit":0,"branch_logical_size_limit_bytes":10800,"cpu_used_sec":0,"created_at":"2022-11-23T17:52:25Z","creation_source":"console","id":"winter-boat-259881","name":"winter-boat-259881","owner_id":"1232111","pg_version":15,"platform_id":"aws","provisioner":"k8s-pod","proxy_host":"us-east-2.aws.neon.tech","region_id":"aws-us-east-2","store_passwords":true,"updated_at":"2022-11-23T17:52:25Z"}]}`,
