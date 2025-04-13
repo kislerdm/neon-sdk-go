@@ -175,6 +175,16 @@ func (c Client) CreateNeonAuthIntegration(cfg NeonAuthCreateIntegrationRequest) 
 	return v, nil
 }
 
+// CreateNeonAuthNewUser Creates a new user in Neon Auth.
+// The user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned.
+func (c Client) CreateNeonAuthNewUser(cfg NeonAuthCreateNewUserRequest) (NeonAuthCreateNewUserResponse, error) {
+	var v NeonAuthCreateNewUserResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/user", "POST", cfg, &v); err != nil {
+		return NeonAuthCreateNewUserResponse{}, err
+	}
+	return v, nil
+}
+
 // CreateNeonAuthProviderSDKKeys Generates SDK or API Keys for the auth provider. These might be called different things depending
 // on the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.
 func (c Client) CreateNeonAuthProviderSDKKeys(cfg NeonAuthCreateAuthProviderSDKKeysRequest) (NeonAuthCreateIntegrationResponse, error) {
@@ -2072,6 +2082,18 @@ type NeonAuthCreateIntegrationResponse struct {
 	SchemaName            string                        `json:"schema_name"`
 	SecretServerKey       string                        `json:"secret_server_key"`
 	TableName             string                        `json:"table_name"`
+}
+
+type NeonAuthCreateNewUserRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	Email        string                        `json:"email"`
+	Name         *string                       `json:"name,omitempty"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type NeonAuthCreateNewUserResponse struct {
+	// ID of newly created user
+	ID string `json:"id"`
 }
 
 type NeonAuthIntegration struct {
