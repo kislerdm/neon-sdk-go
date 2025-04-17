@@ -1176,7 +1176,7 @@
         "/projects/auth/user": {
             "post": {
                 "summary": "Create new auth user",
-                "description": "Creates a new user in Neon Auth. \nThe user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned. \n",
+                "description": "Creates a new user in Neon Auth.\nThe user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned.\n",
                 "tags": [
                     "Auth"
                 ],
@@ -6678,7 +6678,7 @@
                         "type": "string"
                     },
                     "parent_timestamp": {
-                        "description": "The point in time on the parent branch from which this branch was created.\nWhen restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,\nthis value isn\u2019t finalized until all operations related to the restore have completed successfully.\n",
+                        "description": "The point in time on the parent branch from which this branch was created.\nWhen restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,\nthis value isn\u2019t finalized until all operations related to the restore have completed successfully.\nAfter all the operations completed, this value might stay empty.\n",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -8417,21 +8417,6 @@
                     }
                 }
             },
-            "OrganizationLimits": {
-                "type": "object",
-                "required": [
-                    "limits",
-                    "features"
-                ],
-                "properties": {
-                    "limits": {
-                        "$ref": "#/components/schemas/Limits"
-                    },
-                    "features": {
-                        "$ref": "#/components/schemas/Features"
-                    }
-                }
-            },
             "ActiveRegionsResponse": {
                 "type": "object",
                 "required": [
@@ -8816,7 +8801,7 @@
                         "minimum": 0
                     },
                     "logical_size_bytes": {
-                        "description": "Limit on the logical size of every project's branch.\n",
+                        "description": "Limit on the logical size of every project's branch.\n\nIf a branch exceeds its `logical_size_bytes` quota, computes can still be started,\nbut write operations will fail\u2014allowing data to be deleted to free up space.\nComputes on other branches are not affected.\n\nSetting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.\n",
                         "type": "integer",
                         "format": "int64",
                         "minimum": 0
