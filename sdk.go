@@ -1454,6 +1454,7 @@ type Branch struct {
 	// ParentTimestamp The point in time on the parent branch from which this branch was created.
 	// When restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,
 	// this value isn’t finalized until all operations related to the restore have completed successfully.
+	// After all the operations completed, this value might stay empty.
 	ParentTimestamp *time.Time   `json:"parent_timestamp,omitempty"`
 	PendingState    *BranchState `json:"pending_state,omitempty"`
 	// Primary DEPRECATED. Use `default` field.
@@ -2528,6 +2529,12 @@ type ProjectQuota struct {
 	// DataTransferBytes Total amount of data transferred from all of a project's branches using the proxy.
 	DataTransferBytes *int64 `json:"data_transfer_bytes,omitempty"`
 	// LogicalSizeBytes Limit on the logical size of every project's branch.
+	//
+	// If a branch exceeds its `logical_size_bytes` quota, computes can still be started,
+	// but write operations will fail—allowing data to be deleted to free up space.
+	// Computes on other branches are not affected.
+	//
+	// Setting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.
 	LogicalSizeBytes *int64 `json:"logical_size_bytes,omitempty"`
 	// WrittenDataBytes Total amount of data written to all of a project's branches.
 	WrittenDataBytes *int64 `json:"written_data_bytes,omitempty"`
