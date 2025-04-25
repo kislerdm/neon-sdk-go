@@ -6067,6 +6067,10 @@
                                     "database_name": {
                                         "description": "The database name. If not specified, the default database name, `neondb`, will be used.\n",
                                         "type": "string"
+                                    },
+                                    "annotations": {
+                                        "description": "The annotations for the branch.\n",
+                                        "$ref": "#/components/schemas/AnnotationValueData"
                                     }
                                 }
                             },
@@ -6597,6 +6601,9 @@
             "ProjectAuditLogLevel": {
                 "type": "string",
                 "enum": [
+                    "base",
+                    "extended",
+                    "full",
                     "hipaa"
                 ]
             },
@@ -9000,47 +9007,6 @@
                 "enum": [
                     "project_count"
                 ]
-            },
-            "NeonSupernovaCreatePostgRESTRequest": {
-                "description": "Create a PostgREST service for a branch",
-                "type": "object",
-                "required": [
-                    "branch_id",
-                    "database_name"
-                ],
-                "x-sensitive": [
-                    "database_name"
-                ],
-                "properties": {
-                    "branch_id": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
-                    },
-                    "database_name": {
-                        "type": "string"
-                    }
-                }
-            },
-            "NeonSupernovaCreatePostgRESTResponse": {
-                "description": "PostgREST service created successfully",
-                "type": "object",
-                "required": [
-                    "url",
-                    "postgrest_anon_role",
-                    "postgrest_user_role"
-                ],
-                "properties": {
-                    "url": {
-                        "type": "string",
-                        "format": "uri"
-                    },
-                    "postgrest_anon_role": {
-                        "type": "string"
-                    },
-                    "postgrest_user_role": {
-                        "type": "string"
-                    }
-                }
             },
             "NeonAuthSupportedAuthProvider": {
                 "type": "string",

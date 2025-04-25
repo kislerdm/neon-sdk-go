@@ -2391,7 +2391,10 @@ type Project struct {
 type ProjectAuditLogLevel string
 
 const (
-	ProjectAuditLogLevelHipaa ProjectAuditLogLevel = "hipaa"
+	ProjectAuditLogLevelBase     ProjectAuditLogLevel = "base"
+	ProjectAuditLogLevelExtended ProjectAuditLogLevel = "extended"
+	ProjectAuditLogLevelFull     ProjectAuditLogLevel = "full"
+	ProjectAuditLogLevelHipaa    ProjectAuditLogLevel = "hipaa"
 )
 
 type ProjectCreateRequest struct {
@@ -2421,6 +2424,7 @@ type ProjectCreateRequestProject struct {
 }
 
 type ProjectCreateRequestProjectBranch struct {
+	Annotations *AnnotationValueData `json:"annotations,omitempty"`
 	// DatabaseName The database name. If not specified, the default database name, `neondb`, will be used.
 	DatabaseName *string `json:"database_name,omitempty"`
 	// Name The default branch name. If not specified, the default branch name, `main`, will be used.
