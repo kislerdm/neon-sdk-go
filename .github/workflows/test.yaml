@@ -21,7 +21,7 @@ jobs:
       - name: Overwrite Go version to use http.ServerMux
         run: mv go.mod.test go.mod
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: Download dependencies

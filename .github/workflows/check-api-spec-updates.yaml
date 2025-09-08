@@ -28,7 +28,7 @@ jobs:
           else
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         if: steps.diff.outputs.isNew == 'true'
         with:
           go-version-file: generator/go.mod
