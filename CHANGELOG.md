@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.14.0] - 2025-10-13
+
+### Added
+
+- Added the following methods:
+  - `CreateNeonAuthIntegration`;
+  - `CreateNeonAuthNewUser`;
+  - `CreateNeonAuthProviderSDKKeys`;
+  - `DeleteNeonAuthDomainFromRedirectURIWhitelist`;
+  - `DeleteNeonAuthIntegration`;
+  - `DeleteNeonAuthOauthProvider`;
+  - `DeleteNeonAuthUser`
+  - `DeleteProjectBranchDataAPI`;
+  - `GetProjectBranchDataAPI`;
+  - `CreateSnapshot`;
+  - `DeleteSnapshot`;
+  - `ListSnapshots`;
+  - `RestoreSnapshot`;
+  - `UpdateSnapshot`;
+  - `FinalizeRestoreBranch`;
+  - `GetAuthDetails`;
+  - `GetAvailablePreloadLibraries`;
+  - `GetNeonAuthEmailServer`;
+  - `ListNeonAuthIntegrations`;
+  - `ListNeonAuthOauthProviders`;
+  - `ListNeonAuthRedirectURIWhitelistDomains`;
+  - `ListOrganizationVPCEndpointsAllRegions`;
+  - `RefreshSchemaCacheDataAPI`;
+  - `UpdateNeonAuthEmailServer`;
+  - `UpdateNeonAuthOauthProvider`.
+- Added the methods to manage the Org API keys.
+- Added the attribute `metrics` to specify the reports returned when calling the method `GetConsumptionHistoryPerAccount` and `GetConsumptionHistoryPerProject`.
+- Added the attribute `format` to the method `GetProjectBranchSchema`.
+
 ## [v0.13.0] - 2025-02-19
 
 ### Added

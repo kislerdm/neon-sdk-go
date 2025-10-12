@@ -104,11 +104,31 @@ func (c Client) requestHandler(url string, t string, reqPayload interface{}, res
 	return nil
 }
 
+// AcceptProjectTransferRequest Accepts a transfer request for the specified project, transferring it to the specified organization
+// or user. If org_id is not passed, the project will be transferred to the current user or organization account.
+func (c Client) AcceptProjectTransferRequest(projectID string, requestID string, cfg *AcceptProjectTransferRequestReqObj) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/transfer_requests/"+requestID, "PUT", cfg, nil)
+}
+
+// AddNeonAuthDomainToRedirectURIWhitelist Adds a domain to the redirect_uri whitelist for the specified project.
+func (c Client) AddNeonAuthDomainToRedirectURIWhitelist(projectID string, cfg NeonAuthAddDomainToRedirectURIWhitelistRequest) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "POST", cfg, nil)
+}
+
+// AddNeonAuthOauthProvider Adds a OAuth provider to the specified project.
+func (c Client) AddNeonAuthOauthProvider(projectID string, cfg NeonAuthAddOAuthProviderRequest) (NeonAuthOauthProvider, error) {
+	var v NeonAuthOauthProvider
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers", "POST", cfg, &v); err != nil {
+		return NeonAuthOauthProvider{}, err
+	}
+	return v, nil
+}
+
 // AddProjectJWKS Add a new JWKS URL to a project, such that it can be used for verifying JWTs used as the authentication mechanism for the specified project.
 // The URL must be a valid HTTPS URL that returns a JSON Web Key Set.
 // The `provider_name` field allows you to specify which authentication provider you're using (e.g., Clerk, Auth0, AWS Cognito, etc.).
 // The `branch_id` can be used to specify on which branches the JWKS URL will be accepted. If not specified, then it will work on any branch.
-// The `role_names` can be used to specify for which roles the JWKS URL will be accepted.
+// The `role_names` can be used to specify for which roles the JWKS URL will be accepted. If not specified, then default roles will be used (authenticator, authenticated and anonymous).
 // The `jwt_audience` can be used to specify which "aud" values should be accepted by Neon in the JWTs that are used for authentication.
 func (c Client) AddProjectJWKS(projectID string, cfg AddProjectJWKSRequest) (JWKSCreationOperation, error) {
 	var v JWKSCreationOperation
@@ -165,6 +185,36 @@ func (c Client) CreateApiKey(cfg ApiKeyCreateRequest) (ApiKeyCreateResponse, err
 	return v, nil
 }
 
+// CreateNeonAuthIntegration Creates a project on a third-party authentication provider's platform for use with Neon Auth.
+// Use this endpoint if the frontend integration flow can't be used.
+func (c Client) CreateNeonAuthIntegration(cfg NeonAuthCreateIntegrationRequest) (NeonAuthCreateIntegrationResponse, error) {
+	var v NeonAuthCreateIntegrationResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/create", "POST", cfg, &v); err != nil {
+		return NeonAuthCreateIntegrationResponse{}, err
+	}
+	return v, nil
+}
+
+// CreateNeonAuthNewUser Creates a new user in Neon Auth.
+// The user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned.
+func (c Client) CreateNeonAuthNewUser(cfg NeonAuthCreateNewUserRequest) (NeonAuthCreateNewUserResponse, error) {
+	var v NeonAuthCreateNewUserResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/user", "POST", cfg, &v); err != nil {
+		return NeonAuthCreateNewUserResponse{}, err
+	}
+	return v, nil
+}
+
+// CreateNeonAuthProviderSDKKeys Generates SDK or API Keys for the auth provider. These might be called different things depending
+// on the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.
+func (c Client) CreateNeonAuthProviderSDKKeys(cfg NeonAuthCreateAuthProviderSDKKeysRequest) (NeonAuthCreateIntegrationResponse, error) {
+	var v NeonAuthCreateIntegrationResponse
+	if err := c.requestHandler(c.baseURL+"/projects/auth/keys", "POST", cfg, &v); err != nil {
+		return NeonAuthCreateIntegrationResponse{}, err
+	}
+	return v, nil
+}
+
 // CreateOrgApiKey Creates an API key for the specified organization.
 // The `key_name` is a user-specified name for the key.
 // This method returns an `id` and `key`. The `key` is a randomly generated, 64-bit token required to access the Neon API.
@@ -190,8 +240,8 @@ func (c Client) CreateOrganizationInvitations(orgID string, cfg OrganizationInvi
 	return v, nil
 }
 
-// CreateProject Creates a Neon project.
-// A project is the top-level object in the Neon object hierarchy.
+// CreateProject Creates a Neon project within an organization.
+// You may need to specify an org_id parameter depending on your API key type.
 // Plan limits define how many projects you can create.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 // You can specify a region and Postgres version in the request body.
@@ -208,14 +258,24 @@ func (c Client) CreateProject(cfg ProjectCreateRequest) (CreatedProject, error) 
 // CreateProjectBranch Creates a branch in the specified project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // This method does not require a request body, but you can specify one to create a compute endpoint for the branch or to select a non-default parent branch.
-// The default behavior is to create a branch from the project's default branch with no compute endpoint, and the branch name is auto-generated.
-// There is a maximum of one read-write endpoint per branch.
-// A branch can have multiple read-only endpoints.
+// By default, the branch is created from the project's default branch with no compute endpoint, and the branch name is auto-generated.
+// To access the branch, you must add an endpoint object. A `read_write` endpoint allows you to perform read and write operations on the branch.
+// Each branch supports one read-write endpoint and multiple read-only endpoints.
 // For related information, see [Manage branches](https://neon.tech/docs/manage/branches/).
 func (c Client) CreateProjectBranch(projectID string, cfg *CreateProjectBranchReqObj) (CreatedBranch, error) {
 	var v CreatedBranch
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches", "POST", cfg, &v); err != nil {
 		return CreatedBranch{}, err
+	}
+	return v, nil
+}
+
+// CreateProjectBranchDataAPI Creates a new instance of Neon Data API in the specified branch.
+// You can obtain the `project_id` and `branch_id` by listing the projects and branches for your Neon account.
+func (c Client) CreateProjectBranchDataAPI(projectID string, branchID string, databaseName string, cfg *DataAPICreateRequest) (DataAPICreateResponse, error) {
+	var v DataAPICreateResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/data-api/"+databaseName, "POST", cfg, &v); err != nil {
+		return DataAPICreateResponse{}, err
 	}
 	return v, nil
 }
@@ -265,27 +325,75 @@ func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReques
 	return v, nil
 }
 
-// CreateProjectIdentityAuthProviderSDKKeys Generates SDK or API Keys for the auth provider. These might be called different things depending
-// on the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.
-func (c Client) CreateProjectIdentityAuthProviderSDKKeys(cfg IdentityCreateAuthProviderSDKKeysRequest) (IdentityCreateIntegrationResponse, error) {
-	var v IdentityCreateIntegrationResponse
-	if err := c.requestHandler(c.baseURL+"/projects/auth/keys", "POST", cfg, &v); err != nil {
-		return IdentityCreateIntegrationResponse{}, err
+// CreateProjectTransferRequest Creates a transfer request for the specified project. A transfer request allows
+// the project to be transferred to another account or organization. The request
+// has an expiration time after which it can no longer be used. To accept/claim
+// the transfer request, the recipient user/organization must call the
+// `/projects/{project_id}/transfer_requests/{request_id}` API endpoint, or visit
+// `https://console.neon.tech/app/claim?p={project_id}&tr={request_id}&ru={redirect_url}`
+// in the Neon Console. The `ru` parameter is optional and can be used to redirect
+// the user after accepting the transfer request. This feature is currently in
+// private preview. Get in touch with us to get access.
+func (c Client) CreateProjectTransferRequest(projectID string, cfg *CreateProjectTransferRequestReqObj) (ProjectTransferRequestResponse, error) {
+	var v ProjectTransferRequestResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/transfer_requests", "POST", cfg, &v); err != nil {
+		return ProjectTransferRequestResponse{}, err
 	}
 	return v, nil
 }
 
-// CreateProjectIdentityIntegration Creates a project on a third-party authentication provider's platform for use with Neon Auth.
-// Use this endpoint if the frontend integration flow can't be used.
-func (c Client) CreateProjectIdentityIntegration(cfg IdentityCreateIntegrationRequest) (IdentityCreateIntegrationResponse, error) {
-	var v IdentityCreateIntegrationResponse
-	if err := c.requestHandler(c.baseURL+"/projects/auth/create", "POST", cfg, &v); err != nil {
-		return IdentityCreateIntegrationResponse{}, err
+// CreateSnapshot Create a snapshot from the specified branch using the provided parameters.
+// This endpoint may initiate an asynchronous operation.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) CreateSnapshot(projectID string, branchID string, lsn *string, timestamp *string, name *string, expiresAt *string) (CreateSnapshotRespObj, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if lsn != nil {
+		queryElements = append(queryElements, "lsn="+*lsn)
+	}
+	if timestamp != nil {
+		queryElements = append(queryElements, "timestamp="+*timestamp)
+	}
+	if name != nil {
+		queryElements = append(queryElements, "name="+*name)
+	}
+	if expiresAt != nil {
+		queryElements = append(queryElements, "expires_at="+*expiresAt)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v CreateSnapshotRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/snapshot"+query, "POST", nil, &v); err != nil {
+		return CreateSnapshotRespObj{}, err
 	}
 	return v, nil
+}
+
+// DeleteNeonAuthDomainFromRedirectURIWhitelist Deletes a domain from the redirect_uri whitelist for the specified project.
+func (c Client) DeleteNeonAuthDomainFromRedirectURIWhitelist(projectID string, cfg NeonAuthDeleteDomainFromRedirectURIWhitelistRequest) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "DELETE", cfg, nil)
+}
+
+func (c Client) DeleteNeonAuthIntegration(projectID string, authProvider NeonAuthSupportedAuthProvider, cfg *DeleteNeonAuthIntegrationReqObj) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integration/"+string(authProvider), "DELETE", cfg, nil)
+}
+
+// DeleteNeonAuthOauthProvider Deletes a OAuth provider from the specified project.
+func (c Client) DeleteNeonAuthOauthProvider(projectID string, oauthProviderID NeonAuthOauthProviderId) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers/"+string(oauthProviderID), "DELETE", nil, nil)
+}
+
+// DeleteNeonAuthUser Deletes the auth user for the specified project.
+func (c Client) DeleteNeonAuthUser(projectID string, authUserID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/users/"+authUserID, "DELETE", nil, nil)
 }
 
 // DeleteOrganizationVPCEndpoint Deletes the VPC endpoint from the specified Neon organization.
+// If you delete a VPC endpoint from a Neon organization, that VPC endpoint cannot
+// be added back to the Neon organization.
 func (c Client) DeleteOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string) error {
 	return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
 }
@@ -316,6 +424,16 @@ func (c Client) DeleteProjectBranch(projectID string, branchID string) (BranchOp
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "DELETE", nil, &v); err != nil {
 		return BranchOperations{}, err
+	}
+	return v, nil
+}
+
+// DeleteProjectBranchDataAPI Deletes the Neon Data API for the specified branch.
+// You can obtain the `project_id` and `branch_id` by listing the projects and branches for your Neon account.
+func (c Client) DeleteProjectBranchDataAPI(projectID string, branchID string, databaseName string) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/data-api/"+databaseName, "DELETE", nil, &v); err != nil {
+		return EmptyResponse{}, err
 	}
 	return v, nil
 }
@@ -361,10 +479,6 @@ func (c Client) DeleteProjectEndpoint(projectID string, endpointID string) (Endp
 	return v, nil
 }
 
-func (c Client) DeleteProjectIdentityIntegration(projectID string, authProvider IdentitySupportedAuthProvider) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integration/"+string(authProvider), "DELETE", nil, nil)
-}
-
 // DeleteProjectJWKS Deletes a JWKS URL from the specified project
 func (c Client) DeleteProjectJWKS(projectID string, jwksID string) (JWKS, error) {
 	var v JWKS
@@ -379,11 +493,51 @@ func (c Client) DeleteProjectVPCEndpoint(projectID string, vpcEndpointID string)
 	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/vpc_endpoints/"+vpcEndpointID, "DELETE", nil, nil)
 }
 
+// DeleteSnapshot Delete the specified snapshot.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) DeleteSnapshot(projectID string, snapshotID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID, "DELETE", nil, nil)
+}
+
+// FinalizeRestoreBranch Finalize the restore operation for a branch created from a snapshot.
+// This operation updates the branch so it functions as the original branch it replaced.
+// This includes:
+// - Reassigning any computes from the original branch to the restored branch (this will restart the computes)
+// - Renaming the restored branch to the original branch's name
+// - Renaming the original branch so it no longer uses the original name
+// This operation only applies to branches created using the `restoreSnapshot` endpoint with `finalize_restore: false`.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) FinalizeRestoreBranch(projectID string, branchID string, cfg *FinalizeRestoreBranchReqObj) (OperationsResponse, error) {
+	var v OperationsResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/finalize_restore", "POST", cfg, &v); err != nil {
+		return OperationsResponse{}, err
+	}
+	return v, nil
+}
+
 // GetActiveRegions Lists supported Neon regions
 func (c Client) GetActiveRegions() (ActiveRegionsResponse, error) {
 	var v ActiveRegionsResponse
 	if err := c.requestHandler(c.baseURL+"/regions", "GET", nil, &v); err != nil {
 		return ActiveRegionsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetAuthDetails Returns auth information about the passed credentials. It can refer to an API key, Bearer token or OAuth session.
+func (c Client) GetAuthDetails() (AuthDetailsResponse, error) {
+	var v AuthDetailsResponse
+	if err := c.requestHandler(c.baseURL+"/auth", "GET", nil, &v); err != nil {
+		return AuthDetailsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetAvailablePreloadLibraries Return available shared preload libraries
+func (c Client) GetAvailablePreloadLibraries(projectID string) (AvailablePreloadLibraries, error) {
+	var v AvailablePreloadLibraries
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/available_preload_libraries", "GET", nil, &v); err != nil {
+		return AvailablePreloadLibraries{}, err
 	}
 	return v, nil
 }
@@ -424,7 +578,15 @@ func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID 
 }
 
 // GetConsumptionHistoryPerAccount Retrieves consumption metrics for Scale, Business, and Enterprise plan accounts. History begins at the time of upgrade.
-func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (ConsumptionHistoryPerAccountResponse, error) {
+// metrics argument defined a list of metrics to include in the response.
+// If omitted, active_time, compute_time, written_data, synthetic_storage_size are returned.
+// Possible values:
+// - `active_time_seconds`
+// - `compute_time_seconds`
+// - `written_data_bytes`
+// - `synthetic_storage_size_bytes`
+// - `data_storage_bytes_hour`
+func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool, metrics []string) (ConsumptionHistoryPerAccountResponse, error) {
 	var (
 		queryElements []string
 		query         string
@@ -443,6 +605,9 @@ func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, gr
 			return "false"
 		}(*includeV1Metrics))
 	}
+	if len(metrics) > 0 {
+		queryElements = append(queryElements, "metrics="+strings.Join(metrics, ","))
+	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
 	}
@@ -455,7 +620,15 @@ func (c Client) GetConsumptionHistoryPerAccount(from time.Time, to time.Time, gr
 
 // GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale, Business, and Enterprise plan projects. History begins at the time of upgrade.
 // Issuing a call to this API does not wake a project's compute endpoint.
-func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool) (GetConsumptionHistoryPerProjectRespObj, error) {
+// metrics argument defined a list of metrics to include in the response.
+// If omitted, active_time, compute_time, written_data, synthetic_storage_size are returned.
+// Possible values:
+// - `active_time_seconds`
+// - `compute_time_seconds`
+// - `written_data_bytes`
+// - `synthetic_storage_size_bytes`
+// - `data_storage_bytes_hour`
+func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool, metrics []string) (GetConsumptionHistoryPerProjectRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -483,6 +656,9 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *int, proj
 			return "false"
 		}(*includeV1Metrics))
 	}
+	if len(metrics) > 0 {
+		queryElements = append(queryElements, "metrics="+strings.Join(metrics, ","))
+	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
 	}
@@ -507,6 +683,15 @@ func (c Client) GetCurrentUserOrganizations() (OrganizationsResponse, error) {
 	var v OrganizationsResponse
 	if err := c.requestHandler(c.baseURL+"/users/me/organizations", "GET", nil, &v); err != nil {
 		return OrganizationsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetNeonAuthEmailServer Gets the email server configuration for the specified project.
+func (c Client) GetNeonAuthEmailServer(projectID string) (NeonAuthEmailServerConfig, error) {
+	var v NeonAuthEmailServerConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/email_server", "GET", nil, &v); err != nil {
+		return NeonAuthEmailServerConfig{}, err
 	}
 	return v, nil
 }
@@ -557,8 +742,7 @@ func (c Client) GetOrganizationVPCEndpointDetails(orgID string, regionID string,
 }
 
 // GetProject Retrieves information about the specified project.
-// A project is the top-level object in the Neon object hierarchy.
-// You can obtain a `project_id` by listing the projects for your Neon account.
+// You can obtain a `project_id` by listing the projects for an organization.
 func (c Client) GetProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
@@ -579,6 +763,15 @@ func (c Client) GetProjectBranch(projectID string, branchID string) (GetProjectB
 	var v GetProjectBranchRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
 		return GetProjectBranchRespObj{}, err
+	}
+	return v, nil
+}
+
+// GetProjectBranchDataAPI Retrieves the Neon Data API for the specified branch.
+func (c Client) GetProjectBranchDataAPI(projectID string, branchID string, databaseName string) (DataAPIReponse, error) {
+	var v DataAPIReponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/data-api/"+databaseName, "GET", nil, &v); err != nil {
+		return DataAPIReponse{}, err
 	}
 	return v, nil
 }
@@ -623,7 +816,7 @@ func (c Client) GetProjectBranchRolePassword(projectID string, branchID string, 
 }
 
 // GetProjectBranchSchema Retrieves the schema from the specified database. The `lsn` and `timestamp` values cannot be specified at the same time. If both are omitted, the database schema is retrieved from database's head.
-func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName string, lsn *string, timestamp *time.Time) (BranchSchemaResponse, error) {
+func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName string, lsn *string, timestamp *time.Time, format *string) (BranchSchemaResponse, error) {
 	var (
 		queryElements []string
 		query         string
@@ -634,6 +827,9 @@ func (c Client) GetProjectBranchSchema(projectID string, branchID string, dbName
 	}
 	if timestamp != nil {
 		queryElements = append(queryElements, "timestamp="+timestamp.Format(time.RFC3339))
+	}
+	if format != nil {
+		queryElements = append(queryElements, "format="+*format)
 	}
 	if len(queryElements) > 0 {
 		query = "?" + strings.Join(queryElements, "&")
@@ -733,6 +929,32 @@ func (c Client) ListApiKeys() ([]ApiKeysListResponseItem, error) {
 	return v, nil
 }
 
+func (c Client) ListNeonAuthIntegrations(projectID string) (ListNeonAuthIntegrationsResponse, error) {
+	var v ListNeonAuthIntegrationsResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integrations", "GET", nil, &v); err != nil {
+		return ListNeonAuthIntegrationsResponse{}, err
+	}
+	return v, nil
+}
+
+// ListNeonAuthOauthProviders Lists the OAuth providers for the specified project.
+func (c Client) ListNeonAuthOauthProviders(projectID string) (ListNeonAuthOauthProvidersResponse, error) {
+	var v ListNeonAuthOauthProvidersResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers", "GET", nil, &v); err != nil {
+		return ListNeonAuthOauthProvidersResponse{}, err
+	}
+	return v, nil
+}
+
+// ListNeonAuthRedirectURIWhitelistDomains Lists the domains in the redirect_uri whitelist for the specified project.
+func (c Client) ListNeonAuthRedirectURIWhitelistDomains(projectID string) (NeonAuthRedirectURIWhitelistResponse, error) {
+	var v NeonAuthRedirectURIWhitelistResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "GET", nil, &v); err != nil {
+		return NeonAuthRedirectURIWhitelistResponse{}, err
+	}
+	return v, nil
+}
+
 // ListOrgApiKeys Retrieves the API keys for the specified organization.
 // The response does not include API key tokens. A token is only provided when creating an API key.
 // API keys can also be managed in the Neon Console.
@@ -750,6 +972,15 @@ func (c Client) ListOrganizationVPCEndpoints(orgID string, regionID string) (VPC
 	var v VPCEndpointsResponse
 	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints", "GET", nil, &v); err != nil {
 		return VPCEndpointsResponse{}, err
+	}
+	return v, nil
+}
+
+// ListOrganizationVPCEndpointsAllRegions Retrieves the list of VPC endpoints for the specified Neon organization across all regions.
+func (c Client) ListOrganizationVPCEndpointsAllRegions(orgID string) (VPCEndpointsWithRegionResponse, error) {
+	var v VPCEndpointsWithRegionResponse
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/vpc_endpoints", "GET", nil, &v); err != nil {
+		return VPCEndpointsWithRegionResponse{}, err
 	}
 	return v, nil
 }
@@ -841,19 +1072,13 @@ func (c Client) ListProjectEndpoints(projectID string) (EndpointsResponse, error
 	return v, nil
 }
 
-func (c Client) ListProjectIdentityIntegrations(projectID string) (ListProjectIdentityIntegrationsResponse, error) {
-	var v ListProjectIdentityIntegrationsResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integrations", "GET", nil, &v); err != nil {
-		return ListProjectIdentityIntegrationsResponse{}, err
-	}
-	return v, nil
-}
-
 // ListProjectOperations Retrieves a list of operations for the specified Neon project.
 // You can obtain a `project_id` by listing the projects for your Neon account.
 // The number of operations returned can be large.
 // To paginate the response, issue an initial request with a `limit` value.
 // Then, add the `cursor` value that was returned in the response to the next request.
+// Operations older than 6 months may be deleted from our systems.
+// If you need more history than that, you should store your own history.
 func (c Client) ListProjectOperations(projectID string, cursor *string, limit *int) (ListOperations, error) {
 	var (
 		queryElements []string
@@ -893,8 +1118,8 @@ func (c Client) ListProjectVPCEndpoints(projectID string) (VPCEndpointsResponse,
 	return v, nil
 }
 
-// ListProjects Retrieves a list of projects for the Neon account.
-// A project is the top-level object in the Neon object hierarchy.
+// ListProjects Retrieves a list of projects for an organization.
+// You may need to specify an org_id parameter depending on your API key type.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *string, timeout *int) (ListProjectsRespObj, error) {
 	var (
@@ -926,8 +1151,7 @@ func (c Client) ListProjects(cursor *string, limit *int, search *string, orgID *
 	return v, nil
 }
 
-// ListSharedProjects Retrieves a list of shared projects for the Neon account.
-// A project is the top-level object in the Neon object hierarchy.
+// ListSharedProjects Retrieves a list of projects shared with your Neon account.
 // For more information, see [Manage projects](https://neon.tech/docs/manage/projects/).
 func (c Client) ListSharedProjects(cursor *string, limit *int, search *string, timeout *int) (ListSharedProjectsRespObj, error) {
 	var (
@@ -952,6 +1176,26 @@ func (c Client) ListSharedProjects(cursor *string, limit *int, search *string, t
 	var v ListSharedProjectsRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/shared"+query, "GET", nil, &v); err != nil {
 		return ListSharedProjectsRespObj{}, err
+	}
+	return v, nil
+}
+
+// ListSnapshots List the snapshots for the specified project.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) ListSnapshots(projectID string) (ListSnapshotsRespObj, error) {
+	var v ListSnapshotsRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots", "GET", nil, &v); err != nil {
+		return ListSnapshotsRespObj{}, err
+	}
+	return v, nil
+}
+
+// RefreshSchemaCacheDataAPI Refreshes the schema cache for the Neon Data API in the specified branch.
+// You can obtain the `project_id` and `branch_id` by listing the projects and branches for your Neon account.
+func (c Client) RefreshSchemaCacheDataAPI(projectID string, branchID string, databaseName string) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/data-api/"+databaseName, "PATCH", nil, &v); err != nil {
+		return EmptyResponse{}, err
 	}
 	return v, nil
 }
@@ -1002,6 +1246,26 @@ func (c Client) RestoreProjectBranch(projectID string, branchID string, cfg Bran
 	var v BranchOperations
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/restore", "POST", cfg, &v); err != nil {
 		return BranchOperations{}, err
+	}
+	return v, nil
+}
+
+// RestoreSnapshot Restore the specified snapshot to a new branch and optionally finalize the restore operation.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) RestoreSnapshot(projectID string, snapshotID string, name *string, cfg *RestoreSnapshotReqObj) (RestoredSnapshot, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if name != nil {
+		queryElements = append(queryElements, "name="+*name)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v RestoredSnapshot
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID+"/restore"+query, "POST", cfg, &v); err != nil {
+		return RestoredSnapshot{}, err
 	}
 	return v, nil
 }
@@ -1083,19 +1347,19 @@ func (c Client) SuspendProjectEndpoint(projectID string, endpointID string) (End
 	return v, nil
 }
 
-// TransferProjectIdentityAuthProviderProject Transfer ownership of your Neon-managed auth project to your own auth provider account.
-func (c Client) TransferProjectIdentityAuthProviderProject(cfg IdentityTransferAuthProviderProjectRequest) (IdentityTransferAuthProviderProjectResponse, error) {
-	var v IdentityTransferAuthProviderProjectResponse
+// TransferNeonAuthProviderProject Transfer ownership of your Neon-managed auth project to your own auth provider account.
+func (c Client) TransferNeonAuthProviderProject(cfg NeonAuthTransferAuthProviderProjectRequest) (NeonAuthTransferAuthProviderProjectResponse, error) {
+	var v NeonAuthTransferAuthProviderProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/auth/transfer_ownership", "POST", cfg, &v); err != nil {
-		return IdentityTransferAuthProviderProjectResponse{}, err
+		return NeonAuthTransferAuthProviderProjectResponse{}, err
 	}
 	return v, nil
 }
 
 // TransferProjectsFromOrgToOrg Transfers selected projects, identified by their IDs, from your organization to another specified organization.
-func (c Client) TransferProjectsFromOrgToOrg(orgID string, cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
+func (c Client) TransferProjectsFromOrgToOrg(sourceOrgID string, cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
 	var v EmptyResponse
-	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/projects/transfer", "POST", cfg, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"/organizations/"+sourceOrgID+"/projects/transfer", "POST", cfg, &v); err != nil {
 		return EmptyResponse{}, err
 	}
 	return v, nil
@@ -1106,6 +1370,24 @@ func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganization
 	var v EmptyResponse
 	if err := c.requestHandler(c.baseURL+"/users/me/projects/transfer", "POST", cfg, &v); err != nil {
 		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthEmailServer Updates the email server configuration for the specified project.
+func (c Client) UpdateNeonAuthEmailServer(projectID string, cfg NeonAuthEmailServerConfig) (NeonAuthEmailServerConfig, error) {
+	var v NeonAuthEmailServerConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/email_server", "PATCH", cfg, &v); err != nil {
+		return NeonAuthEmailServerConfig{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthOauthProvider Updates a OAuth provider for the specified project.
+func (c Client) UpdateNeonAuthOauthProvider(projectID string, oauthProviderID NeonAuthOauthProviderId, cfg NeonAuthUpdateOAuthProviderRequest) (NeonAuthOauthProvider, error) {
+	var v NeonAuthOauthProvider
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers/"+string(oauthProviderID), "PATCH", cfg, &v); err != nil {
+		return NeonAuthOauthProvider{}, err
 	}
 	return v, nil
 }
@@ -1170,6 +1452,20 @@ func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg E
 	return v, nil
 }
 
+// UpdateSnapshot Update the specified snapshot.
+// **Note**: This endpoint is currently in Beta.
+func (c Client) UpdateSnapshot(projectID string, snapshotID string, cfg SnapshotUpdateRequest) (UpdateSnapshotRespObj, error) {
+	var v UpdateSnapshotRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID, "PATCH", cfg, &v); err != nil {
+		return UpdateSnapshotRespObj{}, err
+	}
+	return v, nil
+}
+
+type AcceptProjectTransferRequestReqObj struct {
+	OrgID *string `json:"org_id,omitempty"`
+}
+
 type ActiveRegionsResponse struct {
 	// Regions The list of active regions
 	Regions []RegionResponse `json:"regions"`
@@ -1185,8 +1481,8 @@ type AddProjectJWKSRequest struct {
 	JwtAudience *string `json:"jwt_audience,omitempty"`
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
-	// RoleNames The roles the JWKS should be mapped to
-	RoleNames []string `json:"role_names"`
+	// RoleNames DEPRECATED. This field should only be used when using Neon RLS. The roles the JWKS should be mapped to. By default, the JWKS is mapped to the `authenticator`, `authenticated` and `anonymous` roles.
+	RoleNames *[]string `json:"role_names,omitempty"`
 }
 
 // AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
@@ -1220,13 +1516,13 @@ type AnnotationResponse struct {
 }
 
 // AnnotationValueData Annotation properties.
-type AnnotationValueData map[string]interface{}
+type AnnotationValueData struct{}
 
 type AnnotationsMapResponse struct {
 	Annotations AnnotationsMapResponseAnnotations `json:"annotations"`
 }
 
-type AnnotationsMapResponseAnnotations map[string]interface{}
+type AnnotationsMapResponseAnnotations struct{}
 
 type ApiKeyCreateRequest struct {
 	// KeyName A user-specified API key name. This value is required when creating an API key.
@@ -1287,6 +1583,24 @@ type ApiKeysListResponseItem struct {
 	Name string `json:"name"`
 }
 
+type AuthDetailsResponse struct {
+	AccountID  string  `json:"account_id"`
+	AuthData   *string `json:"auth_data,omitempty"`
+	AuthMethod string  `json:"auth_method"`
+}
+
+type AvailablePreloadLibraries struct {
+	Libraries *[]AvailablePreloadLibrary `json:"libraries,omitempty"`
+}
+
+type AvailablePreloadLibrary struct {
+	Description    string `json:"description"`
+	IsDefault      bool   `json:"is_default"`
+	IsExperimental bool   `json:"is_experimental"`
+	LibraryName    string `json:"library_name"`
+	Version        string `json:"version"`
+}
+
 type BillingAccount struct {
 	// AddressCity Billing address city.
 	AddressCity string `json:"address_city"`
@@ -1310,6 +1624,7 @@ type BillingAccount struct {
 	OrbPortalURL  *string              `json:"orb_portal_url,omitempty"`
 	PaymentMethod BillingPaymentMethod `json:"payment_method"`
 	PaymentSource PaymentSource        `json:"payment_source"`
+	PlanDetails   *PlanDetails         `json:"plan_details,omitempty"`
 	// QuotaResetAtLast The last time the quota was reset. Defaults to the date-time the account is created.
 	QuotaResetAtLast time.Time               `json:"quota_reset_at_last"`
 	State            BillingAccountState     `json:"state"`
@@ -1356,9 +1671,13 @@ const (
 	BillingSubscriptionTypeAwsMarketplace BillingSubscriptionType = "aws_marketplace"
 	BillingSubscriptionTypeBusiness       BillingSubscriptionType = "business"
 	BillingSubscriptionTypeDirectSales    BillingSubscriptionType = "direct_sales"
+	BillingSubscriptionTypeDirectSalesV3  BillingSubscriptionType = "direct_sales_v3"
 	BillingSubscriptionTypeFreeV2         BillingSubscriptionType = "free_v2"
+	BillingSubscriptionTypeFreeV3         BillingSubscriptionType = "free_v3"
 	BillingSubscriptionTypeLaunch         BillingSubscriptionType = "launch"
+	BillingSubscriptionTypeLaunchV3       BillingSubscriptionType = "launch_v3"
 	BillingSubscriptionTypeScale          BillingSubscriptionType = "scale"
+	BillingSubscriptionTypeScaleV3        BillingSubscriptionType = "scale_v3"
 	BillingSubscriptionTypeVercelPgLegacy BillingSubscriptionType = "vercel_pg_legacy"
 )
 
@@ -1380,8 +1699,16 @@ type Branch struct {
 	DataTransferBytes int64       `json:"data_transfer_bytes"`
 	// Default Whether the branch is the project's default branch
 	Default bool `json:"default"`
+	// ExpiresAt The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time.
+	//
+	// Access to this feature is currently limited to participants in the Early Access Program.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// ID The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.
 	ID string `json:"id"`
+	// InitSource The source of initialization for the branch. Valid values are `schema-only` and `parent-data` (default).
+	//   * `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
+	//   * `parent-data` - creates the branch with both schema and data from the parent.
+	InitSource *string `json:"init_source,omitempty"`
 	// LastResetAt A timestamp indicating when the branch was last reset
 	LastResetAt *time.Time `json:"last_reset_at,omitempty"`
 	// LogicalSize The logical size of the branch, in bytes
@@ -1390,9 +1717,14 @@ type Branch struct {
 	Name string `json:"name"`
 	// ParentID The `branch_id` of the parent branch
 	ParentID *string `json:"parent_id,omitempty"`
-	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created
+	// ParentLsn The Log Sequence Number (LSN) on the parent branch from which this branch was created.
+	// When restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,
+	// this value isn’t finalized until all operations related to the restore have completed successfully.
 	ParentLsn *string `json:"parent_lsn,omitempty"`
-	// ParentTimestamp The point in time on the parent branch from which this branch was created
+	// ParentTimestamp The point in time on the parent branch from which this branch was created.
+	// When restoring a branch using the [Restore branch](https://api-docs.neon.tech/reference/restoreprojectbranch) endpoint,
+	// this value isn’t finalized until all operations related to the restore have completed successfully.
+	// After all the operations completed, this value might stay empty.
 	ParentTimestamp *time.Time   `json:"parent_timestamp,omitempty"`
 	PendingState    *BranchState `json:"pending_state,omitempty"`
 	// Primary DEPRECATED. Use `default` field.
@@ -1401,9 +1733,18 @@ type Branch struct {
 	// ProjectID The ID of the project to which the branch belongs
 	ProjectID string `json:"project_id"`
 	// Protected Whether the branch is protected
-	Protected bool `json:"protected"`
+	Protected     bool                 `json:"protected"`
+	RestoreStatus *BranchRestoreStatus `json:"restore_status,omitempty"`
+	// RestoredAs ID of the target branch which was replaced when this branch was restored
+	RestoredAs *string `json:"restored_as,omitempty"`
+	// RestoredFrom ID of the snapshot that was the restore source for this branch
+	RestoredFrom *string `json:"restored_from,omitempty"`
 	// StateChangedAt A UTC timestamp indicating when the `current_state` began
 	StateChangedAt time.Time `json:"state_changed_at"`
+	// TtlIntervalSeconds The time-to-live (TTL) duration originally configured for the branch, in seconds. This read-only value represents the interval between the time `expires_at` was set and the expiration timestamp itself. It is preserved to ensure the same TTL duration is reapplied when resetting the branch from its parent, and only updates when a new `expires_at` value is set.
+	//
+	// Access to this feature is currently limited to participants in the Early Access Program.
+	TtlIntervalSeconds *int `json:"ttl_interval_seconds,omitempty"`
 	// UpdatedAt A timestamp indicating when the branch was last updated
 	UpdatedAt        time.Time `json:"updated_at"`
 	WrittenDataBytes int64     `json:"written_data_bytes"`
@@ -1417,9 +1758,13 @@ type BranchCreateRequest struct {
 type BranchCreateRequestBranch struct {
 	// Archived Whether to create the branch as archived
 	Archived *bool `json:"archived,omitempty"`
+	// ExpiresAt The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time.
+	//
+	// Access to this feature is currently limited to participants in the Early Access Program.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// InitSource The source of initialization for the branch. Valid values are `schema-only` and `parent-data` (default).
-	//   - `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
-	//   - `parent-data` - creates the branch with both schema and data from the parent.
+	//   * `schema-only` - creates a new root branch containing only the schema. Use `parent_id` to specify the source branch. Optionally, you can provide `parent_lsn` or `parent_timestamp` to branch from a specific point in time or LSN. These fields define which branch to copy the schema from and at what point—they do not establish a parent-child relationship between the `parent_id` branch and the new schema-only branch.
+	//   * `parent-data` - creates the branch with both schema and data from the parent.
 	InitSource *string `json:"init_source,omitempty"`
 	// Name The branch name
 	Name *string `json:"name,omitempty"`
@@ -1438,6 +1783,7 @@ type BranchCreateRequestEndpointOptions struct {
 	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
 	Provisioner           *Provisioner           `json:"provisioner,omitempty"`
+	Settings              *EndpointSettingsData  `json:"settings,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 	Type                  EndpointType           `json:"type"`
 }
@@ -1474,16 +1820,38 @@ type BranchRestoreRequest struct {
 	SourceTimestamp *time.Time `json:"source_timestamp,omitempty"`
 }
 
+// BranchRestoreStatus Could be `restored`, `finalized` or `detaching`.
+// A `restored` branch becomes permanently `finalized` when you call `finalizeRestoreBranch`
+// A `restored` or `finalized` branch may begin `detaching` as a one-time performance optimisation, after which it will continue in its original state
+type BranchRestoreStatus string
+
 type BranchSchemaCompareResponse struct {
 	Diff *string `json:"diff,omitempty"`
 }
 
+type BranchSchemaJSONTableColumn struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type BranchSchemaJSONTable struct {
+	Schema  string                        `json:"schema"`
+	Name    string                        `json:"name"`
+	Columns []BranchSchemaJSONTableColumn `json:"columns"`
+}
+
+type BranchSchemaJSON struct {
+	Tables []BranchSchemaJSONTable `json:"tables"`
+}
+
 type BranchSchemaResponse struct {
-	Sql *string `json:"sql,omitempty"`
+	Json *BranchSchemaJSON `json:"json,omitempty"`
+	Sql  *string           `json:"sql,omitempty"`
 }
 
 // BranchState The branch’s state, indicating if it is initializing, ready for use, or archived.
 //   - 'init' - the branch is being created but is not available for querying.
+//   - 'resetting' - the branch is being reset to a specific point in time or LSN and is not yet available for querying.
 //   - 'ready' - the branch is fully operational and ready for querying. Expect normal query response times.
 //   - 'archived' - the branch is stored in cost-effective archival storage. Expect slow query response times.
 type BranchState string
@@ -1493,8 +1861,12 @@ type BranchUpdateRequest struct {
 }
 
 type BranchUpdateRequestBranch struct {
-	Name      *string `json:"name,omitempty"`
-	Protected *bool   `json:"protected,omitempty"`
+	// ExpiresAt The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time. If this field is set to null, the expiration timestamp is removed.
+	//
+	// Access to this feature is currently limited to participants in the Early Access Program.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+	Protected *bool      `json:"protected,omitempty"`
 }
 
 type BranchesCountResponse struct {
@@ -1582,6 +1954,10 @@ type ConsumptionHistoryPerTimeframe struct {
 	ComputeTimeSeconds int `json:"compute_time_seconds"`
 	// DataStorageBytesHour Bytes-Hour. The amount of storage consumed hourly.
 	DataStorageBytesHour *int `json:"data_storage_bytes_hour,omitempty"`
+	// LogicalSizeBytes Bytes. The amount of logical size consumed.
+	LogicalSizeBytes *int `json:"logical_size_bytes,omitempty"`
+	// LogicalSizeBytesHour Bytes-Hour. The amount of logical size consumed hourly.
+	LogicalSizeBytesHour *int `json:"logical_size_bytes_hour,omitempty"`
 	// SyntheticStorageSizeBytes Bytes. The space occupied in storage. Synthetic storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches.
 	SyntheticStorageSizeBytes int `json:"synthetic_storage_size_bytes"`
 	// TimeframeEnd The specified end date-time for the reported consumption.
@@ -1599,6 +1975,15 @@ type CountProjectBranchesRespObj struct {
 type CreateProjectBranchReqObj struct {
 	AnnotationCreateValueRequest
 	BranchCreateRequest
+}
+
+type CreateProjectTransferRequestReqObj struct {
+	TtlSeconds *int64 `json:"ttl_seconds,omitempty"`
+}
+
+type CreateSnapshotRespObj struct {
+	Operations []Operation `json:"operations"`
+	Snapshot   Snapshot    `json:"snapshot"`
 }
 
 type CreatedBranch struct {
@@ -1633,7 +2018,7 @@ type CurrentUserInfoResponse struct {
 	// ActiveSecondsLimit Control plane observes active endpoints of a user this amount of wall-clock time.
 	ActiveSecondsLimit  int64                    `json:"active_seconds_limit"`
 	AuthAccounts        []CurrentUserAuthAccount `json:"auth_accounts"`
-	BillingAccount      BillingAccount           `json:"billing_account"`
+	BillingAccount      *BillingAccount          `json:"billing_account,omitempty"`
 	BranchesLimit       int64                    `json:"branches_limit"`
 	ComputeSecondsLimit *int64                   `json:"compute_seconds_limit,omitempty"`
 	Email               string                   `json:"email"`
@@ -1657,6 +2042,35 @@ type CursorPagination struct {
 
 type CursorPaginationResponse struct {
 	Pagination *CursorPagination `json:"pagination,omitempty"`
+}
+
+// DataAPICreateRequest Create Neon Data API
+type DataAPICreateRequest struct {
+	// AddDefaultGrants Grant all permissions to the tables in the public schema to authenticated users
+	AddDefaultGrants *bool `json:"add_default_grants,omitempty"`
+	// AuthProvider The authentication provider to use for the Neon Data API
+	AuthProvider *string `json:"auth_provider,omitempty"`
+	// JwksURL The URL that lists the JWKS
+	JwksURL *string `json:"jwks_url,omitempty"`
+	// JwtAudience WARNING - using this setting will only reject tokens with a
+	// different audience claim. Tokens without audience claim will still
+	// be accepted.
+	JwtAudience *string `json:"jwt_audience,omitempty"`
+	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
+	ProviderName *string `json:"provider_name,omitempty"`
+}
+
+// DataAPICreateResponse Neon Data API created successfully
+type DataAPICreateResponse struct {
+	URL string `json:"url"`
+}
+
+// DataAPIReponse Neon Data API response
+type DataAPIReponse struct {
+	// Status The status of the Neon Data API deployment
+	Status string `json:"status"`
+	// URL The URL of the Neon Data API
+	URL string `json:"url"`
 }
 
 type Database struct {
@@ -1718,8 +2132,12 @@ type DefaultEndpointSettings struct {
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
 
+type DeleteNeonAuthIntegrationReqObj struct {
+	DeleteData *bool `json:"delete_data,omitempty"`
+}
+
 // EmptyResponse Empty response.
-type EmptyResponse map[string]interface{}
+type EmptyResponse struct{}
 
 type Endpoint struct {
 	AutoscalingLimitMaxCu ComputeUnit `json:"autoscaling_limit_max_cu"`
@@ -1736,8 +2154,7 @@ type Endpoint struct {
 	// Disabled Whether to restrict connections to the compute endpoint.
 	// Enabling this option schedules a suspend compute operation.
 	// A disabled compute endpoint cannot be enabled by a connection or
-	// console action. However, the compute endpoint is periodically
-	// enabled by check_availability operations.
+	// console action.
 	Disabled bool `json:"disabled"`
 	// Host The hostname of the compute endpoint. This is the hostname specified when connecting to a Neon database.
 	Host string `json:"host"`
@@ -1745,6 +2162,8 @@ type Endpoint struct {
 	ID string `json:"id"`
 	// LastActive A timestamp indicating when the compute endpoint was last active
 	LastActive *time.Time `json:"last_active,omitempty"`
+	// Name Optional name of the compute endpoint
+	Name *string `json:"name,omitempty"`
 	// PasswordlessAccess Whether to permit passwordless access to the compute endpoint
 	PasswordlessAccess bool           `json:"passwordless_access"`
 	PendingState       *EndpointState `json:"pending_state,omitempty"`
@@ -1757,10 +2176,14 @@ type Endpoint struct {
 	// ProxyHost DEPRECATED. Use the "host" property instead.
 	ProxyHost string `json:"proxy_host"`
 	// RegionID The region identifier
-	RegionID              string                `json:"region_id"`
-	Settings              EndpointSettingsData  `json:"settings"`
+	RegionID string               `json:"region_id"`
+	Settings EndpointSettingsData `json:"settings"`
+	// StartedAt A timestamp indicating when the compute endpoint was last started
+	StartedAt             *time.Time            `json:"started_at,omitempty"`
 	SuspendTimeoutSeconds SuspendTimeoutSeconds `json:"suspend_timeout_seconds"`
-	Type                  EndpointType          `json:"type"`
+	// SuspendedAt A timestamp indicating when the compute endpoint was last suspended
+	SuspendedAt *time.Time   `json:"suspended_at,omitempty"`
+	Type        EndpointType `json:"type"`
 	// UpdatedAt A timestamp indicating when the compute endpoint was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -1780,6 +2203,8 @@ type EndpointCreateRequestEndpoint struct {
 	// console action. However, the compute endpoint is periodically
 	// enabled by check_availability operations.
 	Disabled *bool `json:"disabled,omitempty"`
+	// Name Optional name of the compute endpoint
+	Name *string `json:"name,omitempty"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
 	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
@@ -1813,6 +2238,7 @@ type EndpointResponse struct {
 type EndpointSettingsData struct {
 	PgSettings        *PgSettingsData        `json:"pg_settings,omitempty"`
 	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
+	PreloadLibraries  *PreloadLibraries      `json:"preload_libraries,omitempty"`
 }
 
 // EndpointState The state of the compute endpoint
@@ -1848,6 +2274,8 @@ type EndpointUpdateRequestEndpoint struct {
 	// console action. However, the compute endpoint is periodically
 	// enabled by check_availability operations.
 	Disabled *bool `json:"disabled,omitempty"`
+	// Name Optional name of the compute endpoint
+	Name *string `json:"name,omitempty"`
 	// PasswordlessAccess NOT YET IMPLEMENTED. Whether to permit passwordless access to the compute endpoint.
 	PasswordlessAccess *bool `json:"passwordless_access,omitempty"`
 	// PoolerEnabled Whether to enable connection pooling for the compute endpoint
@@ -1858,8 +2286,16 @@ type EndpointUpdateRequestEndpoint struct {
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
 
+type EndpointsOptionalResponse struct {
+	Endpoints *[]Endpoint `json:"endpoints,omitempty"`
+}
+
 type EndpointsResponse struct {
 	Endpoints []Endpoint `json:"endpoints"`
+}
+
+type FinalizeRestoreBranchReqObj struct {
+	Name *string `json:"name,omitempty"`
 }
 
 type GetConsumptionHistoryPerProjectRespObj struct {
@@ -1876,54 +2312,6 @@ type GrantPermissionToProjectRequest struct {
 	Email string `json:"email"`
 }
 
-type IdentityAuthProviderProjectOwnedBy string
-
-const (
-	IdentityAuthProviderProjectOwnedByNeon IdentityAuthProviderProjectOwnedBy = "neon"
-	IdentityAuthProviderProjectOwnedByUser IdentityAuthProviderProjectOwnedBy = "user"
-)
-
-type IdentityAuthProviderProjectTransferStatus string
-
-const (
-	IdentityAuthProviderProjectTransferStatusFinished  IdentityAuthProviderProjectTransferStatus = "finished"
-	IdentityAuthProviderProjectTransferStatusInitiated IdentityAuthProviderProjectTransferStatus = "initiated"
-)
-
-type IdentityCreateAuthProviderSDKKeysRequest struct {
-	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
-	ProjectID    string                        `json:"project_id"`
-}
-
-type IdentityCreateIntegrationRequest struct {
-	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
-	BranchID     string                        `json:"branch_id"`
-	DatabaseName string                        `json:"database_name"`
-	ProjectID    string                        `json:"project_id"`
-	RoleName     string                        `json:"role_name"`
-}
-
-type IdentityCreateIntegrationResponse struct {
-	AuthProvider          IdentitySupportedAuthProvider `json:"auth_provider"`
-	AuthProviderProjectID string                        `json:"auth_provider_project_id"`
-	JwksURL               string                        `json:"jwks_url"`
-	PubClientKey          string                        `json:"pub_client_key"`
-	SchemaName            string                        `json:"schema_name"`
-	SecretServerKey       string                        `json:"secret_server_key"`
-	TableName             string                        `json:"table_name"`
-}
-
-type IdentityIntegration struct {
-	AuthProvider          string                                     `json:"auth_provider"`
-	AuthProviderProjectID string                                     `json:"auth_provider_project_id"`
-	BranchID              string                                     `json:"branch_id"`
-	CreatedAt             time.Time                                  `json:"created_at"`
-	DbName                string                                     `json:"db_name"`
-	JwksURL               string                                     `json:"jwks_url"`
-	OwnedBy               IdentityAuthProviderProjectOwnedBy         `json:"owned_by"`
-	TransferStatus        *IdentityAuthProviderProjectTransferStatus `json:"transfer_status,omitempty"`
-}
-
 // IdentityProviderId Identity provider id from keycloak
 type IdentityProviderId string
 
@@ -1934,26 +2322,8 @@ const (
 	IdentityProviderIdKeycloak    IdentityProviderId = "keycloak"
 	IdentityProviderIdMicrosoft   IdentityProviderId = "microsoft"
 	IdentityProviderIdMicrosoftv2 IdentityProviderId = "microsoftv2"
-	IdentityProviderIdTest        IdentityProviderId = "test"
 	IdentityProviderIdVercelmp    IdentityProviderId = "vercelmp"
 )
-
-type IdentitySupportedAuthProvider string
-
-const (
-	IdentitySupportedAuthProviderMock  IdentitySupportedAuthProvider = "mock"
-	IdentitySupportedAuthProviderStack IdentitySupportedAuthProvider = "stack"
-)
-
-type IdentityTransferAuthProviderProjectRequest struct {
-	AuthProvider IdentitySupportedAuthProvider `json:"auth_provider"`
-	ProjectID    string                        `json:"project_id"`
-}
-
-type IdentityTransferAuthProviderProjectResponse struct {
-	// URL for completing the process of ownership transfer
-	URL string `json:"url"`
-}
 
 type Invitation struct {
 	// Email of the invited user
@@ -1982,7 +2352,8 @@ type JWKS struct {
 	// ProjectID Project ID
 	ProjectID string `json:"project_id"`
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
-	ProviderName string `json:"provider_name"`
+	ProviderName string    `json:"provider_name"`
+	RoleNames    *[]string `json:"role_names,omitempty"`
 	// UpdatedAt The date and time when the JWKS was last modified
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -1996,6 +2367,14 @@ type JWKSResponse struct {
 	Jwks JWKS `json:"jwks"`
 }
 
+type ListNeonAuthIntegrationsResponse struct {
+	Data []NeonAuthIntegration `json:"data"`
+}
+
+type ListNeonAuthOauthProvidersResponse struct {
+	Providers []NeonAuthOauthProvider `json:"providers"`
+}
+
 type ListOperations struct {
 	OperationsResponse
 	PaginationResponse
@@ -2005,10 +2384,6 @@ type ListProjectBranchesRespObj struct {
 	AnnotationsMapResponse
 	BranchesResponse
 	CursorPaginationResponse
-}
-
-type ListProjectIdentityIntegrationsResponse struct {
-	Data []IdentityIntegration `json:"data"`
 }
 
 type ListProjectsRespObj struct {
@@ -2021,6 +2396,10 @@ type ListProjectsRespObj struct {
 type ListSharedProjectsRespObj struct {
 	PaginationResponse
 	ProjectsResponse
+}
+
+type ListSnapshotsRespObj struct {
+	Snapshots []Snapshot `json:"snapshots"`
 }
 
 // MaintenanceWindow A maintenance window is a time period during which Neon may perform maintenance on the project's infrastructure.
@@ -2059,6 +2438,146 @@ type MemberUserInfo struct {
 type MemberWithUser struct {
 	Member Member         `json:"member"`
 	User   MemberUserInfo `json:"user"`
+}
+
+type NeonAuthAddDomainToRedirectURIWhitelistRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	Domain       string                        `json:"domain"`
+}
+
+type NeonAuthAddOAuthProviderRequest struct {
+	ClientID     *string                 `json:"client_id,omitempty"`
+	ClientSecret *string                 `json:"client_secret,omitempty"`
+	ID           NeonAuthOauthProviderId `json:"id"`
+}
+
+type NeonAuthCreateAuthProviderSDKKeysRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type NeonAuthCreateIntegrationRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	BranchID     string                        `json:"branch_id"`
+	DatabaseName *string                       `json:"database_name,omitempty"`
+	ProjectID    string                        `json:"project_id"`
+	RoleName     *string                       `json:"role_name,omitempty"`
+}
+
+type NeonAuthCreateIntegrationResponse struct {
+	AuthProvider          NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	AuthProviderProjectID string                        `json:"auth_provider_project_id"`
+	BaseURL               *string                       `json:"base_url,omitempty"`
+	JwksURL               string                        `json:"jwks_url"`
+	PubClientKey          string                        `json:"pub_client_key"`
+	SchemaName            string                        `json:"schema_name"`
+	SecretServerKey       string                        `json:"secret_server_key"`
+	TableName             string                        `json:"table_name"`
+}
+
+type NeonAuthCreateNewUserRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	Email        string                        `json:"email"`
+	Name         *string                       `json:"name,omitempty"`
+	Password     *string                       `json:"password,omitempty"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type NeonAuthCreateNewUserResponse struct {
+	// ID of newly created user
+	ID string `json:"id"`
+}
+
+type NeonAuthDeleteDomainFromRedirectURIWhitelistItem struct {
+	Domain string `json:"domain"`
+}
+
+type NeonAuthDeleteDomainFromRedirectURIWhitelistRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider                      `json:"auth_provider"`
+	Domains      []NeonAuthDeleteDomainFromRedirectURIWhitelistItem `json:"domains"`
+}
+
+type NeonAuthEmailServerConfig struct{}
+
+type NeonAuthIntegration struct {
+	AuthProvider          NeonAuthSupportedAuthProvider          `json:"auth_provider"`
+	AuthProviderProjectID string                                 `json:"auth_provider_project_id"`
+	BaseURL               *string                                `json:"base_url,omitempty"`
+	BranchID              string                                 `json:"branch_id"`
+	CreatedAt             time.Time                              `json:"created_at"`
+	DbName                string                                 `json:"db_name"`
+	JwksURL               string                                 `json:"jwks_url"`
+	OwnedBy               NeonAuthProviderProjectOwnedBy         `json:"owned_by"`
+	TransferStatus        *NeonAuthProviderProjectTransferStatus `json:"transfer_status,omitempty"`
+}
+
+type NeonAuthOauthProvider struct {
+	ClientID     *string                   `json:"client_id,omitempty"`
+	ClientSecret *string                   `json:"client_secret,omitempty"`
+	ID           NeonAuthOauthProviderId   `json:"id"`
+	Type         NeonAuthOauthProviderType `json:"type"`
+}
+
+type NeonAuthOauthProviderId string
+
+const (
+	NeonAuthOauthProviderIdGithub    NeonAuthOauthProviderId = "github"
+	NeonAuthOauthProviderIdGoogle    NeonAuthOauthProviderId = "google"
+	NeonAuthOauthProviderIdMicrosoft NeonAuthOauthProviderId = "microsoft"
+)
+
+type NeonAuthOauthProviderType string
+
+const (
+	NeonAuthOauthProviderTypeShared   NeonAuthOauthProviderType = "shared"
+	NeonAuthOauthProviderTypeStandard NeonAuthOauthProviderType = "standard"
+)
+
+type NeonAuthProviderProjectOwnedBy string
+
+const (
+	NeonAuthProviderProjectOwnedByNeon NeonAuthProviderProjectOwnedBy = "neon"
+	NeonAuthProviderProjectOwnedByUser NeonAuthProviderProjectOwnedBy = "user"
+)
+
+type NeonAuthProviderProjectTransferStatus string
+
+const (
+	NeonAuthProviderProjectTransferStatusFinished  NeonAuthProviderProjectTransferStatus = "finished"
+	NeonAuthProviderProjectTransferStatusInitiated NeonAuthProviderProjectTransferStatus = "initiated"
+)
+
+type NeonAuthRedirectURIWhitelistDomain struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	Domain       string                        `json:"domain"`
+}
+
+type NeonAuthRedirectURIWhitelistResponse struct {
+	Domains []NeonAuthRedirectURIWhitelistDomain `json:"domains"`
+}
+
+type NeonAuthSupportedAuthProvider string
+
+const (
+	NeonAuthSupportedAuthProviderBetterAuth NeonAuthSupportedAuthProvider = "better_auth"
+	NeonAuthSupportedAuthProviderMock       NeonAuthSupportedAuthProvider = "mock"
+	NeonAuthSupportedAuthProviderStack      NeonAuthSupportedAuthProvider = "stack"
+	NeonAuthSupportedAuthProviderStackV2    NeonAuthSupportedAuthProvider = "stack_v2"
+)
+
+type NeonAuthTransferAuthProviderProjectRequest struct {
+	AuthProvider NeonAuthSupportedAuthProvider `json:"auth_provider"`
+	ProjectID    string                        `json:"project_id"`
+}
+
+type NeonAuthTransferAuthProviderProjectResponse struct {
+	// URL for completing the process of ownership transfer
+	URL string `json:"url"`
+}
+
+type NeonAuthUpdateOAuthProviderRequest struct {
+	ClientID     *string `json:"client_id,omitempty"`
+	ClientSecret *string `json:"client_secret,omitempty"`
 }
 
 type Operation struct {
@@ -2102,7 +2621,10 @@ const (
 	OperationActionDisableMaintenance         OperationAction = "disable_maintenance"
 	OperationActionImportData                 OperationAction = "import_data"
 	OperationActionPrepareSecondaryPageserver OperationAction = "prepare_secondary_pageserver"
+	OperationActionPrewarmReplica             OperationAction = "prewarm_replica"
+	OperationActionPromoteReplica             OperationAction = "promote_replica"
 	OperationActionReplaceSafekeeper          OperationAction = "replace_safekeeper"
+	OperationActionSetStorageNonDirty         OperationAction = "set_storage_non_dirty"
 	OperationActionStartCompute               OperationAction = "start_compute"
 	OperationActionStartReservedCompute       OperationAction = "start_reserved_compute"
 	OperationActionSuspendCompute             OperationAction = "suspend_compute"
@@ -2113,6 +2635,7 @@ const (
 	OperationActionTenantIgnore               OperationAction = "tenant_ignore"
 	OperationActionTenantReattach             OperationAction = "tenant_reattach"
 	OperationActionTimelineArchive            OperationAction = "timeline_archive"
+	OperationActionTimelineMarkInvisible      OperationAction = "timeline_mark_invisible"
 	OperationActionTimelineUnarchive          OperationAction = "timeline_unarchive"
 )
 
@@ -2140,6 +2663,7 @@ type OperationsResponse struct {
 
 type OrgApiKeyCreateRequest struct {
 	ApiKeyCreateRequest
+	ProjectID *string `json:"project_id,omitempty"`
 }
 
 type OrgApiKeyCreateResponse struct {
@@ -2155,6 +2679,8 @@ type OrgApiKeysListResponseItem struct {
 }
 
 type Organization struct {
+	// AllowHipaaProjects If true, allow account to mark projects as HIPAA
+	AllowHipaaProjects *bool `json:"allow_hipaa_projects,omitempty"`
 	// CreatedAt A timestamp indicting when the organization was created
 	CreatedAt time.Time `json:"created_at"`
 	Handle    string    `json:"handle"`
@@ -2222,13 +2748,29 @@ type PaymentSourceBankCard struct {
 }
 
 // PgSettingsData A raw representation of Postgres settings
-type PgSettingsData map[string]interface{}
+type PgSettingsData struct{}
 
-// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, `16`, and `17`.
+// PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, `16`, `17`, and `18`.
 type PgVersion int
 
 // PgbouncerSettingsData A raw representation of PgBouncer settings
-type PgbouncerSettingsData map[string]interface{}
+type PgbouncerSettingsData struct{}
+
+type PlanDetails struct {
+	Name    string       `json:"name"`
+	Version *PlanVersion `json:"version,omitempty"`
+}
+
+type PlanVersion struct {
+	Major int `json:"major"`
+	Minor int `json:"minor"`
+}
+
+// PreloadLibraries The shared libraries to preload into the project's compute instances.
+type PreloadLibraries struct {
+	EnabledLibraries *[]string `json:"enabled_libraries,omitempty"`
+	UseDefaults      *bool     `json:"use_defaults,omitempty"`
+}
 
 type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
@@ -2266,7 +2808,9 @@ type Project struct {
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
 	DataTransferBytes       int64                    `json:"data_transfer_bytes"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
-	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project. The default for all plans is 1 day (86400 seconds).
+	// HipaaEnabledAt A timestamp indicating when HIPAA was enabled for this project
+	HipaaEnabledAt *time.Time `json:"hipaa_enabled_at,omitempty"`
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
 	HistoryRetentionSeconds int32 `json:"history_retention_seconds"`
 	// ID The project ID
 	ID string `json:"id"`
@@ -2302,6 +2846,14 @@ type Project struct {
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 
+type ProjectAuditLogLevel string
+
+const (
+	ProjectAuditLogLevelBase     ProjectAuditLogLevel = "base"
+	ProjectAuditLogLevelExtended ProjectAuditLogLevel = "extended"
+	ProjectAuditLogLevelFull     ProjectAuditLogLevel = "full"
+)
+
 type ProjectCreateRequest struct {
 	Project ProjectCreateRequestProject `json:"project"`
 }
@@ -2329,6 +2881,7 @@ type ProjectCreateRequestProject struct {
 }
 
 type ProjectCreateRequestProjectBranch struct {
+	Annotations *AnnotationValueData `json:"annotations,omitempty"`
 	// DatabaseName The database name. If not specified, the default database name, `neondb`, will be used.
 	DatabaseName *string `json:"database_name,omitempty"`
 	// Name The default branch name. If not specified, the default branch name, `main`, will be used.
@@ -2361,16 +2914,22 @@ type ProjectListItem struct {
 	// CreationSource The project creation source
 	CreationSource          string                   `json:"creation_source"`
 	DefaultEndpointSettings *DefaultEndpointSettings `json:"default_endpoint_settings,omitempty"`
+	// HipaaEnabledAt A timestamp indicating when HIPAA was enabled for this project
+	HipaaEnabledAt *time.Time `json:"hipaa_enabled_at,omitempty"`
+	// HistoryRetentionSeconds The number of seconds to retain the shared history for all branches in this project.
+	HistoryRetentionSeconds *int32 `json:"history_retention_seconds,omitempty"`
 	// ID The project ID
 	ID string `json:"id"`
 	// MaintenanceStartsAt A timestamp indicating when project maintenance begins. If set, the project is placed into maintenance mode at this time.
 	MaintenanceStartsAt *time.Time `json:"maintenance_starts_at,omitempty"`
 	// Name The project name
 	Name string `json:"name"`
-	// OrgID Organization id if a project belongs to organization.
+	// OrgID Organization id if the project belongs to an organization.
 	// Permissions for the project will be given to organization members as defined by the organization admins.
 	// The permissions of the project do not depend on the user that created the project if a project belongs to an organization.
-	OrgID     *string   `json:"org_id,omitempty"`
+	OrgID *string `json:"org_id,omitempty"`
+	// OrgName Organization name if the project belongs to an organization.
+	OrgName   *string   `json:"org_name,omitempty"`
 	OwnerID   string    `json:"owner_id"`
 	PgVersion PgVersion `json:"pg_version"`
 	// PlatformID The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.
@@ -2410,18 +2969,21 @@ type ProjectPermissions struct {
 	ProjectPermissions []ProjectPermission `json:"project_permissions"`
 }
 
-// ProjectQuota Per-project consumption quota. If the quota is exceeded, all active computes
-// are automatically suspended and it will not be possible to start them with
-// an API method call or incoming proxy connections. The only exception is
-// `logical_size_bytes`, which is applied on per-branch basis, i.e., only the
-// compute on the branch that exceeds the `logical_size` quota will be suspended.
+// ProjectQuota Per-project consumption quotas. If a quota is exceeded, all active computes
+// are automatically suspended and cannot be started via API calls or incoming connections.
 //
-// Quotas are enforced based on per-project consumption metrics with the same names,
-// which are reset at the end of each billing period (the first day of the month).
-// Logical size is also an exception in this case, as it represents the total size
-// of data stored in a branch, so it is not reset.
+// The exception is `logical_size_bytes`, which is enforced per branch.
+// If a branch exceeds its `logical_size_bytes` quota, computes can still be started,
+// but write operations will fail—allowing data to be deleted to free up space.
+// Computes on other branches are not affected.
 //
-// A zero or empty quota value means 'unlimited'.
+// Setting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.
+//
+// Quotas are enforced using per-project consumption metrics with the same names.
+// These metrics reset at the start of each billing period. `logical_size_bytes`
+// is also an exception—it reflects the total data stored in a branch and does not reset.
+//
+// A zero or empty quota value means “unlimited.”
 type ProjectQuota struct {
 	// ActiveTimeSeconds The total amount of wall-clock time allowed to be spent by the project's compute endpoints.
 	ActiveTimeSeconds *int64 `json:"active_time_seconds,omitempty"`
@@ -2430,6 +2992,12 @@ type ProjectQuota struct {
 	// DataTransferBytes Total amount of data transferred from all of a project's branches using the proxy.
 	DataTransferBytes *int64 `json:"data_transfer_bytes,omitempty"`
 	// LogicalSizeBytes Limit on the logical size of every project's branch.
+	//
+	// If a branch exceeds its `logical_size_bytes` quota, computes can still be started,
+	// but write operations will fail—allowing data to be deleted to free up space.
+	// Computes on other branches are not affected.
+	//
+	// Setting `logical_size_bytes` overrides any lower value set by the `neon.max_cluster_size` Postgres setting.
 	LogicalSizeBytes *int64 `json:"logical_size_bytes,omitempty"`
 	// WrittenDataBytes Total amount of data written to all of a project's branches.
 	WrittenDataBytes *int64 `json:"written_data_bytes,omitempty"`
@@ -2440,7 +3008,8 @@ type ProjectResponse struct {
 }
 
 type ProjectSettingsData struct {
-	AllowedIps *AllowedIps `json:"allowed_ips,omitempty"`
+	AllowedIps    *AllowedIps           `json:"allowed_ips,omitempty"`
+	AuditLogLevel *ProjectAuditLogLevel `json:"audit_log_level,omitempty"`
 	// BlockPublicConnections When set, connections from the public internet
 	// are disallowed. This supersedes the AllowedIPs list.
 	// This parameter is under active development and its semantics may change in the future.
@@ -2452,8 +3021,21 @@ type ProjectSettingsData struct {
 	// All active endpoints will be suspended.
 	// Once enabled, logical replication cannot be disabled.
 	EnableLogicalReplication *bool              `json:"enable_logical_replication,omitempty"`
+	Hipaa                    *bool              `json:"hipaa,omitempty"`
 	MaintenanceWindow        *MaintenanceWindow `json:"maintenance_window,omitempty"`
+	PreloadLibraries         *PreloadLibraries  `json:"preload_libraries,omitempty"`
 	Quota                    *ProjectQuota      `json:"quota,omitempty"`
+}
+
+type ProjectTransferRequestResponse struct {
+	// CreatedAt The timestamp when the transfer request was created
+	CreatedAt time.Time `json:"created_at"`
+	// ExpiresAt The timestamp when the transfer request will expire
+	ExpiresAt time.Time `json:"expires_at"`
+	// ID The unique identifier for the transfer request
+	ID string `json:"id"`
+	// ProjectID The ID of the project that is being transferred
+	ProjectID string `json:"project_id"`
 }
 
 type ProjectUpdateRequest struct {
@@ -2475,14 +3057,14 @@ type ProjectsApplicationsMapResponse struct {
 	Applications ProjectsApplicationsMapResponseApplications `json:"applications"`
 }
 
-type ProjectsApplicationsMapResponseApplications map[string]interface{}
+type ProjectsApplicationsMapResponseApplications struct{}
 
 // ProjectsIntegrationsMapResponse A map where key is a project ID and a value is a list of installed integrations.
 type ProjectsIntegrationsMapResponse struct {
 	Integrations ProjectsIntegrationsMapResponseIntegrations `json:"integrations"`
 }
 
-type ProjectsIntegrationsMapResponseIntegrations map[string]interface{}
+type ProjectsIntegrationsMapResponseIntegrations struct{}
 
 type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`
@@ -2512,6 +3094,18 @@ type RegionResponse struct {
 	Name string `json:"name"`
 	// RegionID The region ID as used in other API endpoints
 	RegionID string `json:"region_id"`
+}
+
+type RestoreSnapshotReqObj struct {
+	FinalizeRestore *bool   `json:"finalize_restore,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	TargetBranchID  *string `json:"target_branch_id,omitempty"`
+}
+
+type RestoredSnapshot struct {
+	BranchResponse
+	EndpointsOptionalResponse
+	OperationsResponse
 }
 
 type Role struct {
@@ -2558,6 +3152,25 @@ type RolesResponse struct {
 	Roles []Role `json:"roles"`
 }
 
+type Snapshot struct {
+	CreatedAt      string  `json:"created_at"`
+	ExpiresAt      *string `json:"expires_at,omitempty"`
+	ID             string  `json:"id"`
+	Lsn            *string `json:"lsn,omitempty"`
+	Manual         *bool   `json:"manual,omitempty"`
+	Name           string  `json:"name"`
+	SourceBranchID *string `json:"source_branch_id,omitempty"`
+	Timestamp      *string `json:"timestamp,omitempty"`
+}
+
+type SnapshotUpdateRequest struct {
+	Snapshot SnapshotUpdateRequestSnapshot `json:"snapshot"`
+}
+
+type SnapshotUpdateRequestSnapshot struct {
+	Name *string `json:"name,omitempty"`
+}
+
 // SuspendTimeoutSeconds Duration of inactivity in seconds after which the compute endpoint is
 // automatically suspended. The value `0` means use the default value.
 // The value `-1` means never suspend. The default value is `300` seconds (5 minutes).
@@ -2567,8 +3180,8 @@ type RolesResponse struct {
 type SuspendTimeoutSeconds int64
 
 type TransferProjectsToOrganizationRequest struct {
-	// OrgID The source organization identifier
-	OrgID string `json:"org_id"`
+	// DestinationOrgID The destination organization identifier
+	DestinationOrgID string `json:"destination_org_id"`
 	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
 	ProjectIDs []string `json:"project_ids"`
 }
@@ -2576,6 +3189,10 @@ type TransferProjectsToOrganizationRequest struct {
 type UpdateProjectRespObj struct {
 	OperationsResponse
 	ProjectResponse
+}
+
+type UpdateSnapshotRespObj struct {
+	Snapshot
 }
 
 type VPCEndpoint struct {
@@ -2605,6 +3222,14 @@ type VPCEndpointDetails struct {
 	VpcEndpointID string `json:"vpc_endpoint_id"`
 }
 
+type VPCEndpointWithRegion struct {
+	VPCEndpoint
+}
+
 type VPCEndpointsResponse struct {
 	Endpoints []VPCEndpoint `json:"endpoints"`
+}
+
+type VPCEndpointsWithRegionResponse struct {
+	Endpoints []VPCEndpointWithRegion `json:"endpoints"`
 }

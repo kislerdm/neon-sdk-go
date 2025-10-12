@@ -118,13 +118,13 @@ func TestRun(t *testing.T) {
 				}
 			},
 		)
-		t.Cleanup(
-			func() {
-				if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
-					panic(err)
-				}
-			},
-		)
+		// t.Cleanup(
+		// 	func() {
+		// 		if err := os.RemoveAll(tt.args.cfg.PathOutput); err != nil {
+		// 			panic(err)
+		// 		}
+		// 	},
+		// )
 	}
 }
 
@@ -751,6 +751,7 @@ func Test_generateEndpointsImplementationMethods(t *testing.T) {
 				orderedEndpoints: []string{
 					"/foo/{bar}/{qux_id}",
 					"/foo/bar/{qux_id}/{date_submit}",
+					"/foo/bar/qux",
 				},
 			},
 			wantEndpoints: map[string]endpointImplementation{
@@ -1011,7 +1012,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"FooResponse": model{
 					name: "FooResponse",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo": {
 							k:        "foo",
 							v:        "Foo",
@@ -1023,7 +1024,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"BarResponse": model{
 					name: "BarResponse",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"bar": {
 							k:        "bar",
 							v:        "Bar",
@@ -1035,7 +1036,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"Qux": model{
 					name: "Qux",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo": {
 							k:        "foo",
 							v:        "QuxFoo",
@@ -1046,7 +1047,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"QuxFoo": model{
 					name: "QuxFoo",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo": {
 							k:        "foo",
 							v:        openapi3.TypeInteger,
@@ -1063,7 +1064,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"QuxFooBar": model{
 					name: "QuxFooBar",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo": {
 							k:        "foo",
 							v:        "[]time.Time",
@@ -1079,7 +1080,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"Foo": model{
 					name: "Foo",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo_id": {
 							k:        "foo_id",
 							v:        openapi3.TypeString,
@@ -1096,7 +1097,7 @@ func Test_generateModels(t *testing.T) {
 				},
 				"Bar": model{
 					name: "Bar",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"type": {
 							k:        "type",
 							v:        "string",
@@ -1181,7 +1182,7 @@ func Test_generateModels(t *testing.T) {
 				"VercelIntegration": {
 					name:        "VercelIntegration",
 					description: "Vercel integration is bound to a Neon branch.\nUser specifies endpoint to expose to each Vercel project.\n",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"details": {
 							k: "details",
 							v: `[]struct {
@@ -1269,7 +1270,7 @@ FooResponse
 			v: models{
 				"FooResponse": model{
 					name: "FooResponse",
-					fields: map[string]*field{
+					fields: map[string]field{
 						"foo": {
 							k:        "foo",
 							v:        "Foo",
@@ -2030,4 +2031,20 @@ func Test_field_generateDummy(t *testing.T) {
 			assert.Equalf(t, tt.want, v.generateDummy(), "generateDummy()")
 		})
 	}
+}
+
+func TestGenerateEmptyStruct(t *testing.T) {
+	var m = model{
+		fields:      nil,
+		children:    nil,
+		primitive:   fieldType{},
+		name:        "Foo",
+		description: "foo",
+		generated:   false,
+		isEnum:      false,
+	}
+	want := `// Foo foo
+type Foo struct{}`
+	got := m.generateCode()
+	assert.Equal(t, want, got)
 }

@@ -536,7 +536,6 @@ func skipTest(route string) bool {
 
 func filterModels(modelsSource models, output models, m model) {
 	name := strings.NewReplacer("[", "", "]", "").Replace(m.name)
-
 	v, ok := modelsSource[name]
 	if !ok {
 		return
@@ -1052,6 +1051,26 @@ func extractStructFromSchemaRef(schema *openapi3.SchemaRef) *model {
 			}
 			return &model{name: "[]" + t}
 		}
+		if schema.Value.Type == "object" {
+			o := model{
+				fields:    make(map[string]field, len(schema.Value.Properties)),
+				children:  map[string]struct{}{},
+				generated: true,
+			}
+
+			for k, v := range schema.Value.Properties {
+				if v.Ref == "" {
+					ref := extractItemFromRef(v)
+					ref.setRequired(slices.Contains(schema.Value.Required, k))
+					ref.k = k
+					o.fields[k] = ref
+				} else {
+					o.children[modelNameFromRef(v.Ref)] = struct{}{}
+				}
+
+			}
+			return &o
+		}
 		if len(schema.Value.AllOf) > 0 {
 			o := model{
 				children: map[string]struct{}{},
@@ -1264,7 +1283,7 @@ func (v field) generateDummyElement() interface{} {
 }
 
 type model struct {
-	fields            map[string]*field
+	fields            map[string]field
 	children          map[string]struct{}
 	primitive         fieldType
 	name, description string
@@ -1291,6 +1310,11 @@ func (m model) generateCode() string {
 	}
 
 	tmp := m.docString() + "type " + k
+
+	// empty object
+	if m.fields == nil && m.children == nil {
+		return tmp + " struct{}"
+	}
 
 	if len(m.fields) == 0 && len(m.children) == 0 {
 		return tmp + " map[string]interface{}"
@@ -1556,21 +1580,24 @@ func (v models) add(k string) {
 }
 
 func (v models) addChild(m string, child string) {
-	if v[m].children == nil {
-		tmp := v[m]
-		tmp.children = map[string]struct{}{}
-		v[m] = tmp
+	ref := modelNameFromRef(child)
+	if ref != m {
+		if v[m].children == nil {
+			tmp := v[m]
+			tmp.children = map[string]struct{}{}
+			v[m] = tmp
+		}
+		v[m].children[ref] = struct{}{}
 	}
-	v[m].children[modelNameFromRef(child)] = struct{}{}
 }
 
 func (v models) addField(m string, f field) {
 	if v[m].fields == nil {
 		tmp := v[m]
-		tmp.fields = map[string]*field{}
+		tmp.fields = map[string]field{}
 		v[m] = tmp
 	}
-	v[m].fields[f.k] = &f
+	v[m].fields[f.k] = f
 }
 
 func (v models) generateCode() []string {
@@ -1646,6 +1673,7 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 					modelsFromSchema(m, field.v, property)
 				case openapi3.TypeArray:
 					m.addChild(k, extractStructFromSchemaRef(property).name)
+
 				default:
 					field.v = property.Value.Type
 					field.format = property.Value.Format
@@ -1665,8 +1693,9 @@ func addFromValue(m models, k string, v *openapi3.Schema) {
 		for _, s := range v.Required {
 			// in case openAPI json does not define required fields
 			// according to the props. definition
-			if _, ok := m[k].fields[s]; ok {
-				m[k].fields[s].setRequired(true)
+			if f, ok := m[k].fields[s]; ok {
+				f.setRequired(true)
+				m[k].fields[s] = f
 			}
 		}
 	default:

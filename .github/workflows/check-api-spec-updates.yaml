@@ -28,53 +28,48 @@ jobs:
           else
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
-      - uses: actions/setup-go@v5
-        if: steps.diff.outputs.isNew == 'true'
-        with:
-          go-version-file: generator/go.mod
-      - name: Generate SDK using new spec
-        id: diff_sdk
-        if: steps.diff.outputs.isNew == 'true'
-        run: |
-          echo "isNew=false" >> $GITHUB_OUTPUT
-          
-          mkdir tmp
-          make generate-sdk PATH_SPEC=${PWD}/openAPIDefinition_new.json PATH_SDK=${PWD}/tmp
-          
-          for obj in $(ls ${PWD}/tmp); do
-            echo check ${obj}
-            if [ $(diff ${obj} ${PWD}/tmp/${obj} | wc -l) -gt 0 ]; then
-              echo diff in SDK generated using new new spec, file ${obj}
-              echo "isNew=true" >> $GITHUB_OUTPUT
-            fi
-          done
+#      - uses: actions/setup-go@v5
+#        if: steps.diff.outputs.isNew == 'true'
+#        with:
+#          go-version-file: generator/go.mod
+#      - name: Generate SDK using new spec
+#        id: diff_sdk
+#        if: steps.diff.outputs.isNew == 'true'
+#        run: |
+#          echo "isNew=false" >> $GITHUB_OUTPUT
+#
+#          mkdir tmp
+#          make generate-sdk PATH_SPEC=${PWD}/openAPIDefinition_new.json PATH_SDK=${PWD}/tmp
+#
+#          for obj in $(ls ${PWD}/tmp); do
+#            echo check ${obj}
+#            if [ $(diff ${obj} ${PWD}/tmp/${obj} | wc -l) -gt 0 ]; then
+#              echo diff in SDK generated using new new spec, file ${obj}
+#              echo "isNew=true" >> $GITHUB_OUTPUT
+#            fi
+#          done
 
       - name: MV new sdk to root
         if: steps.diff_sdk.outputs.isNew == 'true'
-        run: |
-          mv ${PWD}/tmp/* .
-          mv openAPIDefinition_new.json openAPIDefinition.json
+        run: mv openAPIDefinition_new.json openAPIDefinition.json
 
       - name: Create Pull Request
         if: steps.diff_sdk.outputs.isNew == 'true'
         uses: peter-evans/create-pull-request@v6
         id: pr
         with:
-          add-paths: |
-            *.go
-            go.mod
-            openAPIDefinition.json
+          add-paths: openAPIDefinition.json
           commit-message: |
-            feat: auto-updated SDK
+            feat: auto-updated API Spec
           signoff: true
-          branch: feat/auto-generated-new-api-spec
+          branch: feat/new-api-spec
           branch-suffix: timestamp
           delete-branch: true
           assignees: kislerdm
-          title: Auto-generated SDK upon new spec
+          title: New spec detected
           body: |
             ## What changed
-              New generated SDK
+              New API spec added
             ## Why do we need it
               To reflect API spec changes
 

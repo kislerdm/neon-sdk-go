@@ -43,7 +43,7 @@ func NewMockHTTPClient() MockHTTPClient {
 				switch returnNotFound(r.URL.Path) {
 				case true:
 					w.WriteHeader(http.StatusNotFound)
-					_, _ = w.Write([]byte("authorization failed"))
+					_, _ = w.Write([]byte("not found"))
 
 				case false:
 					w.WriteHeader(resp.Code)
