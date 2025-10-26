@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.16.0] - 2025-10-26
+
+## Changed
+
+- **[BREAKING]** Changed the type of the attribute `PgSettings` to `map[string]any`. 
+  It affects the types `EndpointSettingsData` and `DefaultEndpointSettings`.
+
+## Removed
+
+- **[BREAKING]** Removed the type `PgSettingsData`.
+
 ## [v0.15.0] - 2025-10-26
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2025-10-26 18:52:00 GMT.

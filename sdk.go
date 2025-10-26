@@ -2136,7 +2136,7 @@ type DatabasesResponse struct {
 type DefaultEndpointSettings struct {
 	AutoscalingLimitMaxCu *ComputeUnit           `json:"autoscaling_limit_max_cu,omitempty"`
 	AutoscalingLimitMinCu *ComputeUnit           `json:"autoscaling_limit_min_cu,omitempty"`
-	PgSettings            *PgSettingsData        `json:"pg_settings,omitempty"`
+	PgSettings            map[string]any         `json:"pg_settings,omitempty"`
 	PgbouncerSettings     *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
@@ -2245,7 +2245,7 @@ type EndpointResponse struct {
 
 // EndpointSettingsData A collection of settings for a compute endpoint
 type EndpointSettingsData struct {
-	PgSettings        *PgSettingsData        `json:"pg_settings,omitempty"`
+	PgSettings        map[string]any         `json:"pg_settings,omitempty"`
 	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 	PreloadLibraries  *PreloadLibraries      `json:"preload_libraries,omitempty"`
 }
@@ -2755,9 +2755,6 @@ type PaymentSourceBankCard struct {
 	// Last4 Last 4 digits of the card.
 	Last4 string `json:"last4"`
 }
-
-// PgSettingsData A raw representation of Postgres settings
-type PgSettingsData struct{}
 
 // PgVersion The major Postgres version number. Currently supported versions are `14`, `15`, `16`, `17`, and `18`.
 type PgVersion int
