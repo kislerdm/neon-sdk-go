@@ -1002,7 +1002,7 @@
             ],
             "post": {
                 "summary": "Create a project transfer request",
-                "description": "Creates a transfer request for the specified project. A transfer request allows\nthe project to be transferred to another account or organization. The request\nhas an expiration time after which it can no longer be used. To accept/claim\nthe transfer request, the recipient user/organization must call the\n`/projects/{project_id}/transfer_requests/{request_id}` API endpoint, or visit\n`https://console.neon.tech/app/claim?p={project_id}&tr={request_id}&ru={redirect_url}`\nin the Neon Console. The `ru` parameter is optional and can be used to redirect\nthe user after accepting the transfer request. This feature is currently in\nprivate preview. Get in touch with us to get access.\n",
+                "description": "Creates a transfer request for the specified project. A transfer request allows\nthe project to be transferred to another account or organization. The request\nhas an expiration time after which it can no longer be used. To accept/claim\nthe transfer request, the recipient user/organization must call the\n`/projects/{project_id}/transfer_requests/{request_id}` API endpoint, or visit\n`https://console.neon.tech/app/claim?p={project_id}&tr={request_id}&ru={redirect_url}`\nin the Neon Console. The `ru` parameter is optional and can be used to redirect\nthe user after accepting the transfer request.\n",
                 "tags": [
                     "Project"
                 ],
@@ -6155,7 +6155,7 @@
                 "content": {
                     "application/json": {
                         "schema": {
-                            "$ref": "#/components/schemas/SnapshotSchedule"
+                            "$ref": "#/components/schemas/BackupSchedule"
                         }
                     }
                 }
@@ -8114,6 +8114,13 @@
                     "restored_as": {
                         "description": "ID of the target branch which was replaced when this branch was restored\n",
                         "type": "string"
+                    },
+                    "restricted_actions": {
+                        "description": "A list of actions that are currently restricted for this branch and the reason why.\n",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BranchRestrictedAction"
+                        }
                     }
                 },
                 "example": {
@@ -8144,6 +8151,24 @@
             "BranchRestoreStatus": {
                 "description": "Could be `restored`, `finalized` or `detaching`.\nA `restored` branch becomes permanently `finalized` when you call `finalizeRestoreBranch`\nA `restored` or `finalized` branch may begin `detaching` as a one-time performance optimisation, after which it will continue in its original state\n",
                 "type": "string"
+            },
+            "BranchRestrictedAction": {
+                "description": "An action that is currently restricted for the branch and the reason why.\n",
+                "type": "object",
+                "required": [
+                    "name",
+                    "reason"
+                ],
+                "properties": {
+                    "name": {
+                        "description": "The name of a restricted action. Possible values include `restore`, `delete-rw-endpoint`.\n",
+                        "type": "string"
+                    },
+                    "reason": {
+                        "description": "A human-readable explanation of why the action is restricted.\n",
+                        "type": "string"
+                    }
+                }
             },
             "BranchCreateRequestEndpointOptions": {
                 "type": "object",
@@ -10745,8 +10770,7 @@
                 ],
                 "x-sensitive": [
                     "email",
-                    "name",
-                    "password"
+                    "name"
                 ],
                 "properties": {
                     "project_id": {
@@ -10762,10 +10786,28 @@
                         "minLength": 1,
                         "maxLength": 256
                     },
-                    "password": {
+                    "name": {
                         "type": "string",
-                        "minLength": 8,
-                        "maxLength": 128
+                        "minLength": 1,
+                        "maxLength": 255
+                    }
+                }
+            },
+            "CreateBranchNeonAuthNewUserRequest": {
+                "type": "object",
+                "required": [
+                    "email"
+                ],
+                "x-sensitive": [
+                    "email",
+                    "name"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
                     },
                     "name": {
                         "type": "string",
@@ -11380,7 +11422,7 @@
                     }
                 }
             },
-            "SnapshotScheduleItem": {
+            "BackupScheduleItem": {
                 "type": "object",
                 "required": [
                     "frequency"
@@ -11415,7 +11457,7 @@
                     }
                 }
             },
-            "SnapshotSchedule": {
+            "BackupSchedule": {
                 "type": "object",
                 "required": [
                     "schedule"
@@ -11424,7 +11466,7 @@
                     "schedule": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/SnapshotScheduleItem"
+                            "$ref": "#/components/schemas/BackupScheduleItem"
                         }
                     }
                 }

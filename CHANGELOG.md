@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.15.0] - 2025-10-26
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2025-10-26 18:52:00 GMT.
+
+### Added
+
+- Added the attribute `RestoredActions` to the type `Branch`.
+
 ## [v0.14.0] - 2025-10-13
 
 ### Added

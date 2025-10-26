@@ -332,8 +332,7 @@ func (c Client) CreateProjectEndpoint(projectID string, cfg EndpointCreateReques
 // `/projects/{project_id}/transfer_requests/{request_id}` API endpoint, or visit
 // `https://console.neon.tech/app/claim?p={project_id}&tr={request_id}&ru={redirect_url}`
 // in the Neon Console. The `ru` parameter is optional and can be used to redirect
-// the user after accepting the transfer request. This feature is currently in
-// private preview. Get in touch with us to get access.
+// the user after accepting the transfer request.
 func (c Client) CreateProjectTransferRequest(projectID string, cfg *CreateProjectTransferRequestReqObj) (ProjectTransferRequestResponse, error) {
 	var v ProjectTransferRequestResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/transfer_requests", "POST", cfg, &v); err != nil {
@@ -1737,6 +1736,8 @@ type Branch struct {
 	RestoreStatus *BranchRestoreStatus `json:"restore_status,omitempty"`
 	// RestoredAs ID of the target branch which was replaced when this branch was restored
 	RestoredAs *string `json:"restored_as,omitempty"`
+	// RestoredActions A list of actions that are currently restricted for this branch and the reason why.
+	RestoredActions []BranchRestrictedAction `json:"restricted_actions,omitempty"`
 	// RestoredFrom ID of the snapshot that was the restore source for this branch
 	RestoredFrom *string `json:"restored_from,omitempty"`
 	// StateChangedAt A UTC timestamp indicating when the `current_state` began
@@ -1824,6 +1825,14 @@ type BranchRestoreRequest struct {
 // A `restored` branch becomes permanently `finalized` when you call `finalizeRestoreBranch`
 // A `restored` or `finalized` branch may begin `detaching` as a one-time performance optimisation, after which it will continue in its original state
 type BranchRestoreStatus string
+
+// BranchRestrictedAction An action that is currently restricted for the branch and the reason why.
+type BranchRestrictedAction struct {
+	// Name The name of a restricted action. Possible values include `restore`, `delete-rw-endpoint`.
+	Name string `json:"name"`
+	// Reason A human-readable explanation of why the action is restricted.
+	Reason string `json:"reason"`
+}
 
 type BranchSchemaCompareResponse struct {
 	Diff *string `json:"diff,omitempty"`
