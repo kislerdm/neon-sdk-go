@@ -21,7 +21,7 @@ jobs:
       - name: Pull new spec
         run: make fetch-specs
       - name: Diff spec files
-        id: diff
+        id: diff_spec
         run: |
           if [ $(diff openAPIDefinition_new.json openAPIDefinition.json | wc -l) -gt 0 ]; then
             echo "isNew=true" >> $GITHUB_OUTPUT
@@ -29,12 +29,12 @@ jobs:
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
 #      - uses: actions/setup-go@v5
-#        if: steps.diff.outputs.isNew == 'true'
+#        if: steps.diff_spec.outputs.isNew == 'true'
 #        with:
 #          go-version-file: generator/go.mod
 #      - name: Generate SDK using new spec
 #        id: diff_sdk
-#        if: steps.diff.outputs.isNew == 'true'
+#        if: steps.diff_spec.outputs.isNew == 'true'
 #        run: |
 #          echo "isNew=false" >> $GITHUB_OUTPUT
 #
@@ -49,12 +49,45 @@ jobs:
 #            fi
 #          done
 
-      - name: MV new sdk to root
-        if: steps.diff_sdk.outputs.isNew == 'true'
-        run: mv openAPIDefinition_new.json openAPIDefinition.json
+      - name: Update API spec and create PR body
+        id: create_pr_body
+        if: steps.diff_spec.outputs.isNew == 'true'
+        run: |
+          TMP_FILE_NEW="/tmp/new.txt"
+          TMP_FILE_OLD="/tmp/old.txt"
+
+          # Pluck the summary attribute from each entry (http method named attributes)
+          jq -r '.paths | to_entries[] | .key as $path | .value | to_entries[] | select(.key | test("^(get|post|put|delete|patch|options|head|trace)$")) | .value.summary' openAPIDefinition_new.json > $TMP_FILE_NEW
+          jq -r '.paths | to_entries[] | .key as $path | .value | to_entries[] | select(.key | test("^(get|post|put|delete|patch|options|head|trace)$")) | .value.summary' openAPIDefinition.json > $TMP_FILE_OLD
+
+          # Segment additions and removals, format with dashes for markdown list
+          ADDED=$(diff $TMP_FILE_OLD $TMP_FILE_NEW | grep '>' | sed 's/>/\n-/' || true)
+          REMOVED=$(diff $TMP_FILE_OLD $TMP_FILE_NEW | grep '<' | sed 's/</\n-/' || true)
+
+          # Build changes output
+          CHANGES=""
+          if [ -n "$ADDED" ]; then
+            CHANGES="${CHANGES}\n\n### Added API Methods\n\n${ADDED}"
+          fi
+
+          if [ -n "$REMOVED" ]; then
+            CHANGES="${CHANGES}\n\n### Removed API Methods\n\n${REMOVED}"
+          fi
+
+          # Replace previous version of spec with new version
+          mv openAPIDefinition_new.json openAPIDefinition.json
+
+          # Output PR body content
+          {
+            echo "api_changes<<EOF"
+            echo -e "$CHANGES"
+            echo "EOF"
+          }  >> $GITHUB_OUTPUT
+
+          cat $GITHUB_OUTPUT
 
       - name: Create Pull Request
-        if: steps.diff_sdk.outputs.isNew == 'true'
+        if: steps.diff_spec.outputs.isNew == 'true'
         uses: peter-evans/create-pull-request@v6
         id: pr
         with:
@@ -66,10 +99,13 @@ jobs:
           branch-suffix: timestamp
           delete-branch: true
           assignees: kislerdm
-          title: New spec detected
+          title: Updates from Neon API spec
           body: |
             ## What changed
-              New API spec added
+              New API specs.
+
+              ${{ steps.create_pr_body.outputs.api_changes }}
+
             ## Why do we need it
               To reflect API spec changes
 
