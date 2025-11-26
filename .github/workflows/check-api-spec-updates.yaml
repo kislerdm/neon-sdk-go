@@ -28,26 +28,26 @@ jobs:
           else
             echo "isNew=false" >> $GITHUB_OUTPUT
           fi
-#      - uses: actions/setup-go@v5
-#        if: steps.diff_spec.outputs.isNew == 'true'
-#        with:
-#          go-version-file: generator/go.mod
-#      - name: Generate SDK using new spec
-#        id: diff_sdk
-#        if: steps.diff_spec.outputs.isNew == 'true'
-#        run: |
-#          echo "isNew=false" >> $GITHUB_OUTPUT
-#
-#          mkdir tmp
-#          make generate-sdk PATH_SPEC=${PWD}/openAPIDefinition_new.json PATH_SDK=${PWD}/tmp
-#
-#          for obj in $(ls ${PWD}/tmp); do
-#            echo check ${obj}
-#            if [ $(diff ${obj} ${PWD}/tmp/${obj} | wc -l) -gt 0 ]; then
-#              echo diff in SDK generated using new new spec, file ${obj}
-#              echo "isNew=true" >> $GITHUB_OUTPUT
-#            fi
-#          done
+      - uses: actions/setup-go@v5
+        if: steps.diff_spec.outputs.isNew == 'true'
+        with:
+          go-version-file: generator/go.mod
+      - name: Generate SDK using new spec
+        id: diff_sdk
+        if: steps.diff_spec.outputs.isNew == 'true'
+        run: |
+          echo "isNew=false" >> $GITHUB_OUTPUT
+
+          mkdir tmp
+          make generate-sdk PATH_SPEC=${PWD}/openAPIDefinition_new.json PATH_SDK=${PWD}/tmp
+
+          for obj in $(ls ${PWD}/tmp); do
+            echo check ${obj}
+            if [ $(diff ${obj} ${PWD}/tmp/${obj} | wc -l) -gt 0 ]; then
+              echo diff in SDK generated using new new spec, file ${obj}
+              echo "isNew=true" >> $GITHUB_OUTPUT
+            fi
+          done
 
       - name: Update API spec and create PR body
         id: create_pr_body
