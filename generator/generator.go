@@ -541,6 +541,11 @@ func filterModels(modelsSource models, output models, m model) {
 		return
 	}
 
+	// Check if already processed to prevent infinite recursion
+	if _, exists := output[v.name]; exists {
+		return
+	}
+
 	output[v.name] = v
 
 	for child := range v.children {
