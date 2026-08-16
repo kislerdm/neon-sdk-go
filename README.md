@@ -3,13 +3,7 @@
 -----
 
 <div align="center">
-    ⭐ The project needs your support! Please leave a star and become a <a href="https://github.com/sponsors/kislerdm">GitHub sponsor</a>! ⭐
-</div>
-
------
-
-<div align="center">
-    💖 Thank you <a href="https://github.com/neondatabase">@neondatabase</a> for sponsoring the project! 💖
+    ⚠️The project is no longer maintained. Please use the <a href="https://api-docs.neon.tech/reference/ai-agents" target="_blank">official Neon MCP</a> instead.
 </div>
 
 -----
