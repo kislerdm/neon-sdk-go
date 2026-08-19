@@ -2,8 +2,6 @@ package generator
 
 import (
 	"encoding/json"
-	"errors"
-	"math"
 	"sort"
 )
 
@@ -28,6 +26,7 @@ func (v *OpenAPIResponse) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
+
 	v.Description = tmp.Description
 	v.Schema = tmp.Content.ApplicationJson.Schema
 	v.Ref = tmp.Ref
@@ -35,20 +34,62 @@ func (v *OpenAPIResponse) UnmarshalJSON(data []byte) error {
 }
 
 type OpenAPISchema struct {
-	// xRefName defines the name of the schema if it was defined in the `components.schemas` section.
+	// xRefName defines the name of the schema if it was defined in the `components.schemas` section
+	//  or from the properties of an `object`.
 	xRefName string
 
-	Type        string                   `json:"type,omitempty"`
-	Format      *string                  `json:"format,omitempty"`
-	Enum        []string                 `json:"enum,omitempty"`
-	Minimum     *float64                 `json:"minimum,omitempty"`
-	Maximum     *float64                 `json:"maximum,omitempty"`
-	Ref         *string                  `json:"$ref,omitempty"`
-	Description string                   `json:"description,omitempty"`
-	Required    []string                 `json:"required,omitempty"`
-	Properties  map[string]OpenAPISchema `json:"properties,omitempty"`
-	Items       *OpenAPISchema           `json:"items,omitempty"`
-	AllOf       []OpenAPISchema          `json:"allOf,omitempty"`
+	Type        string
+	Format      *string
+	Enum        []string
+	Minimum     *float64
+	Maximum     *float64
+	Ref         *string
+	Description string
+	Required    []string
+	Properties  []OpenAPISchema
+	Items       *OpenAPISchema
+	AllOf       []OpenAPISchema
+}
+
+func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
+	var tmp struct {
+		Type        string                   `json:"type,omitempty"`
+		Format      *string                  `json:"format,omitempty"`
+		Enum        []string                 `json:"enum,omitempty"`
+		Minimum     *float64                 `json:"minimum,omitempty"`
+		Maximum     *float64                 `json:"maximum,omitempty"`
+		Ref         *string                  `json:"$ref,omitempty"`
+		Description string                   `json:"description,omitempty"`
+		Required    []string                 `json:"required,omitempty"`
+		Properties  map[string]OpenAPISchema `json:"properties,omitempty"`
+		Items       *OpenAPISchema           `json:"items,omitempty"`
+		AllOf       []OpenAPISchema          `json:"allOf,omitempty"`
+	}
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	v.Type = tmp.Type
+	v.Format = tmp.Format
+	v.Enum = tmp.Enum
+	v.Minimum = tmp.Minimum
+	v.Maximum = tmp.Maximum
+	v.Ref = tmp.Ref
+	v.Description = tmp.Description
+	v.Required = tmp.Required
+	v.Items = tmp.Items
+	v.AllOf = tmp.AllOf
+
+	if len(tmp.Properties) > 0 {
+		v.Properties = make([]OpenAPISchema, 0, len(tmp.Properties))
+		for _, k := range sortMapKeys(tmp.Properties) {
+			vv := tmp.Properties[k]
+			vv.xRefName = k
+			v.Properties = append(v.Properties, vv)
+		}
+	}
+
+	return nil
 }
 
 type OpenAPIParameter struct {
@@ -68,9 +109,9 @@ type Components struct {
 
 func (v *Components) UnmarshalJSON(data []byte) error {
 	var tmp struct {
-		Responses  map[string]OpenAPIResponse  `json:"responses"`
-		Schemas    map[string]OpenAPISchema    `json:"schemas"`
-		Parameters map[string]OpenAPIParameter `json:"parameters"`
+		Responses  map[string]OpenAPIResponse  `json:"responses,omitempty"`
+		Schemas    map[string]OpenAPISchema    `json:"schemas,omitempty"`
+		Parameters map[string]OpenAPIParameter `json:"parameters,omitempty"`
 	}
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
@@ -162,7 +203,9 @@ func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 	}
 	v.Paths = make([]OpenAPIPath, 0, len(tmp.Paths))
 	for _, k := range sortMapKeys(tmp.Paths) {
-		v.Paths = append(v.Paths, tmp.Paths[k])
+		vv := tmp.Paths[k]
+		vv.URLPath = k
+		v.Paths = append(v.Paths, vv)
 	}
 	v.Components = tmp.Components
 	return nil
@@ -175,82 +218,4 @@ func sortMapKeys[E ~map[string]V, V OpenAPISchema | OpenAPIParameter | OpenAPIRe
 	}
 	sort.Strings(o)
 	return o
-}
-
-func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
-	switch {
-	case schema.Type == "" && (schema.Ref != nil || schema.AllOf != nil):
-		return "", false, nil
-
-	case schema.Type == "" && schema.AllOf == nil && schema.Ref == nil:
-		return "", false, errors.New("unknown type")
-
-	case schema.AllOf != nil || schema.Ref != nil:
-		return "struct", true, nil
-
-	case schema.Type == "object":
-		if len(schema.Properties) > 0 {
-			return "struct", true, nil
-		}
-		return "map[string]any", false, nil
-
-	case schema.Type == "string":
-		if schema.Format != nil && *schema.Format == "date-time" {
-			return "time.Time", false, nil
-		}
-		return "string", false, nil
-
-	case schema.Type == "integer":
-		switch {
-		case schema.Format != nil && *schema.Format == "int64":
-			return "int64", false, nil
-
-		case schema.Format != nil && *schema.Format == "int32":
-			return "int32", false, nil
-
-		case schema.Minimum != nil && *schema.Minimum >= 0:
-			switch {
-			case schema.Maximum != nil && *schema.Maximum <= 255:
-				return "uint8", false, nil
-			case schema.Maximum != nil && *schema.Maximum <= 65535:
-				return "uint16", false, nil
-			case schema.Maximum != nil && *schema.Maximum <= 4294967295:
-				return "uint32", false, nil
-			default:
-				return "uint", false, nil
-			}
-
-		default:
-			return "int", false, nil
-		}
-
-	case schema.Type == "number":
-		switch {
-		case schema.Format != nil && *schema.Format == "double":
-			return "float64", false, nil
-		case schema.Maximum != nil && *schema.Maximum <= math.MaxFloat32:
-			return "float32", false, nil
-		default:
-			return "float", false, nil
-		}
-
-	case schema.Type == "boolean":
-		return "bool", false, nil
-
-	case schema.Type == "array":
-		if schema.Items == nil {
-			return "", true, errors.New("array type must have items")
-		}
-		itemType, structItem, err := newGoType(*schema.Items)
-		if err != nil {
-			return "", false, err
-		}
-		if structItem {
-			panic("TODO0: add code generator to handle arrays of inlined structs")
-		}
-		return "[]" + itemType, false, nil
-
-	default:
-		return "any", false, err
-	}
 }
