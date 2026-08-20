@@ -99,6 +99,7 @@ type OpenAPIParameter struct {
 	In          string        `json:"in"`
 	Description string        `json:"description"`
 	Schema      OpenAPISchema `json:"schema"`
+	Ref         *string       `json:"$ref,omitempty"`
 }
 
 type Components struct {

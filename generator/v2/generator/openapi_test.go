@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"encoding/json"
 	"testing"
 
@@ -244,4 +245,189 @@ func TestOpenAPISchema_UnmarshalJSON(t *testing.T) {
 
 func pointer[V string | int64 | int | float64](v V) *V {
 	return &v
+}
+
+func TestOpenAPIPathMethodRequestBody_UnmarshalJSON(t *testing.T) {
+	in := []byte(`{
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectCreateRequest"
+                            },
+                            "examples": {
+                                "required_attributes_only": {
+                                    "summary": "Required attributes only",
+                                    "value": {
+                                        "project": {
+                                            "name": "myproject"
+                                        }
+                                    }
+                                },
+                                "commonly_specified_attributes": {
+                                    "summary": "Commonly-specified attributes",
+                                    "value": {
+                                        "project": {
+                                            "name": "myproject",
+                                            "region_id": "aws-us-east-2",
+                                            "pg_version": 15
+                                        }
+                                    }
+                                },
+                                "with_autoscaling": {
+                                    "summary": "With autoscaling attributes",
+                                    "value": {
+                                        "project": {
+                                            "name": "myproject",
+                                            "region_id": "aws-us-east-2",
+                                            "pg_version": 15,
+                                            "autoscaling_limit_min_cu": 0.25,
+                                            "autoscaling_limit_max_cu": 1,
+                                            "provisioner": "k8s-neonvm"
+                                        }
+                                    }
+                                },
+                                "with_branch_attributes": {
+                                    "summary": "With branch attributes",
+                                    "value": {
+                                        "project": {
+                                            "name": "myproject",
+                                            "region_id": "aws-us-east-2",
+                                            "pg_version": 15,
+                                            "branch": {
+                                                "name": "mybranch",
+                                                "role_name": "sally",
+                                                "database_name": "mydb"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }`)
+
+	want := OpenAPIPathMethodRequestBody{
+		Required: true,
+		Schema: OpenAPISchema{
+			Ref: pointer("#/components/schemas/ProjectCreateRequest"),
+		},
+	}
+
+	var got OpenAPIPathMethodRequestBody
+	assert.NoError(t, json.Unmarshal(in, &got))
+	assert.Equal(t, want, got)
+}
+
+func TestOpenAPIResponse_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		in   []byte
+		want OpenAPIResponse
+	}{
+		"shall extract schema from content": {
+			in: []byte(`{
+                        "description": "Returned a list of shared projects for the Neon account",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ProjectsResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/PaginationResponse"
+                                        }
+                                    ]
+                                },
+                                "example": {
+                                    "projects": [
+                                        {
+                                            "id": "shiny-wind-028834",
+                                            "platform_id": "aws",
+                                            "region_id": "aws-us-east-2",
+                                            "name": "shiny-wind-028834",
+                                            "provisioner": "k8s-pod",
+                                            "pg_version": 15,
+                                            "created_at": "2022-11-23T17:42:25Z",
+                                            "updated_at": "2022-11-23T17:42:25Z",
+                                            "proxy_host": "us-east-2.aws.neon.tech",
+                                            "cpu_used_sec": 0,
+                                            "branch_logical_size_limit": 0,
+                                            "owner_id": "1232111",
+                                            "creation_source": "console",
+                                            "store_passwords": true,
+                                            "branch_logical_size_limit_bytes": 10800,
+                                            "active_time": 100
+                                        },
+                                        {
+                                            "id": "winter-boat-259881",
+                                            "platform_id": "aws",
+                                            "region_id": "aws-us-east-2",
+                                            "name": "winter-boat-259881",
+                                            "provisioner": "k8s-pod",
+                                            "pg_version": 15,
+                                            "created_at": "2022-11-23T17:52:25Z",
+                                            "updated_at": "2022-11-23T17:52:25Z",
+                                            "proxy_host": "us-east-2.aws.neon.tech",
+                                            "cpu_used_sec": 0,
+                                            "branch_logical_size_limit": 0,
+                                            "owner_id": "1232111",
+                                            "creation_source": "console",
+                                            "store_passwords": true,
+                                            "branch_logical_size_limit_bytes": 10800,
+                                            "active_time": 100
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }`),
+			want: OpenAPIResponse{
+				Description: "Returned a list of shared projects for the Neon account",
+				Schema: OpenAPISchema{
+					AllOf: []OpenAPISchema{
+						{Ref: pointer("#/components/schemas/ProjectsResponse")},
+						{Ref: pointer("#/components/schemas/PaginationResponse")},
+					},
+				},
+			},
+		},
+		"shall extract ref": {
+			in: []byte(`{
+                    "$ref": "#/components/responses/GeneralError"
+                }`),
+			want: OpenAPIResponse{
+				Ref: pointer("#/components/responses/GeneralError"),
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var got OpenAPIResponse
+			assert.NoError(t, json.Unmarshal(test.in, &got))
+			assert.Equal(t, test.want, got)
+		})
+	}
+}
+
+//go:embed openAPIDefinition.json
+var testSchemaNeon20260820 []byte
+
+func TestDeserializationNeonOpenAPISpec(t *testing.T) {
+	t.Run("20260820", func(t *testing.T) {
+		wantPathsCnt := 115
+		wantComponentsResponsesCnt := 7
+		wantComponentsSchemasCnt := 268
+		wantComponentsParametersCnt := 4
+
+		var got OpenAPIDefinition
+		assert.NoError(t, json.Unmarshal(testSchemaNeon20260820, &got))
+		assert.Len(t, got.Paths, wantPathsCnt)
+		assert.Len(t, got.Components.Responses, wantComponentsResponsesCnt)
+		assert.Len(t, got.Components.Schemas, wantComponentsSchemasCnt)
+		assert.Len(t, got.Components.Parameters, wantComponentsParametersCnt)
+	})
 }
