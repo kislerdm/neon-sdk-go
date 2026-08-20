@@ -106,6 +106,8 @@ type Components struct {
 	Responses  []OpenAPIResponse
 	Schemas    []OpenAPISchema
 	Parameters []OpenAPIParameter
+	// parameters duplicate the parameters for lookup when generating SDK operation-methods.
+	parameters map[string]OpenAPIParameter
 }
 
 func (v *Components) UnmarshalJSON(data []byte) error {
@@ -138,6 +140,8 @@ func (v *Components) UnmarshalJSON(data []byte) error {
 		vv.xRefName = k
 		v.Parameters = append(v.Parameters, vv)
 	}
+
+	v.parameters = tmp.Parameters
 
 	return nil
 }
