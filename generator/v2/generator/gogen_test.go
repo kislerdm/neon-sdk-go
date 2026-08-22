@@ -149,6 +149,24 @@ ID string ` + "`json:\"id\"`" +
 				"}",
 			wantErr: assert.NoError,
 		},
+		{
+			name: "object with a single attribute of the type from schemas",
+			args: args{
+				schema: OpenAPISchema{
+					Type: "object",
+					Properties: []OpenAPISchema{
+						{
+							xRefName: "foo",
+							Ref:      pointer("#/components/schemas/Foo"),
+						},
+					},
+				},
+			},
+			want: "struct {\n" +
+				"Foo *Foo `json:\"foo,omitempty\"`\n" +
+				"}",
+			wantErr: assert.NoError,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
