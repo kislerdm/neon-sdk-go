@@ -154,14 +154,14 @@ func newMethodsDefinition(spec OpenAPIDefinition) (methods []string, types []str
 
 func newGoType(schema OpenAPISchema) (t string, isStruct bool, isNillable bool, err error) {
 	switch {
-	case schema.Type == "" && (schema.Ref != nil || schema.AllOf != nil):
-		return "", false, false, nil
-
 	case schema.Type == "" && schema.AllOf == nil && schema.Ref == nil:
 		return "", false, false, errors.New("unknown type")
 
-	case schema.AllOf != nil || schema.Ref != nil:
-		return "struct", true, false, nil
+	case schema.AllOf != nil:
+		return schema.xRefName, true, false, nil
+
+	case schema.Ref != nil:
+		return filepath.Base(*schema.Ref), false, false, nil
 
 	case schema.Type == "object":
 		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
@@ -170,8 +170,15 @@ func newGoType(schema OpenAPISchema) (t string, isStruct bool, isNillable bool, 
 		return "map[string]any", false, true, nil
 
 	case schema.Type == "string":
-		if schema.Format != nil && *schema.Format == "date-time" {
-			return "time.Time", false, false, nil
+		if schema.Format != nil {
+			switch *schema.Format {
+			case "date-time":
+				return "time.Time", false, false, nil
+			case "uri":
+				return "url.URL", false, false, nil
+			case "uuid":
+				return "uuid.UUID", false, false, nil
+			}
 		}
 		return "string", false, false, nil
 
