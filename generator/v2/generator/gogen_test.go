@@ -77,3 +77,45 @@ type Foo map[string]any`,
 		})
 	}
 }
+
+func Test_newGoStructDefinition(t *testing.T) {
+	type args struct {
+		schema OpenAPISchema
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "todo",
+			args: args{
+				schema: OpenAPISchema{
+					Type: "object",
+					Properties: []OpenAPISchema{
+						{
+							xRefName:    "id",
+							Type:        "string",
+							Description: "foo",
+						},
+					},
+				},
+			},
+			want: `struct {
+// ID foo
+ID string ` + "`json:\"id\"`" +
+				"\n}",
+			wantErr: assert.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := newGoStructDefinition(tt.args.schema)
+			if !tt.wantErr(t, err, fmt.Sprintf("newGoStructDefinition(%v)", tt.args.schema)) {
+				return
+			}
+			assert.Equalf(t, tt.want, got, "newGoStructDefinition(%v)", tt.args.schema)
+		})
+	}
+}

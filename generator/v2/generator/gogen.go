@@ -131,7 +131,12 @@ func newGoTypeDefinition(typeName string, schema OpenAPISchema) (string, error) 
 		buf.WriteString(goType)
 
 	} else {
-		buf.WriteString(newGoStructDefinition(schema))
+		structDefinition, err := newGoStructDefinition(schema)
+		if err != nil {
+			return "", err
+		}
+
+		buf.WriteString(structDefinition)
 	}
 
 	o := buf.String()
@@ -159,8 +164,8 @@ func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
 		return "struct", true, nil
 
 	case schema.Type == "object":
-		if len(schema.Properties) > 0 {
-			return "struct", true, nil
+		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
+			return schema.xRefName, true, nil
 		}
 		return "map[string]any", false, nil
 
@@ -218,7 +223,11 @@ func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
 		if structItem {
 			item := *schema.Items
 			if item.Ref == nil {
-				itemType = newGoStructDefinition(item)
+				itemType, err = newGoStructDefinition(item)
+				if err != nil {
+					return "", false, err
+				}
+
 			} else {
 				itemType = filepath.Base(*item.Ref)
 			}
@@ -230,6 +239,56 @@ func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
 	}
 }
 
-func newGoStructDefinition(schema OpenAPISchema) string {
-	panic("todo")
+func newGoStructDefinition(schema OpenAPISchema) (string, error) {
+	var buf = new(strings.Builder)
+	buf.WriteString("struct {")
+
+	switch {
+	case len(schema.Properties) > 0:
+		buf.WriteString("\n")
+
+		for _, prop := range schema.Properties {
+			name := newGoNameFromJsonAttribute(prop.xRefName)
+			if prop.Description != "" {
+				buf.WriteString("// ")
+				buf.WriteString(name)
+				buf.WriteString(" ")
+				buf.WriteString(prop.Description)
+				buf.WriteString("\n")
+			}
+
+			buf.WriteString(name)
+			buf.WriteString(" ")
+			propType, _, err := newGoType(prop)
+			if err != nil {
+				return "", err
+			}
+			buf.WriteString(propType)
+			buf.WriteString(" `json:\"")
+			buf.WriteString(prop.xRefName)
+			buf.WriteString("\"`")
+			buf.WriteString("\n")
+		}
+
+	case len(schema.AllOf) > 0:
+		panic("todo")
+	}
+
+	buf.WriteString("}")
+
+	return buf.String(), nil
+}
+
+func newGoNameFromJsonAttribute(s string) string {
+	var o = new(strings.Builder)
+	for _, el := range strings.Split(strings.ToLower(s), "_") {
+		switch el {
+		case "uuid", "api", "url", "uri", "id":
+			el = strings.ToUpper(el)
+		default:
+			el = strings.ToUpper(el[:1]) + el[1:]
+		}
+		o.WriteString(el)
+	}
+	return o.String()
 }
