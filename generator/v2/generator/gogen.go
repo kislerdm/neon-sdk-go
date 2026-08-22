@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -88,6 +89,35 @@ func newGenConfig(spec OpenAPIDefinition) (genConfig, error) {
 }
 
 func newTypesDefinition(components Components) ([]string, error) {
+	var o = make([]string, 0, len(components.Responses)+len(components.Schemas))
+
+	for _, v := range components.Responses {
+		// skip if the response type's name is identical to the schema's name
+		if v.Ref != nil && filepath.Base(*v.Ref) == v.xRefName {
+			continue
+		}
+		if v.Description != "" && v.Schema.Description == "" {
+			v.Schema.Description = v.Description
+		}
+		schema, err := newGoTypeDefinition(v.xRefName, v.Schema)
+		if err != nil {
+			return nil, err
+		}
+		o = append(o, schema)
+	}
+
+	for _, v := range components.Schemas {
+		schema, err := newGoTypeDefinition(v.xRefName, v)
+		if err != nil {
+			return nil, err
+		}
+		o = append(o, schema)
+	}
+
+	return o, nil
+}
+
+func newGoTypeDefinition(typeName string, schema OpenAPISchema) (string, error) {
 	panic("todo")
 }
 
