@@ -123,7 +123,7 @@ func newGoTypeDefinition(typeName string, schema OpenAPISchema) (string, error) 
 	buf.WriteString(typeName)
 	buf.WriteString(" ")
 
-	goType, isStruct, err := newGoType(schema)
+	goType, isStruct, _, err := newGoType(schema)
 	if err != nil {
 		return "", err
 	}
@@ -152,90 +152,90 @@ func newMethodsDefinition(spec OpenAPIDefinition) (methods []string, types []str
 	panic("todo")
 }
 
-func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
+func newGoType(schema OpenAPISchema) (t string, isStruct bool, isNillable bool, err error) {
 	switch {
 	case schema.Type == "" && (schema.Ref != nil || schema.AllOf != nil):
-		return "", false, nil
+		return "", false, false, nil
 
 	case schema.Type == "" && schema.AllOf == nil && schema.Ref == nil:
-		return "", false, errors.New("unknown type")
+		return "", false, false, errors.New("unknown type")
 
 	case schema.AllOf != nil || schema.Ref != nil:
-		return "struct", true, nil
+		return "struct", true, false, nil
 
 	case schema.Type == "object":
 		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
-			return schema.xRefName, true, nil
+			return schema.xRefName, true, false, nil
 		}
-		return "map[string]any", false, nil
+		return "map[string]any", false, true, nil
 
 	case schema.Type == "string":
 		if schema.Format != nil && *schema.Format == "date-time" {
-			return "time.Time", false, nil
+			return "time.Time", false, false, nil
 		}
-		return "string", false, nil
+		return "string", false, false, nil
 
 	case schema.Type == "integer":
 		switch {
 		case schema.Format != nil && *schema.Format == "int64":
-			return "int64", false, nil
+			return "int64", false, false, nil
 
 		case schema.Format != nil && *schema.Format == "int32":
-			return "int32", false, nil
+			return "int32", false, false, nil
 
 		case schema.Minimum != nil && *schema.Minimum >= 0:
 			switch {
 			case schema.Maximum != nil && *schema.Maximum <= 255:
-				return "uint8", false, nil
+				return "uint8", false, false, nil
 			case schema.Maximum != nil && *schema.Maximum <= 65535:
-				return "uint16", false, nil
+				return "uint16", false, false, nil
 			case schema.Maximum != nil && *schema.Maximum <= 4294967295:
-				return "uint32", false, nil
+				return "uint32", false, false, nil
 			default:
-				return "uint", false, nil
+				return "uint", false, false, nil
 			}
 
 		default:
-			return "int", false, nil
+			return "int", false, false, nil
 		}
 
 	case schema.Type == "number":
 		switch {
 		case schema.Format != nil && *schema.Format == "double":
-			return "float64", false, nil
+			return "float64", false, false, nil
 		case schema.Maximum != nil && *schema.Maximum <= math.MaxFloat32:
-			return "float32", false, nil
+			return "float32", false, false, nil
 		default:
-			return "float", false, nil
+			return "float", false, false, nil
 		}
 
 	case schema.Type == "boolean":
-		return "bool", false, nil
+		return "bool", false, false, nil
 
 	case schema.Type == "array":
 		if schema.Items == nil {
-			return "", true, errors.New("array type must have items")
+			return "", false, false, errors.New("array type must have items")
 		}
-		itemType, structItem, err := newGoType(*schema.Items)
+		itemType, structItem, _, err := newGoType(*schema.Items)
 		if err != nil {
-			return "", false, err
+			return "", false, false, err
 		}
 		if structItem {
 			item := *schema.Items
 			if item.Ref == nil {
 				itemType, err = newGoStructDefinition(item)
 				if err != nil {
-					return "", false, err
+					return "", false, false, err
 				}
 
 			} else {
 				itemType = filepath.Base(*item.Ref)
 			}
 		}
-		return "[]" + itemType, false, nil
+		return "[]" + itemType, false, true, nil
 
 	default:
-		return "any", false, err
+		return "any", false, true, err
 	}
 }
 
@@ -247,26 +247,45 @@ func newGoStructDefinition(schema OpenAPISchema) (string, error) {
 	case len(schema.Properties) > 0:
 		buf.WriteString("\n")
 
+		var requiredProps = make(map[string]struct{}, len(schema.Required))
+		for _, propName := range schema.Required {
+			requiredProps[propName] = struct{}{}
+		}
+
 		for _, prop := range schema.Properties {
-			name := newGoNameFromJsonAttribute(prop.xRefName)
+			jsonAttrName := prop.xRefName
+			_, isRequired := requiredProps[jsonAttrName]
+
+			structAttrName := newGoNameFromJsonAttribute(jsonAttrName)
+
 			if prop.Description != "" {
 				buf.WriteString("// ")
-				buf.WriteString(name)
+				buf.WriteString(structAttrName)
 				buf.WriteString(" ")
 				buf.WriteString(prop.Description)
 				buf.WriteString("\n")
 			}
 
-			buf.WriteString(name)
+			buf.WriteString(structAttrName)
 			buf.WriteString(" ")
-			propType, _, err := newGoType(prop)
+
+			propType, _, isNillable, err := newGoType(prop)
 			if err != nil {
 				return "", err
 			}
+
+			if !isRequired && !isNillable {
+				buf.WriteString("*")
+			}
 			buf.WriteString(propType)
+
 			buf.WriteString(" `json:\"")
-			buf.WriteString(prop.xRefName)
+			buf.WriteString(jsonAttrName)
+			if !isRequired {
+				buf.WriteString(",omitempty")
+			}
 			buf.WriteString("\"`")
+
 			buf.WriteString("\n")
 		}
 

@@ -89,10 +89,11 @@ func Test_newGoStructDefinition(t *testing.T) {
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
-			name: "object with two attributes",
+			name: "object with two attributes, one required",
 			args: args{
 				schema: OpenAPISchema{
-					Type: "object",
+					Type:     "object",
+					Required: []string{"id"},
 					Properties: []OpenAPISchema{
 						{
 							xRefName:    "id",
@@ -110,7 +111,7 @@ func Test_newGoStructDefinition(t *testing.T) {
 			want: `struct {
 // ID foo
 ID string ` + "`json:\"id\"`" +
-				"\n// BarURL bar\nBarURL string `json:\"bar_url\"`" +
+				"\n// BarURL bar\nBarURL *string `json:\"bar_url,omitempty\"`" +
 				"\n}",
 			wantErr: assert.NoError,
 		},
