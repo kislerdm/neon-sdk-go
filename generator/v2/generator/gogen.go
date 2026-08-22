@@ -118,7 +118,29 @@ func newTypesDefinition(components Components) ([]string, error) {
 }
 
 func newGoTypeDefinition(typeName string, schema OpenAPISchema) (string, error) {
-	panic("todo")
+	var buf = new(strings.Builder)
+	buf.WriteString("type ")
+	buf.WriteString(typeName)
+	buf.WriteString(" ")
+
+	goType, isStruct, err := newGoType(schema)
+	if err != nil {
+		return "", err
+	}
+	if !isStruct {
+		buf.WriteString(goType)
+
+	} else {
+		buf.WriteString(newGoStructDefinition(schema))
+	}
+
+	o := buf.String()
+
+	if schema.Description != "" {
+		o = "// " + typeName + " " + schema.Description + "\n" + o
+	}
+
+	return o, nil
 }
 
 func newMethodsDefinition(spec OpenAPIDefinition) (methods []string, types []string, err error) {
@@ -194,11 +216,20 @@ func newGoType(schema OpenAPISchema) (t string, isStruct bool, err error) {
 			return "", false, err
 		}
 		if structItem {
-			panic("TODO0: add code generator to handle arrays of inlined structs")
+			item := *schema.Items
+			if item.Ref == nil {
+				itemType = newGoStructDefinition(item)
+			} else {
+				itemType = filepath.Base(*item.Ref)
+			}
 		}
 		return "[]" + itemType, false, nil
 
 	default:
 		return "any", false, err
 	}
+}
+
+func newGoStructDefinition(schema OpenAPISchema) string {
+	panic("todo")
 }
