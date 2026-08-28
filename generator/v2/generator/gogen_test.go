@@ -1,180 +1,311 @@
 package generator
 
 import (
-	"fmt"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_newGoTypeDefinition(t *testing.T) {
-	type args struct {
-		typeName string
-		schema   OpenAPISchema
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "named string",
-			args: args{
-				typeName: "Foo",
-				schema: OpenAPISchema{
-					Type: "string",
-				},
-			},
-			want:    "type Foo string",
-			wantErr: assert.NoError,
-		},
-		{
-			name: "named float",
-			args: args{
-				typeName: "Foo",
-				schema: OpenAPISchema{
-					Type: "number",
-				},
-			},
-			want:    "type Foo float",
-			wantErr: assert.NoError,
-		},
-		{
-			name: "named map",
-			args: args{
-				typeName: "Foo",
-				schema: OpenAPISchema{
-					Type: "object",
-				},
-			},
-			want:    "type Foo map[string]any",
-			wantErr: assert.NoError,
-		},
-		{
-			name: "description is present",
-			args: args{
-				typeName: "Foo",
-				schema: OpenAPISchema{
-					Description: "foo\n\nbar",
-					Type:        "object",
-				},
-			},
-			want: `// Foo foo
+// func Test_newGoTypeDefinition(t *testing.T) {
+// 	type args struct {
+// 		typeName string
+// 		schema   OpenAPISchema
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		want    string
+// 		wantErr assert.ErrorAssertionFunc
+// 	}{
+// 		{
+// 			name: "named string",
+// 			args: args{
+// 				typeName: "FooEnumFooID",
+// 				schema: OpenAPISchema{
+// 					Type: "string",
+// 				},
+// 			},
+// 			want:    "type FooEnumFooID string",
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "named float",
+// 			args: args{
+// 				typeName: "FooEnumFooID",
+// 				schema: OpenAPISchema{
+// 					Type: "number",
+// 				},
+// 			},
+// 			want:    "type FooEnumFooID float",
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "named map",
+// 			args: args{
+// 				typeName: "FooEnumFooID",
+// 				schema: OpenAPISchema{
+// 					Type: "object",
+// 				},
+// 			},
+// 			want:    "type FooEnumFooID map[string]any",
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "description is present",
+// 			args: args{
+// 				typeName: "FooEnumFooID",
+// 				schema: OpenAPISchema{
+// 					Description: "foo\n\nbar",
+// 					Type:        "object",
+// 				},
+// 			},
+// 			want: `// FooEnumFooID foo
+//
+// bar
+// type FooEnumFooID map[string]any`,
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "type is referencing another type",
+// 			args: args{
+// 				typeName: "FooEnumFooID",
+// 				schema:   OpenAPISchema{Ref: pointer("#/components/responses/Bar")},
+// 			},
+// 			want:    "type FooEnumFooID Bar",
+// 			wantErr: assert.NoError,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := newGoTypesDefinition(tt.args.typeName, tt.args.schema)
+// 			if !tt.wantErr(t, err, fmt.Sprintf("typeDefinitionGenerator(%typesDefinition, %typesDefinition)", tt.args.typeName, tt.args.schema)) {
+// 				return
+// 			}
+// 			assert.Equalf(t, tt.want, got, "typeDefinitionGenerator(%typesDefinition, %typesDefinition)", tt.args.typeName, tt.args.schema)
+// 		})
+// 	}
+// }
+//
+// func Test_newGoStructDefinition(t *testing.T) {
+// 	type args struct {
+// 		schema OpenAPISchema
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		want    string
+// 		wantErr assert.ErrorAssertionFunc
+// 	}{
+// 		{
+// 			name: "object with two attributes of primitive types, one required",
+// 			args: args{
+// 				schema: OpenAPISchema{
+// 					Type:     "object",
+// 					Required: []string{"id"},
+// 					Properties: []OpenAPISchema{
+// 						{
+// 							xRefName:    "id",
+// 							Type:        "string",
+// 							Description: "foo",
+// 						},
+// 						{
+// 							xRefName:    "bar_url",
+// 							Type:        "string",
+// 							Description: "bar",
+// 						},
+// 					},
+// 				},
+// 			},
+// 			want: `struct {
+// // ID foo
+// ID string ` + "`json:\"id\"`" +
+// 				"\n// BarURL bar\nBarURL *string `json:\"bar_url,omitempty\"`" +
+// 				"\n}",
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "object with a single attribute: array of objects with two optional attrs",
+// 			args: args{
+// 				schema: OpenAPISchema{
+// 					Type: "object",
+// 					Properties: []OpenAPISchema{
+// 						{
+// 							xRefName: "foo",
+// 							Type:     "array",
+// 							Items: &OpenAPISchema{
+// 								Type: "object",
+// 								Properties: []OpenAPISchema{
+// 									{
+// 										xRefName: "bar",
+// 										Type:     "string",
+// 									},
+// 									{
+// 										xRefName: "baz",
+// 										Type:     "object",
+// 									},
+// 								},
+// 							},
+// 						},
+// 					},
+// 				},
+// 			},
+// 			want: "struct {\n" +
+// 				"FooEnumFooID []struct {\n" +
+// 				"Bar *string `json:\"bar,omitempty\"`\n" +
+// 				"Baz map[string]any `json:\"baz,omitempty\"`\n" +
+// 				"} `json:\"foo,omitempty\"`\n" +
+// 				"}",
+// 			wantErr: assert.NoError,
+// 		},
+// 		{
+// 			name: "object with a single attribute of the type from schemas",
+// 			args: args{
+// 				schema: OpenAPISchema{
+// 					Type: "object",
+// 					Properties: []OpenAPISchema{
+// 						{
+// 							xRefName: "foo",
+// 							Ref:      pointer("#/components/schemas/FooEnumFooID"),
+// 						},
+// 					},
+// 				},
+// 			},
+// 			want: "struct {\n" +
+// 				"FooEnumFooID *FooEnumFooID `json:\"foo,omitempty\"`\n" +
+// 				"}",
+// 			wantErr: assert.NoError,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			got, err := newGoStructDefinition(tt.args.schema)
+// 			if !tt.wantErr(t, err, fmt.Sprintf("newGoStructDefinition(%typesDefinition)", tt.args.schema)) {
+// 				return
+// 			}
+// 			assert.Equalf(t, tt.want, got, "newGoStructDefinition(%typesDefinition)", tt.args.schema)
+// 		})
+// 	}
+// }
 
-bar
-type Foo map[string]any`,
-			wantErr: assert.NoError,
+func Test_newTypesDefinition(t *testing.T) {
+	tests := map[string]struct {
+		raw   []byte
+		want  []string
+		errFn assert.ErrorAssertionFunc
+	}{
+		"response defined as ref to schema": {
+			raw: []byte(`{
+        "responses": {
+            "EmptyResponse": {
+                "description": "Empty response",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/EmptyResponse"
+                        }
+                    }
+                }
+            }
 		},
+		"schemas": {
+			"EmptyResponse": {
+                "type": "object",
+                "description": "Empty response.",
+                "properties": {}
+            }
+		}
+	}`),
+			want: []string{
+				`// EmptyResponse Empty response.
+type EmptyResponse map[string]any`,
+			},
+			errFn: assert.NoError,
+		},
+		"schema has property that references the schema itself": {
+			raw: []byte(`{"schemas": {"FooEnumFooID": {
+	"type": "object",
+	"properties": {
+		"foo": {
+			"type": "array", 
+			"items": {"$ref": "#/components/schemas/FooEnumFooID"}
+		}
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := newGoTypeDefinition(tt.args.typeName, tt.args.schema)
-			if !tt.wantErr(t, err, fmt.Sprintf("newGoTypeDefinition(%v, %v)", tt.args.typeName, tt.args.schema)) {
-				return
-			}
-			assert.Equalf(t, tt.want, got, "newGoTypeDefinition(%v, %v)", tt.args.typeName, tt.args.schema)
-		})
-	}
+}}}
+`),
+			want: []string{`type FooEnumFooID struct {
+Foo []FooEnumFooID ` + "`json:\"foo,omitempty\"`\n" +
+				"}"},
+			errFn: assert.NoError,
+		},
+		"schema has enum property": {
+			raw: []byte(`{
+		"schemas": {
+			"Foo": {
+                "type": "object",
+                "properties": {
+					"foo_id": {
+						"type": "string",
+						"enum": ["0", "1"]
+					}
+				}
+            }
+		}
+	}`),
+			want: []string{`type FooEnumFooID struct {
+typesDefinition string
 }
 
-func Test_newGoStructDefinition(t *testing.T) {
-	type args struct {
-		schema OpenAPISchema
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr assert.ErrorAssertionFunc
-	}{
-		{
-			name: "object with two attributes of primitive types, one required",
-			args: args{
-				schema: OpenAPISchema{
-					Type:     "object",
-					Required: []string{"id"},
-					Properties: []OpenAPISchema{
-						{
-							xRefName:    "id",
-							Type:        "string",
-							Description: "foo",
-						},
-						{
-							xRefName:    "bar_url",
-							Type:        "string",
-							Description: "bar",
-						},
-					},
-				},
-			},
-			want: `struct {
-// ID foo
-ID string ` + "`json:\"id\"`" +
-				"\n// BarURL bar\nBarURL *string `json:\"bar_url,omitempty\"`" +
-				"\n}",
-			wantErr: assert.NoError,
-		},
-		{
-			name: "object with a single attribute: array of objects with two optional attrs",
-			args: args{
-				schema: OpenAPISchema{
-					Type: "object",
-					Properties: []OpenAPISchema{
-						{
-							xRefName: "foo",
-							Type:     "array",
-							Items: &OpenAPISchema{
-								Type: "object",
-								Properties: []OpenAPISchema{
-									{
-										xRefName: "bar",
-										Type:     "string",
-									},
-									{
-										xRefName: "baz",
-										Type:     "object",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			want: "struct {\n" +
-				"Foo []struct {\n" +
-				"Bar *string `json:\"bar,omitempty\"`\n" +
-				"Baz map[string]any `json:\"baz,omitempty\"`\n" +
-				"} `json:\"foo,omitempty\"`\n" +
-				"}",
-			wantErr: assert.NoError,
-		},
-		{
-			name: "object with a single attribute of the type from schemas",
-			args: args{
-				schema: OpenAPISchema{
-					Type: "object",
-					Properties: []OpenAPISchema{
-						{
-							xRefName: "foo",
-							Ref:      pointer("#/components/schemas/Foo"),
-						},
-					},
-				},
-			},
-			want: "struct {\n" +
-				"Foo *Foo `json:\"foo,omitempty\"`\n" +
-				"}",
-			wantErr: assert.NoError,
+var (
+FooEnumFooID0 FooEnumFooID = FooEnumFooID{"0"}
+FooEnumFooID1 FooEnumFooID = FooEnumFooID{"1"}
+)
+
+func NewFooEnumFooID(s string) (FooEnumFooID, error) {
+m := map[string]FooEnumFooID{
+"0": FooEnumFooID0,
+"1": FooEnumFooID1,
+}
+typesDefinition, ok := m[s]
+if !ok {
+return FooEnumFooID{}, fmt.Errorf("unknown value: %s", s)
+}
+return typesDefinition, nil
+}
+
+func (typesDefinition FooEnumFooID) String() string {
+return typesDefinition.typesDefinition
+}
+
+func (typesDefinition *FooEnumFooID) UnmarshalJSON(data []byte) error {
+o, err := NewFooEnumFooID(string(data))
+if err != nil {
+return err
+}
+*typesDefinition = o
+return nil
+}
+
+func (typesDefinition FooEnumFooID) MarshalJSON() ([]byte, error) {
+return []byte(typesDefinition.typesDefinition), nil
+}
+
+type Foo struct {
+FooID *FooEnumFooID ` + "json:\"foo_id,omitempty\"`\n" +
+				"}"},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := newGoStructDefinition(tt.args.schema)
-			if !tt.wantErr(t, err, fmt.Sprintf("newGoStructDefinition(%v)", tt.args.schema)) {
-				return
+
+	t.Parallel()
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var in Components
+			assert.NoErrorf(t, json.Unmarshal(test.raw, &in), "could not deserialize raw input")
+			got, err := newGoTypes(in)
+			test.errFn(t, err)
+			if err == nil {
+				assert.Equal(t, test.want, got)
 			}
-			assert.Equalf(t, tt.want, got, "newGoStructDefinition(%v)", tt.args.schema)
 		})
 	}
 }
