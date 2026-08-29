@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"path/filepath"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -75,7 +76,7 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 		}
 		return definition, false, err
 
-	case schema.Type == "object":
+	case schema.Type == "object" || len(schema.AllOf) > 0:
 		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
 			var definition string
 			if topLevel {
@@ -159,6 +160,59 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 
 	switch {
 	case len(schema.Properties) > 0:
+		err := writeGoStructProperties(schema, typeName, repo, buf)
+		if err != nil {
+			return "", err
+		}
+
+	case len(schema.AllOf) > 0:
+		// presort sub-schemas so the referenced types come first
+		type tmp struct {
+			schema OpenAPISchema
+			isRef  bool
+		}
+		var subSchemas = make([]tmp, 0, len(schema.AllOf))
+		for _, subSchema := range schema.AllOf {
+			if subSchema.Ref == nil && subSchema.Type != "object" {
+				return "", fmt.Errorf("%s is unsupported type for allOf clause", subSchema.Type)
+			}
+			subSchemas = append(subSchemas, tmp{
+				schema: subSchema,
+				isRef:  subSchema.Ref != nil,
+			})
+		}
+		slices.SortStableFunc(subSchemas, func(a tmp, b tmp) int {
+			if !b.isRef && a.isRef {
+				return -1
+			}
+			return 0
+		})
+
+		for i, t := range subSchemas {
+			subSchema := t.schema
+			if subSchema.Ref != nil {
+				buf.WriteString("\n")
+				buf.WriteString(filepath.Base(*subSchema.Ref))
+				if i == len(schema.AllOf)-1 {
+					buf.WriteString("\n")
+				}
+
+			} else {
+				err := writeGoStructProperties(subSchema, typeName, repo, buf)
+				if err != nil {
+					return "", err
+				}
+			}
+		}
+	}
+
+	buf.WriteString("}")
+
+	return buf.String(), nil
+}
+
+func writeGoStructProperties(schema OpenAPISchema, typeName string, repo *TypesRepo, buf *strings.Builder) error {
+	if len(schema.Properties) > 0 {
 		buf.WriteString("\n")
 
 		var requiredProps = make(map[string]struct{}, len(schema.Required))
@@ -185,7 +239,7 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 
 			propType, isNillable, err := newGoTypeDefinition(prop, typeName+structAttrName, repo, false)
 			if err != nil {
-				return "", err
+				return err
 			}
 
 			if !isRequired && !isNillable {
@@ -202,14 +256,8 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 
 			buf.WriteString("\n")
 		}
-
-	case len(schema.AllOf) > 0:
-		panic("todo")
 	}
-
-	buf.WriteString("}")
-
-	return buf.String(), nil
+	return nil
 }
 
 func newGoEnumDefinition(schema OpenAPISchema, typeName string) (string, error) {

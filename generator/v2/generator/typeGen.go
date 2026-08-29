@@ -22,12 +22,11 @@ func (v *TypesRepo) AddTypeDefinitionInput(schema OpenAPISchema, name string) {
 }
 
 // Dequeue FIFO dequeue.
-func (v *TypesRepo) dequeue() (OpenAPISchema, string, bool) {
+func (v *TypesRepo) dequeue() (OpenAPISchema, string) {
 	var schema OpenAPISchema
 	var name string
 
-	next := len(v.inputQueue) > 0
-	if next {
+	if len(v.inputQueue) > 0 {
 		schema, name = v.inputQueue[0].schema, v.inputQueue[0].name
 	}
 
@@ -37,7 +36,11 @@ func (v *TypesRepo) dequeue() (OpenAPISchema, string, bool) {
 		v.inputQueue = nil
 	}
 
-	return schema, name, next
+	return schema, name
+}
+
+func (v *TypesRepo) EmptyInputQueue() bool {
+	return len(v.inputQueue) == 0
 }
 
 func (v *TypesRepo) AddTypeDefinition(s string) {
