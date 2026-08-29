@@ -26,6 +26,10 @@ func newGoTypes(components Components) ([]string, error) {
 		repo.AddTypeDefinitionInput(v, v.xRefName)
 	}
 
+	return newGoTypesDefinition(repo)
+}
+
+func newGoTypesDefinition(repo *TypesRepo) ([]string, error) {
 	for !repo.EmptyInputQueue() {
 		schema, typeName := repo.dequeue()
 
@@ -45,7 +49,6 @@ func newGoTypes(components Components) ([]string, error) {
 		}
 		repo.AddTypeDefinition(s)
 	}
-
 	return repo.TypesDefinition(), nil
 }
 
