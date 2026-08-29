@@ -252,47 +252,50 @@ Foo []FooEnumFooID ` + "`json:\"foo,omitempty\"`\n" +
             }
 		}
 	}`),
-			want: []string{`type FooEnumFooID struct {
-typesDefinition string
+			want: []string{
+				`type Foo struct {
+FooID *FooFooID ` + "`json:\"foo_id,omitempty\"`\n" +
+					"}",
+				`type FooFooID struct {
+	v string
+}
+
+func (v FooFooID) String() string {
+	return v.v
+}
+
+func (v *FooFooID) UnmarshalJSON(data []byte) error {
+	o, err := NewFooFooID(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v FooFooID) MarshalJSON() ([]byte, error) {
+	return []byte(v.v), nil
 }
 
 var (
-FooEnumFooID0 FooEnumFooID = FooEnumFooID{"0"}
-FooEnumFooID1 FooEnumFooID = FooEnumFooID{"1"}
+	FooFooID0 = FooFooID{"0"}
+	FooFooID1 = FooFooID{"1"}
 )
 
-func NewFooEnumFooID(s string) (FooEnumFooID, error) {
-m := map[string]FooEnumFooID{
-"0": FooEnumFooID0,
-"1": FooEnumFooID1,
+func NewFooFooID(s string) (FooFooID, error) {
+	m := map[string]FooFooID{
+		"0": FooFooID0,
+		"1": FooFooID1,
+	}
+	v, ok := m[s]
+	if !ok {
+		return FooFooID{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
 }
-typesDefinition, ok := m[s]
-if !ok {
-return FooEnumFooID{}, fmt.Errorf("unknown value: %s", s)
-}
-return typesDefinition, nil
-}
-
-func (typesDefinition FooEnumFooID) String() string {
-return typesDefinition.typesDefinition
-}
-
-func (typesDefinition *FooEnumFooID) UnmarshalJSON(data []byte) error {
-o, err := NewFooEnumFooID(string(data))
-if err != nil {
-return err
-}
-*typesDefinition = o
-return nil
-}
-
-func (typesDefinition FooEnumFooID) MarshalJSON() ([]byte, error) {
-return []byte(typesDefinition.typesDefinition), nil
-}
-
-type Foo struct {
-FooID *FooEnumFooID ` + "json:\"foo_id,omitempty\"`\n" +
-				"}"},
+`,
+			},
+			errFn: assert.NoError,
 		},
 	}
 

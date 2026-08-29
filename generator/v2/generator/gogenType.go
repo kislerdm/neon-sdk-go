@@ -26,32 +26,30 @@ func newGoTypes(components Components) ([]string, error) {
 		repo.AddTypeDefinitionInput(v, v.xRefName)
 	}
 
-	schema, typeName, next := repo.dequeue()
+	for !repo.EmptyInputQueue() {
+		schema, typeName := repo.dequeue()
 
-	goType, _, err := newGoTypeDefinition(schema, typeName, repo)
-	if err != nil {
-		return nil, err
-	}
+		goType, _, err := newGoTypeDefinition(schema, typeName, repo, true)
+		if err != nil {
+			return nil, err
+		}
 
-	var buf = new(strings.Builder)
-	buf.WriteString("type ")
-	buf.WriteString(typeName)
-	buf.WriteString(" ")
-	buf.WriteString(goType)
-	s := buf.String()
-	if schema.Description != "" {
-		s = "// " + typeName + " " + schema.Description + "\n" + s
-	}
-	repo.AddTypeDefinition(s)
-
-	for next {
-		schema, typeName, next = repo.dequeue()
+		var buf = new(strings.Builder)
+		buf.WriteString("type ")
+		buf.WriteString(typeName)
+		buf.WriteString(" ")
+		buf.WriteString(goType)
+		s := buf.String()
+		if schema.Description != "" {
+			s = "// " + typeName + " " + schema.Description + "\n" + s
+		}
+		repo.AddTypeDefinition(s)
 	}
 
 	return repo.TypesDefinition(), nil
 }
 
-func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo) (
+func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo, topLevel bool) (
 	t string, isNillable bool, err error) {
 	if typeName == "" {
 		typeName = newGoNameFromJsonAttribute(filepath.Base(schema.xRefName))
@@ -65,12 +63,24 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo)
 		return filepath.Base(*schema.Ref), false, nil
 
 	case len(schema.Enum) > 0:
-		definition, err := newGoEnumDefinition(schema, typeName)
+		var definition string
+		if topLevel {
+			definition, err = newGoEnumDefinition(schema, typeName)
+		} else {
+			repo.AddTypeDefinitionInput(schema, typeName)
+			definition = typeName
+		}
 		return definition, false, err
 
 	case schema.Type == "object":
 		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
-			definition, err := newGoStructDefinition(schema, typeName, repo)
+			var definition string
+			if topLevel {
+				definition, err = newGoStructDefinition(schema, typeName, repo)
+			} else {
+				repo.AddTypeDefinitionInput(schema, typeName)
+				definition = typeName
+			}
 			return definition, false, err
 		}
 		return "map[string]any", true, nil
@@ -130,22 +140,8 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo)
 			return "", false, errors.New("array type must have items")
 		}
 
-		item := *schema.Items
 		itemType := typeName + "Item"
-		switch {
-		case item.Type == "object":
-			if len(item.Properties) > 0 || len(item.AllOf) > 0 {
-				repo.AddTypeDefinitionInput(item, itemType)
-			} else {
-				itemType = "map[string]any"
-			}
-
-		case len(item.Enum) > 0:
-			repo.AddTypeDefinitionInput(item, itemType)
-
-		default:
-			itemType, _, err = newGoTypeDefinition(item, itemType, repo)
-		}
+		itemType, _, err = newGoTypeDefinition(*schema.Items, itemType, repo, false)
 
 		return "[]" + itemType, true, nil
 
@@ -184,7 +180,7 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 			buf.WriteString(structAttrName)
 			buf.WriteString(" ")
 
-			propType, isNillable, err := newGoTypeDefinition(prop, typeName+structAttrName, repo)
+			propType, isNillable, err := newGoTypeDefinition(prop, typeName+structAttrName, repo, false)
 			if err != nil {
 				return "", err
 			}
