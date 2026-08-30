@@ -285,14 +285,14 @@ func (v {{.TypeName}}) MarshalJSON() ([]byte, error) {
 
 var (
 	{{- range .EnumValues }}
-	{{$.TypeName}}{{.}} = {{$.TypeName}}{"{{.}}"}
+	{{$.TypeName}}{{.Go}} = {{$.TypeName}}{"{{.Original}}"}
 	{{- end }}
 )
 
 func New{{.TypeName}}(s string) ({{.TypeName}}, error) {
 	m := map[string]{{.TypeName}}{
 	{{- range .EnumValues }}
-		"{{.}}": {{$.TypeName}}{{.}},
+		"{{.Original}}": {{$.TypeName}}{{.Go}},
 	{{- end }}
 	}
 	v, ok := m[s]
@@ -303,13 +303,25 @@ func New{{.TypeName}}(s string) ({{.TypeName}}, error) {
 }
 `))
 
+	type enumTemplateImpute struct {
+		Original string
+		Go       string
+	}
+	var enumVals = make([]enumTemplateImpute, 0, len(schema.Enum))
+	for _, enumVal := range schema.Enum {
+		enumVals = append(enumVals, enumTemplateImpute{
+			Original: enumVal,
+			Go:       newGoNameFromJsonAttribute(enumVal),
+		})
+	}
+
 	var buf = new(bytes.Buffer)
 	err := templ.Execute(buf, struct {
 		TypeName   string
-		EnumValues []string
+		EnumValues []enumTemplateImpute
 	}{
 		TypeName:   typeName,
-		EnumValues: schema.Enum,
+		EnumValues: enumVals,
 	})
 	if err != nil {
 		return "", err
@@ -319,10 +331,21 @@ func New{{.TypeName}}(s string) ({{.TypeName}}, error) {
 }
 
 func newGoNameFromJsonAttribute(s string) string {
+	var isReservedWord = func(s string) bool {
+		m := map[string]struct{}{
+			"uuid": {}, "api": {}, "url": {}, "uri": {}, "id": {},
+		}
+		_, yes := m[s]
+		return yes
+	}
+
 	var o = new(strings.Builder)
-	for _, el := range strings.Split(strings.ToLower(s), "_") {
-		switch el {
-		case "uuid", "api", "url", "uri", "id":
+	s = strings.ToLower(s)
+	s = strings.Join(strings.Split(s, "_"), ".")
+	s = strings.Join(strings.Split(s, "."), "-")
+	for _, el := range strings.Split(s, "-") {
+		switch {
+		case isReservedWord(el), len(el) == 1:
 			el = strings.ToUpper(el)
 		default:
 			el = strings.ToUpper(el[:1]) + el[1:]

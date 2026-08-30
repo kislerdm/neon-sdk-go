@@ -276,14 +276,14 @@ type AllowedIps struct {
 				"could not deserialize openAPI spec")
 			got, err := newGoTypes(spec.Components)
 			assert.NoError(t, err)
-			assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas))
+			assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas)+len(spec.Components.Responses))
 		})
 }
 
 func Test_newGoEnumDefinition(t *testing.T) {
 	raw := []byte(`{
 				"type": "string",
-				"enum": ["0", "1", "2"]
+				"enum": ["0.1", "1-1", "2_2"]
 			}`)
 	want := `struct {
 	v string
@@ -307,16 +307,16 @@ func (v Foo) MarshalJSON() ([]byte, error) {
 }
 
 var (
-	Foo0 = Foo{"0"}
-	Foo1 = Foo{"1"}
-	Foo2 = Foo{"2"}
+	Foo01 = Foo{"0.1"}
+	Foo11 = Foo{"1-1"}
+	Foo22 = Foo{"2_2"}
 )
 
 func NewFoo(s string) (Foo, error) {
 	m := map[string]Foo{
-		"0": Foo0,
-		"1": Foo1,
-		"2": Foo2,
+		"0.1": Foo01,
+		"1-1": Foo11,
+		"2_2": Foo22,
 	}
 	v, ok := m[s]
 	if !ok {
