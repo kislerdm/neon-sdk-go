@@ -1,11 +1,15 @@
 package generator
 
 import (
+	_ "embed"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+//go:embed openAPIDefinition.json
+var openAPIDefinitionNeon20260820Raw []byte
 
 func Test_newGoTypes(t *testing.T) {
 	tests := map[string]struct {
@@ -139,7 +143,8 @@ func NewFooFooID(s string) (FooFooID, error) {
 			}
 		}`),
 			want: []string{
-				`type ListOperations struct {
+				`// ListOperations Returned a list of operations
+type ListOperations struct {
 OperationsResponse
 PaginationResponse
 }`,
@@ -176,7 +181,8 @@ PaginationResponse
 			}
 		}`),
 			want: []string{
-				`type ListOperations struct {
+				`// ListOperations Returned a list of operations
+type ListOperations struct {
 OperationsResponse
 PaginationResponse` +
 					"\n// Bar Bar\n" +
@@ -212,6 +218,42 @@ PaginationResponse` +
 				return assert.ErrorContains(t, err, "unsupported type for allOf clause")
 			},
 		},
+		"schema AllowedIps": {
+			raw: []byte(`{
+	"schemas": {
+		"AllowedIps": {
+            "description": "A list of IP addresses that are allowed to connect to the compute endpoint.\nIf the list is empty or not set, all IP addresses are allowed.\nIf protected_branches_only is true, the list will be applied only to protected branches.\n",
+            "type": "object",
+            "properties": {
+                "ips": {
+                    "description": "A list of IP addresses that are allowed to connect to the endpoint.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "protected_branches_only": {
+                    "description": "If true, the list will be applied only to protected branches.",
+                    "type": "boolean"
+                }
+            }
+        }
+	}
+}`),
+			want: []string{
+				`// AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
+// If the list is empty or not set, all IP addresses are allowed.
+// If protected_branches_only is true, the list will be applied only to protected branches.
+type AllowedIps struct {
+` +
+					"// Ips A list of IP addresses that are allowed to connect to the endpoint.\n" +
+					"Ips []string `json:\"ips,omitempty\"`\n" +
+					"// ProtectedBranchesOnly If true, the list will be applied only to protected branches.\n" +
+					"ProtectedBranchesOnly *bool `json:\"protected_branches_only,omitempty\"`\n" +
+					"}",
+			},
+			errFn: assert.NoError,
+		},
 	}
 
 	t.Parallel()
@@ -226,6 +268,16 @@ PaginationResponse` +
 			}
 		})
 	}
+
+	t.Run("shall generate definitions of correct number of types based on the Neon openAPI spec",
+		func(t *testing.T) {
+			var spec OpenAPIDefinition
+			assert.NoErrorf(t, json.Unmarshal(openAPIDefinitionNeon20260820Raw, &spec),
+				"could not deserialize openAPI spec")
+			got, err := newGoTypes(spec.Components)
+			assert.NoError(t, err)
+			assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas))
+		})
 }
 
 func Test_newGoEnumDefinition(t *testing.T) {
@@ -277,5 +329,25 @@ func NewFoo(s string) (Foo, error) {
 	assert.NoErrorf(t, json.Unmarshal(raw, &in), "could not deserialize raw input")
 	got, err := newGoEnumDefinition(in, "Foo")
 	assert.NoError(t, err)
+	assert.Equal(t, want, got)
+}
+
+func Test_newGoDocString(t *testing.T) {
+	name := "AllowedIps"
+	description := `A list of IP addresses that are allowed to connect to the compute endpoint.
+
+
+If the list is empty or not set, all IP addresses are allowed.
+If protected_branches_only is true, the list will be applied only to protected branches.
+
+
+`
+	want := `// AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
+//
+//
+// If the list is empty or not set, all IP addresses are allowed.
+// If protected_branches_only is true, the list will be applied only to protected branches.
+`
+	got := newGoDocString(name, description)
 	assert.Equal(t, want, got)
 }

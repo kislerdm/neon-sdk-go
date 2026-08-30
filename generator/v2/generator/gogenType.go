@@ -16,10 +16,11 @@ func newGoTypes(components Components) ([]string, error) {
 
 	for _, v := range components.Responses {
 		// skip if the response type's name is identical to the schema's name
-		if v.Ref != nil && filepath.Base(*v.Ref) == v.xRefName ||
-			v.Schema.Ref != nil && filepath.Base(*v.Schema.Ref) == v.xRefName {
+		if (v.Ref != nil && filepath.Base(*v.Ref) == v.xRefName) ||
+			(v.Schema.Ref != nil && filepath.Base(*v.Schema.Ref) == v.xRefName) {
 			continue
 		}
+		v.Schema.Description = v.Description
 		repo.AddTypeDefinitionInput(v.Schema, v.xRefName)
 	}
 
@@ -46,7 +47,7 @@ func newGoTypesDefinition(repo *TypesRepo) ([]string, error) {
 		buf.WriteString(goType)
 		s := buf.String()
 		if schema.Description != "" {
-			s = "// " + typeName + " " + schema.Description + "\n" + s
+			s = newGoDocString(typeName, schema.Description) + s
 		}
 		repo.AddTypeDefinition(s)
 	}
@@ -227,11 +228,7 @@ func writeGoStructProperties(schema OpenAPISchema, typeName string, repo *TypesR
 			structAttrName := newGoNameFromJsonAttribute(jsonAttrName)
 
 			if prop.Description != "" {
-				buf.WriteString("// ")
-				buf.WriteString(structAttrName)
-				buf.WriteString(" ")
-				buf.WriteString(prop.Description)
-				buf.WriteString("\n")
+				buf.WriteString(newGoDocString(structAttrName, prop.Description))
 			}
 
 			buf.WriteString(structAttrName)
@@ -333,4 +330,29 @@ func newGoNameFromJsonAttribute(s string) string {
 		o.WriteString(el)
 	}
 	return o.String()
+}
+
+// newGoDocString generates the docstring for a type given its name and description.
+func newGoDocString(name string, description string) string {
+	var buf = new(strings.Builder)
+	if len(description) > 0 {
+		description = strings.TrimRight(description, " \n")
+		description = strings.TrimLeft(description, " \n")
+		for i, el := range strings.Split(description, "\n") {
+			el = strings.TrimRight(strings.TrimLeft(el, " "), " ")
+
+			buf.WriteString("//")
+			if i == 0 {
+				buf.WriteString(" ")
+				buf.WriteString(name)
+			}
+
+			if len(el) > 0 {
+				buf.WriteString(" ")
+				buf.WriteString(el)
+			}
+			buf.WriteString("\n")
+		}
+	}
+	return buf.String()
 }
