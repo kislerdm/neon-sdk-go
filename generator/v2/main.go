@@ -2,13 +2,9 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io"
+	"generator/generator"
 	"log"
 	"os"
-	"path"
-
-	"generator/generator"
 )
 
 func main() {
@@ -27,28 +23,7 @@ func main() {
 		log.Fatalln("cannot open input file " + inputPath)
 	}
 
-	outputFilesCreator, err := newFilesCreator(outputDir)
-	if err != nil {
+	if err := generator.Run(openAPISpec, outputDir); err != nil {
 		log.Fatalln(err)
 	}
-
-	if err := generator.Run(openAPISpec, outputFilesCreator); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func newFilesCreator(dirName string) (generator.CreatorFn, error) {
-	_, err := os.ReadDir(dirName)
-	if err != nil {
-		return nil, err
-	}
-	return func(fileName string) (io.WriteCloser, error) {
-		subDirName, _ := path.Split(fileName)
-		if subDirName != "" {
-			if err := os.MkdirAll(subDirName, 0750); err != nil {
-				return nil, fmt.Errorf("could not create subdir %s: %w", subDirName, err)
-			}
-		}
-		return os.Open(fileName)
-	}, nil
 }

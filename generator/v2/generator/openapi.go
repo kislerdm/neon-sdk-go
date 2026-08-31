@@ -194,12 +194,16 @@ type OpenAPIPath struct {
 }
 
 type OpenAPIDefinition struct {
+	ServerURL  string
 	Paths      []OpenAPIPath
 	Components Components
 }
 
 func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 	var tmp struct {
+		Servers []struct {
+			URL string `json:"url"`
+		} `json:"servers"`
 		Paths      map[string]OpenAPIPath `json:"paths"`
 		Components Components             `json:"components"`
 	}
@@ -213,6 +217,7 @@ func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 		v.Paths = append(v.Paths, vv)
 	}
 	v.Components = tmp.Components
+	v.ServerURL = tmp.Servers[0].URL
 	return nil
 }
 

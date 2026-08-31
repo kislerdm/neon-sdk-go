@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"math"
 	"path/filepath"
 	"slices"
 	"strings"
 	"text/template"
 )
 
-func newGoTypes(components Components) ([]string, error) {
+func writeTypes(components Components, buf stringWriter) error {
 	repo := new(TypesRepo)
 
 	for _, v := range components.Responses {
@@ -28,19 +27,24 @@ func newGoTypes(components Components) ([]string, error) {
 		repo.AddTypeDefinitionInput(v, v.xRefName)
 	}
 
-	return newGoTypesDefinition(repo)
+	if err := newGoTypesDefinition(repo); err != nil {
+		return err
+	}
+
+	_, err := buf.WriteString(strings.Join(repo.TypesDefinition(), "\n"))
+	return err
 }
 
-func newGoTypesDefinition(repo *TypesRepo) ([]string, error) {
+func newGoTypesDefinition(repo *TypesRepo) error {
 	for !repo.EmptyInputQueue() {
 		schema, typeName := repo.dequeue()
 
 		goType, _, err := newGoTypeDefinition(schema, typeName, repo, true)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		var buf = new(strings.Builder)
+		var buf = new(bytes.Buffer)
 		buf.WriteString("type ")
 		buf.WriteString(typeName)
 		buf.WriteString(" ")
@@ -51,7 +55,7 @@ func newGoTypesDefinition(repo *TypesRepo) ([]string, error) {
 		}
 		repo.AddTypeDefinition(s)
 	}
-	return repo.TypesDefinition(), nil
+	return nil
 }
 
 func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo, topLevel bool) (
@@ -97,8 +101,6 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 				return "time.Time", false, nil
 			case "uri":
 				return "url.URL", false, nil
-			case "uuid":
-				return "uuid.UUID", false, nil
 			}
 		}
 		return "string", false, nil
@@ -128,14 +130,7 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 		}
 
 	case schema.Type == "number":
-		switch {
-		case schema.Format != nil && *schema.Format == "double":
-			return "float64", false, nil
-		case schema.Maximum != nil && *schema.Maximum <= math.MaxFloat32:
-			return "float32", false, nil
-		default:
-			return "float", false, nil
-		}
+		return "float64", false, nil
 
 	case schema.Type == "boolean":
 		return "bool", false, nil
@@ -343,7 +338,8 @@ func newGoNameFromJsonAttribute(s string) string {
 	s = strings.ToLower(s)
 	s = strings.Join(strings.Split(s, "_"), ".")
 	s = strings.Join(strings.Split(s, "."), "-")
-	for _, el := range strings.Split(s, "-") {
+	s = strings.Join(strings.Split(s, "-"), ":")
+	for _, el := range strings.Split(s, ":") {
 		switch {
 		case isReservedWord(el), len(el) == 1:
 			el = strings.ToUpper(el)

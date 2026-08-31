@@ -3,18 +3,19 @@ package generator
 import (
 	_ "embed"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 //go:embed openAPIDefinition.json
-var openAPIDefinitionNeon20260820Raw []byte
+var openAPIDefinitionNeon20260831Raw []byte
 
 func Test_newGoTypes(t *testing.T) {
 	tests := map[string]struct {
 		raw   []byte
-		want  []string
+		want  string
 		errFn assert.ErrorAssertionFunc
 	}{
 		"response defined as ref to schema": {
@@ -39,10 +40,8 @@ func Test_newGoTypes(t *testing.T) {
             }
 		}
 	}`),
-			want: []string{
-				`// EmptyResponse Empty response.
+			want: `// EmptyResponse Empty response.
 type EmptyResponse map[string]any`,
-			},
 			errFn: assert.NoError,
 		},
 		"schema has property that references the schema itself": {
@@ -56,9 +55,9 @@ type EmptyResponse map[string]any`,
 	}
 }}}
 `),
-			want: []string{`type FooEnumFooID struct {
+			want: `type FooEnumFooID struct {
 Foo []FooEnumFooID ` + "`json:\"foo,omitempty\"`\n" +
-				"}"},
+				"}",
 			errFn: assert.NoError,
 		},
 		"schema has enum property": {
@@ -75,11 +74,11 @@ Foo []FooEnumFooID ` + "`json:\"foo,omitempty\"`\n" +
             }
 		}
 	}`),
-			want: []string{
-				`type Foo struct {
+			want: `type Foo struct {
 FooID *FooFooID ` + "`json:\"foo_id,omitempty\"`\n" +
-					"}",
-				`type FooFooID struct {
+				"}" +
+				`
+type FooFooID struct {
 	v string
 }
 
@@ -117,7 +116,6 @@ func NewFooFooID(s string) (FooFooID, error) {
 	return v, nil
 }
 `,
-			},
 			errFn: assert.NoError,
 		},
 		"response has allOf w/ ref to schemas only": {
@@ -142,13 +140,11 @@ func NewFooFooID(s string) (FooFooID, error) {
 	            }
 			}
 		}`),
-			want: []string{
-				`// ListOperations Returned a list of operations
+			want: `// ListOperations Returned a list of operations
 type ListOperations struct {
 OperationsResponse
 PaginationResponse
 }`,
-			},
 			errFn: assert.NoError,
 		},
 		"response has allOf w/ ref to schemas and inline schema": {
@@ -180,17 +176,16 @@ PaginationResponse
 	            }
 			}
 		}`),
-			want: []string{
-				`// ListOperations Returned a list of operations
+			want: `// ListOperations Returned a list of operations
 type ListOperations struct {
 OperationsResponse
 PaginationResponse` +
-					"\n// Bar Bar\n" +
-					"Bar *float `json:\"bar,omitempty\"`\n" +
-					"// Foo Foo\n" +
-					"Foo *string `json:\"foo,omitempty\"`\n" +
-					"}",
-			},
+				"\n// Bar Bar\n" +
+				"Bar *float64 `json:\"bar,omitempty\"`\n" +
+				"// Foo Foo\n" +
+				"Foo *string `json:\"foo,omitempty\"`\n" +
+				"}",
+
 			errFn: assert.NoError,
 		},
 		"response has allOf w/ ref to schema and inline schema of the string": {
@@ -213,7 +208,7 @@ PaginationResponse` +
 	            }
 			}
 		}`),
-			want: nil,
+			want: "",
 			errFn: func(t assert.TestingT, err error, _ ...interface{}) bool {
 				return assert.ErrorContains(t, err, "unsupported type for allOf clause")
 			},
@@ -240,18 +235,16 @@ PaginationResponse` +
         }
 	}
 }`),
-			want: []string{
-				`// AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
+			want: `// AllowedIps A list of IP addresses that are allowed to connect to the compute endpoint.
 // If the list is empty or not set, all IP addresses are allowed.
 // If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 ` +
-					"// Ips A list of IP addresses that are allowed to connect to the endpoint.\n" +
-					"Ips []string `json:\"ips,omitempty\"`\n" +
-					"// ProtectedBranchesOnly If true, the list will be applied only to protected branches.\n" +
-					"ProtectedBranchesOnly *bool `json:\"protected_branches_only,omitempty\"`\n" +
-					"}",
-			},
+				"// Ips A list of IP addresses that are allowed to connect to the endpoint.\n" +
+				"Ips []string `json:\"ips,omitempty\"`\n" +
+				"// ProtectedBranchesOnly If true, the list will be applied only to protected branches.\n" +
+				"ProtectedBranchesOnly *bool `json:\"protected_branches_only,omitempty\"`\n" +
+				"}",
 			errFn: assert.NoError,
 		},
 	}
@@ -261,7 +254,9 @@ type AllowedIps struct {
 		t.Run(name, func(t *testing.T) {
 			var in Components
 			assert.NoErrorf(t, json.Unmarshal(test.raw, &in), "could not deserialize raw input")
-			got, err := newGoTypes(in)
+			var buf = new(strings.Builder)
+			err := writeTypes(in, buf)
+			got := buf.String()
 			test.errFn(t, err)
 			if err == nil {
 				assert.Equal(t, test.want, got)
@@ -272,11 +267,15 @@ type AllowedIps struct {
 	t.Run("shall generate definitions of correct number of types based on the Neon openAPI spec",
 		func(t *testing.T) {
 			var spec OpenAPIDefinition
-			assert.NoErrorf(t, json.Unmarshal(openAPIDefinitionNeon20260820Raw, &spec),
+			assert.NoErrorf(t, json.Unmarshal(openAPIDefinitionNeon20260831Raw, &spec),
 				"could not deserialize openAPI spec")
-			got, err := newGoTypes(spec.Components)
+			var buf = new(strings.Builder)
+			err := writeTypes(spec.Components, buf)
 			assert.NoError(t, err)
-			assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas)+len(spec.Components.Responses))
+			if err == nil {
+				got := buf.String()
+				assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas)+len(spec.Components.Responses))
+			}
 		})
 }
 

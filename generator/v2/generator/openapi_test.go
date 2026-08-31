@@ -10,6 +10,11 @@ import (
 
 func TestOpenAPIDefinition_UnmarshalJSONShallStoreSortedPaths(t *testing.T) {
 	in := []byte(`{
+"servers": [
+    {
+        "url": "https://console.neon.tech/api/v2"
+    }
+],
 "paths": {
 	"/b/{foo}/c": {},
 	"/x/": {},
@@ -414,17 +419,17 @@ func TestOpenAPIResponse_UnmarshalJSON(t *testing.T) {
 }
 
 //go:embed openAPIDefinition.json
-var testSchemaNeon20260820 []byte
+var testSchemaNeon20260831 []byte
 
 func TestDeserializationNeonOpenAPISpec(t *testing.T) {
-	t.Run("20260820", func(t *testing.T) {
-		wantPathsCnt := 115
+	t.Run("20260831", func(t *testing.T) {
+		wantPathsCnt := 118
 		wantComponentsResponsesCnt := 7
-		wantComponentsSchemasCnt := 268
+		wantComponentsSchemasCnt := 272
 		wantComponentsParametersCnt := 4
 
 		var got OpenAPIDefinition
-		assert.NoError(t, json.Unmarshal(testSchemaNeon20260820, &got))
+		assert.NoError(t, json.Unmarshal(testSchemaNeon20260831, &got))
 		assert.Len(t, got.Paths, wantPathsCnt)
 		assert.Len(t, got.Components.Responses, wantComponentsResponsesCnt)
 		assert.Len(t, got.Components.Schemas, wantComponentsSchemasCnt)
