@@ -223,9 +223,17 @@ func Run(openAPISpec []byte, outputDir string) error {
 
 	typesDefinitionInputFromComponents(typeRepo, spec.Components)
 
+	methodsDef, err := newGoMethodsDefinition(spec.Paths, spec.Components.Parameters, typeRepo)
+	if err != nil {
+		return err
+	}
+
 	if err := newGoTypesDefinition(typeRepo); err != nil {
 		return err
 	}
+
+	_, _ = sdkFileOut.WriteString(methodsDef)
+	_, _ = sdkFileOut.WriteString(typeRepo.TypesDefinition())
 
 	return nil
 }
