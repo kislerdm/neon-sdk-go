@@ -219,14 +219,13 @@ func Run(openAPISpec []byte, outputDir string) error {
 		return fmt.Errorf("cannot write sdk.go file: %w", err)
 	}
 
-	err = writeTypes(spec.Components, sdkFileOut)
-	if err != nil {
-		return fmt.Errorf("cannot write sdk.go file: %w", err)
+	typeRepo := new(TypesRepo)
+
+	typesDefinitionInputFromComponents(typeRepo, spec.Components)
+
+	if err := newGoTypesDefinition(typeRepo); err != nil {
+		return err
 	}
 
 	return nil
-}
-
-type stringWriter interface {
-	WriteString(s string) (int, error)
 }

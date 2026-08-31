@@ -3,7 +3,6 @@ package generator
 import (
 	_ "embed"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 //go:embed openAPIDefinition.json
 var openAPIDefinitionNeon20260831Raw []byte
 
-func Test_newGoTypes(t *testing.T) {
+func TestGoTypesDefinition(t *testing.T) {
 	tests := map[string]struct {
 		raw   []byte
 		want  string
@@ -254,11 +253,14 @@ type AllowedIps struct {
 		t.Run(name, func(t *testing.T) {
 			var in Components
 			assert.NoErrorf(t, json.Unmarshal(test.raw, &in), "could not deserialize raw input")
-			var buf = new(strings.Builder)
-			err := writeTypes(in, buf)
-			got := buf.String()
+
+			var repo = new(TypesRepo)
+			typesDefinitionInputFromComponents(repo, in)
+			err := newGoTypesDefinition(repo)
 			test.errFn(t, err)
+
 			if err == nil {
+				got := repo.TypesDefinition()
 				assert.Equal(t, test.want, got)
 			}
 		})
@@ -269,11 +271,12 @@ type AllowedIps struct {
 			var spec OpenAPIDefinition
 			assert.NoErrorf(t, json.Unmarshal(openAPIDefinitionNeon20260831Raw, &spec),
 				"could not deserialize openAPI spec")
-			var buf = new(strings.Builder)
-			err := writeTypes(spec.Components, buf)
+			var repo = new(TypesRepo)
+			typesDefinitionInputFromComponents(repo, spec.Components)
+			err := newGoTypesDefinition(repo)
 			assert.NoError(t, err)
 			if err == nil {
-				got := buf.String()
+				got := repo.TypesDefinition()
 				assert.GreaterOrEqual(t, len(got), len(spec.Components.Schemas)+len(spec.Components.Responses))
 			}
 		})

@@ -10,9 +10,61 @@ import (
 	"text/template"
 )
 
-func writeTypes(components Components, buf stringWriter) error {
-	repo := new(TypesRepo)
+type typeDefinitionInput struct {
+	schema OpenAPISchema
+	name   string
+}
 
+type TypesRepo struct {
+	typesDefinition []string
+
+	inputQueue []typeDefinitionInput
+}
+
+func (v *TypesRepo) AddTypeDefinitionInput(schema OpenAPISchema, name string) {
+	if v.inputQueue == nil {
+		v.inputQueue = make([]typeDefinitionInput, 0, 100)
+	}
+	v.inputQueue = append(v.inputQueue, typeDefinitionInput{
+		schema: schema,
+		name:   name,
+	})
+}
+
+// Dequeue FIFO dequeue.
+func (v *TypesRepo) dequeue() (OpenAPISchema, string) {
+	var schema OpenAPISchema
+	var name string
+
+	if len(v.inputQueue) > 0 {
+		schema, name = v.inputQueue[0].schema, v.inputQueue[0].name
+	}
+
+	if len(v.inputQueue) > 1 {
+		v.inputQueue = v.inputQueue[1:]
+	} else {
+		v.inputQueue = nil
+	}
+
+	return schema, name
+}
+
+func (v *TypesRepo) EmptyInputQueue() bool {
+	return len(v.inputQueue) == 0
+}
+
+func (v *TypesRepo) AddTypeDefinition(s string) {
+	if v.typesDefinition == nil {
+		v.typesDefinition = make([]string, 0, 100)
+	}
+	v.typesDefinition = append(v.typesDefinition, s)
+}
+
+func (v *TypesRepo) TypesDefinition() string {
+	return strings.Join(v.typesDefinition, "\n")
+}
+
+func typesDefinitionInputFromComponents(typesRepo *TypesRepo, components Components) {
 	for _, v := range components.Responses {
 		// skip if the response type's name is identical to the schema's name
 		if (v.Ref != nil && filepath.Base(*v.Ref) == v.xRefName) ||
@@ -20,19 +72,12 @@ func writeTypes(components Components, buf stringWriter) error {
 			continue
 		}
 		v.Schema.Description = v.Description
-		repo.AddTypeDefinitionInput(v.Schema, v.xRefName)
+		typesRepo.AddTypeDefinitionInput(v.Schema, v.xRefName)
 	}
 
 	for _, v := range components.Schemas {
-		repo.AddTypeDefinitionInput(v, v.xRefName)
+		typesRepo.AddTypeDefinitionInput(v, v.xRefName)
 	}
-
-	if err := newGoTypesDefinition(repo); err != nil {
-		return err
-	}
-
-	_, err := buf.WriteString(strings.Join(repo.TypesDefinition(), "\n"))
-	return err
 }
 
 func newGoTypesDefinition(repo *TypesRepo) error {
