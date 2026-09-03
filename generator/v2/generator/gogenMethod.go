@@ -146,6 +146,8 @@ func newArgTransformationToStrFnDefinition(name string, goType string, nillable 
 		return "strconv.FormatUint(" + name + ", 10)"
 	case "time.Time":
 		return name + ".Format(time.RFC3339)"
+	case "url.URL":
+		return name + ".String()"
 	default:
 		return name
 	}
