@@ -19,9 +19,7 @@ type typeDescriptor struct {
 	// for the optional query argument `limit`.
 	TransformationToStrFnDefinition string
 	InQuery                         bool
-	//  ArgumentName defines the function's arg name.
-	ArgumentName string
-	Nillable     bool
+	Nillable                        bool
 	// Name the name as in the openAPI spec.
 	Name     string
 	Required bool
