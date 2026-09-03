@@ -97,6 +97,7 @@ type OpenAPIParameter struct {
 	xRefName    string
 	Name        string        `json:"name"`
 	In          string        `json:"in"`
+	Required    bool          `json:"required"`
 	Description string        `json:"description"`
 	Schema      OpenAPISchema `json:"schema"`
 	Ref         *string       `json:"$ref,omitempty"`
@@ -149,6 +150,7 @@ func (v *Components) UnmarshalJSON(data []byte) error {
 type OpenAPIPathMethodResponses struct {
 	Code200 *OpenAPIResponse `json:"200,omitempty"`
 	Code201 *OpenAPIResponse `json:"201,omitempty"`
+	Code204 *OpenAPIResponse `json:"204,omitempty"`
 	Default OpenAPIResponse  `json:"default"`
 }
 
@@ -217,7 +219,9 @@ func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 		v.Paths = append(v.Paths, vv)
 	}
 	v.Components = tmp.Components
-	v.ServerURL = tmp.Servers[0].URL
+	if len(tmp.Servers) > 0 {
+		v.ServerURL = tmp.Servers[0].URL
+	}
 	return nil
 }
 
