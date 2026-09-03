@@ -6,6 +6,7 @@ import (
 	"maps"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -55,21 +56,24 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 		}
 
 		if p.Post != nil {
-			err := processEndpoint(p.URLPath, p.Post, http.MethodPost, globalParametersMap, pathParameters, typesRepo, o)
+			err := processEndpoint(p.URLPath, p.Post, http.MethodPost, globalParametersMap, pathParameters,
+				pathParamKeys, typesRepo, o)
 			if err != nil {
 				return "", err
 			}
 		}
 
 		if p.Get != nil {
-			err := processEndpoint(p.URLPath, p.Get, http.MethodGet, globalParametersMap, pathParameters, typesRepo, o)
+			err := processEndpoint(p.URLPath, p.Get, http.MethodGet, globalParametersMap, pathParameters, pathParamKeys,
+				typesRepo, o)
 			if err != nil {
 				return "", err
 			}
 		}
 
 		if p.Put != nil {
-			err := processEndpoint(p.URLPath, p.Put, http.MethodPut, globalParametersMap, pathParameters, typesRepo, o)
+			err := processEndpoint(p.URLPath, p.Put, http.MethodPut, globalParametersMap, pathParameters, pathParamKeys,
+				typesRepo, o)
 			if err != nil {
 				return "", err
 			}
@@ -77,7 +81,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 
 		if p.Patch != nil {
 			err := processEndpoint(p.URLPath, p.Patch, http.MethodPatch, globalParametersMap, pathParameters,
-				typesRepo, o)
+				pathParamKeys, typesRepo, o)
 			if err != nil {
 				return "", err
 			}
@@ -85,7 +89,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 
 		if p.Delete != nil {
 			err := processEndpoint(p.URLPath, p.Delete, http.MethodDelete, globalParametersMap, pathParameters,
-				typesRepo, o)
+				pathParamKeys, typesRepo, o)
 			if err != nil {
 				return "", err
 			}
@@ -146,8 +150,10 @@ func newArgTransformationToStrFnDefinition(name string, goType string, nillable 
 		return name + ".Format(time.RFC3339)"
 	case "url.URL":
 		return name + ".String()"
-	default:
+	case "string":
 		return name
+	default:
+		return "fmt.Sprintf(\"%v\", " + name + ")"
 	}
 }
 
@@ -163,17 +169,17 @@ func methodArgName(s string) string {
 	return s
 }
 
-func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod string,
-	globalParametersMap map[string]typeDescriptor, pathParameters map[string]typeDescriptor, typesRepo *TypesRepo,
-	o *bytes.Buffer) error {
-	methodName := newGoNameFromJsonAttribute(operation.OperationID)
+func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
+	globalParametersMap map[string]typeDescriptor, pathParameters map[string]typeDescriptor, pathParameterKeys []string,
+	typesRepo *TypesRepo, o *bytes.Buffer) error {
+	methodName := newMethodName(op.OperationID)
 	if methodName == "" {
 		return fmt.Errorf("method name cannot be defined for the endpoint: %s %s", httpMethod, urlPath)
 	}
 
 	endpointParameters := maps.Clone(pathParameters)
-	var endpointParamKeys []string
-	for _, v := range operation.Parameters {
+	var endpointParamKeys = slices.Clone(pathParameterKeys)
+	for _, v := range op.Parameters {
 		if v.xRefName == "" {
 			err := processParams(endpointParameters, v, v.Name)
 			if err != nil {
@@ -186,8 +192,8 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 		}
 	}
 
-	if operation.Description != "" {
-		o.WriteString(newGoDocString(methodName, operation.Description))
+	if op.Description != "" {
+		o.WriteString(newGoDocString(methodName, op.Description))
 	}
 
 	// define the method's signature: start
@@ -214,13 +220,13 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 	o.WriteString(") ")
 
 	respType := methodName + "RespObj"
-	if operation.Responses.Code204 == nil {
-		resp := operation.Responses.Code200
+	if op.Responses.Code204 == nil {
+		resp := op.Responses.Code200
 		if resp == nil {
-			resp = operation.Responses.Code201
+			resp = op.Responses.Code201
 		}
 		if resp == nil {
-			return fmt.Errorf("no success response found for operation: %s", operation.OperationID)
+			return fmt.Errorf("no success response found for operation: %s", op.OperationID)
 		}
 
 		if resp.Ref != nil {
@@ -244,9 +250,9 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 	// define the query string: start
 	if len(orationQueryParamKeys) > 0 {
 		o.WriteString(`var (
-		queryElements []string
-		query string
-	)
+queryElements []string
+query string
+)
 `)
 
 		for _, key := range orationQueryParamKeys {
@@ -267,13 +273,13 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 		}
 
 		o.WriteString(`if len(queryElements) > 0 {
-		query = "?" + strings.Join(queryElements, "&")
-	}
+query = "?" + strings.Join(queryElements, "&")
+}
 `)
 	}
 	// define the query string: end
 
-	if operation.Responses.Code204 == nil {
+	if op.Responses.Code204 == nil {
 		o.WriteString("var v ")
 		o.WriteString(respType)
 		o.WriteString("\n")
@@ -283,7 +289,7 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 	if err != nil {
 		return err
 	}
-	if operation.Responses.Code204 == nil {
+	if op.Responses.Code204 == nil {
 		o.WriteString("if err := c.requestHandler(c.baseURL")
 	} else {
 		o.WriteString("return c.requestHandler(c.baseURL")
@@ -293,8 +299,9 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 		o.WriteString("+")
 		o.WriteString(pathCode)
 	}
-	o.WriteString(", ")
+	o.WriteString(", \"")
 	o.WriteString(httpMethod)
+	o.WriteString("\", ")
 
 	reqPayload := "nil"
 	if httpMethod != http.MethodGet {
@@ -302,7 +309,7 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 	}
 	o.WriteString(reqPayload)
 
-	if operation.Responses.Code204 == nil {
+	if op.Responses.Code204 == nil {
 		o.WriteString(`, &v); err != nil {
 return `)
 		o.WriteString(respType)
@@ -313,8 +320,12 @@ return v, nil`)
 		o.WriteString(", nil)")
 	}
 
-	o.WriteString("\n}\n\n")
+	o.WriteString("\n}\n")
 	return nil
+}
+
+func newMethodName(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 func newPathCode(path string, parameters map[string]typeDescriptor) (string, error) {
