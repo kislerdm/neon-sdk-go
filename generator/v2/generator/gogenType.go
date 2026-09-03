@@ -103,7 +103,7 @@ func newGoTypesDefinition(repo *TypesRepo) error {
 	return nil
 }
 
-func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo, topLevel bool) (
+func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo, returnComplexTypeDefinition bool) (
 	t string, isNillable bool, err error) {
 	if typeName == "" {
 		typeName = newGoNameFromJsonAttribute(filepath.Base(schema.xRefName))
@@ -118,10 +118,12 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 
 	case len(schema.Enum) > 0:
 		var definition string
-		if topLevel {
+		if returnComplexTypeDefinition {
 			definition, err = newGoEnumDefinition(schema, typeName)
 		} else {
-			repo.AddTypeDefinitionInput(schema, typeName)
+			if repo != nil {
+				repo.AddTypeDefinitionInput(schema, typeName)
+			}
 			definition = typeName
 		}
 		return definition, false, err
@@ -129,10 +131,12 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 	case schema.Type == "object" || len(schema.AllOf) > 0:
 		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
 			var definition string
-			if topLevel {
+			if returnComplexTypeDefinition {
 				definition, err = newGoStructDefinition(schema, typeName, repo)
 			} else {
-				repo.AddTypeDefinitionInput(schema, typeName)
+				if repo != nil {
+					repo.AddTypeDefinitionInput(schema, typeName)
+				}
 				definition = typeName
 			}
 			return definition, false, err
