@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type typeDescriptor struct {
@@ -55,7 +58,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 			}
 		}
 
-		if p.Post != nil {
+		if p.Post != nil && !excludeEndpoint(p.Post) {
 			err := processEndpoint(p.URLPath, p.Post, http.MethodPost, globalParametersMap, pathParameters,
 				pathParamKeys, typesRepo, o)
 			if err != nil {
@@ -63,7 +66,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 			}
 		}
 
-		if p.Get != nil {
+		if p.Get != nil && !excludeEndpoint(p.Get) {
 			err := processEndpoint(p.URLPath, p.Get, http.MethodGet, globalParametersMap, pathParameters, pathParamKeys,
 				typesRepo, o)
 			if err != nil {
@@ -71,7 +74,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 			}
 		}
 
-		if p.Put != nil {
+		if p.Put != nil && !excludeEndpoint(p.Put) {
 			err := processEndpoint(p.URLPath, p.Put, http.MethodPut, globalParametersMap, pathParameters, pathParamKeys,
 				typesRepo, o)
 			if err != nil {
@@ -79,7 +82,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 			}
 		}
 
-		if p.Patch != nil {
+		if p.Patch != nil && !excludeEndpoint(p.Patch) {
 			err := processEndpoint(p.URLPath, p.Patch, http.MethodPatch, globalParametersMap, pathParameters,
 				pathParamKeys, typesRepo, o)
 			if err != nil {
@@ -87,7 +90,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 			}
 		}
 
-		if p.Delete != nil {
+		if p.Delete != nil && !excludeEndpoint(p.Delete) {
 			err := processEndpoint(p.URLPath, p.Delete, http.MethodDelete, globalParametersMap, pathParameters,
 				pathParamKeys, typesRepo, o)
 			if err != nil {
@@ -99,8 +102,15 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 	return o.String(), nil
 }
 
+func excludeEndpoint(op *OpenAPIPathMethod) bool {
+	return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
+}
+
 func processParams(m map[string]typeDescriptor, v OpenAPIParameter, key string) error {
 	inQuery := v.In == "query"
+	if v.Schema.Type == "" && v.Schema.Ref == nil {
+		return nil
+	}
 	t, nillable, err := newGoTypeDefinition(v.Schema, filepath.Base(key), nil,
 		false)
 	if err != nil {
@@ -152,6 +162,8 @@ func newArgTransformationToStrFnDefinition(name string, goType string, nillable 
 		return name + ".String()"
 	case "string":
 		return name
+	case "[]string":
+		return "strings.Join(" + name + ", \", \")"
 	default:
 		return "fmt.Sprintf(\"%v\", " + name + ")"
 	}
@@ -172,6 +184,7 @@ func methodArgName(s string) string {
 func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	globalParametersMap map[string]typeDescriptor, pathParameters map[string]typeDescriptor, pathParameterKeys []string,
 	typesRepo *TypesRepo, o *bytes.Buffer) error {
+	spew.Dump(op.OperationID)
 	methodName := newMethodName(op.OperationID)
 	if methodName == "" {
 		return fmt.Errorf("method name cannot be defined for the endpoint: %s %s", httpMethod, urlPath)
@@ -224,6 +237,9 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 		resp := op.Responses.Code200
 		if resp == nil {
 			resp = op.Responses.Code201
+		}
+		if resp == nil {
+			resp = op.Responses.Code202
 		}
 		if resp == nil {
 			return fmt.Errorf("no success response found for operation: %s", op.OperationID)

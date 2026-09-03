@@ -3,6 +3,8 @@ package generator
 import (
 	"encoding/json"
 	"sort"
+	"strings"
+	"time"
 )
 
 type OpenAPIResponse struct {
@@ -150,6 +152,7 @@ func (v *Components) UnmarshalJSON(data []byte) error {
 type OpenAPIPathMethodResponses struct {
 	Code200 *OpenAPIResponse `json:"200,omitempty"`
 	Code201 *OpenAPIResponse `json:"201,omitempty"`
+	Code202 *OpenAPIResponse `json:"202,omitempty"`
 	Code204 *OpenAPIResponse `json:"204,omitempty"`
 	Default OpenAPIResponse  `json:"default"`
 }
@@ -182,6 +185,8 @@ type OpenAPIPathMethod struct {
 	Parameters  []OpenAPIParameter           `json:"parameters,omitempty"`
 	Responses   OpenAPIPathMethodResponses   `json:"responses"`
 	RequestBody OpenAPIPathMethodRequestBody `json:"requestBody"`
+	Deprecated  bool                         `json:"deprecated,omitempty"`
+	Sunset      *Date                        `json:"x-sunset,omitempty"`
 }
 
 type OpenAPIPath struct {
@@ -201,13 +206,30 @@ type OpenAPIDefinition struct {
 	Components Components
 }
 
+type Date time.Time
+
+func (v *Date) UnmarshalJSON(data []byte) error {
+	t, err := time.Parse("2006-01-02", strings.Trim(string(data), "\""))
+	if err != nil {
+		return err
+	}
+	*v = Date(t)
+	return nil
+}
+
+type tmpOpenAPIPath struct {
+	OpenAPIPath
+	Deprecated bool  `json:"deprecated,omitempty"`
+	Sunset     *Date `json:"x-sunset,omitempty"`
+}
+
 func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 	var tmp struct {
 		Servers []struct {
 			URL string `json:"url"`
 		} `json:"servers"`
-		Paths      map[string]OpenAPIPath `json:"paths"`
-		Components Components             `json:"components"`
+		Paths      map[string]tmpOpenAPIPath `json:"paths"`
+		Components Components                `json:"components"`
 	}
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
@@ -215,8 +237,11 @@ func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 	v.Paths = make([]OpenAPIPath, 0, len(tmp.Paths))
 	for _, k := range sortMapKeys(tmp.Paths) {
 		vv := tmp.Paths[k]
+		if vv.Deprecated && vv.Sunset != nil && time.Now().After(time.Time(*vv.Sunset)) {
+			continue
+		}
 		vv.URLPath = k
-		v.Paths = append(v.Paths, vv)
+		v.Paths = append(v.Paths, vv.OpenAPIPath)
 	}
 	v.Components = tmp.Components
 	if len(tmp.Servers) > 0 {
@@ -225,7 +250,8 @@ func (v *OpenAPIDefinition) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func sortMapKeys[E ~map[string]V, V OpenAPISchema | OpenAPIParameter | OpenAPIResponse | OpenAPIPath](v E) []string {
+func sortMapKeys[E ~map[string]V,
+	V OpenAPISchema | OpenAPIParameter | OpenAPIResponse | OpenAPIPath | tmpOpenAPIPath](v E) []string {
 	var o = make([]string, 0, len(v))
 	for k := range v {
 		o = append(o, k)
