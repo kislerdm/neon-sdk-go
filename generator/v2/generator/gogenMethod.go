@@ -279,7 +279,10 @@ func processEndpoint(urlPath string, operation *OpenAPIPathMethod, httpMethod st
 		o.WriteString("\n")
 	}
 
-	pathCode := newPathCode(urlPath, endpointParameters)
+	pathCode, err := newPathCode(urlPath, endpointParameters)
+	if err != nil {
+		return err
+	}
 	if operation.Responses.Code204 == nil {
 		o.WriteString("if err := c.requestHandler(c.baseURL")
 	} else {
@@ -314,6 +317,48 @@ return v, nil`)
 	return nil
 }
 
-func newPathCode(path string, parameters map[string]typeDescriptor) string {
-	panic("todo")
+func newPathCode(path string, parameters map[string]typeDescriptor) (string, error) {
+	if path == "" {
+		return "", nil
+	}
+
+	var o = new(strings.Builder)
+	var i int
+	newPart := true
+	for i < len(path) {
+		el := path[i]
+		if el == '{' && i < len(path)-1 {
+			var param = new(strings.Builder)
+			for _, pEl := range path[i+1:] {
+				i++
+				if pEl == '}' {
+					p, ok := parameters[param.String()]
+					if !ok {
+						return "", fmt.Errorf("parameter %s not found to qualify path", param.String())
+					}
+					o.WriteString("\"+")
+					o.WriteString(p.TransformationToStrFnDefinition)
+					newPart = true
+					break
+				}
+				param.WriteRune(pEl)
+			}
+		} else {
+			if newPart {
+				if i > 0 {
+					o.WriteString("+")
+				}
+				o.WriteString("\"")
+				newPart = false
+			}
+			o.WriteRune(rune(el))
+		}
+		i++
+	}
+
+	s := o.String()
+	if !newPart && !strings.HasSuffix(s, "\"") {
+		s += "\""
+	}
+	return s, nil
 }
