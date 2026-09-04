@@ -419,17 +419,17 @@ func TestOpenAPIResponse_UnmarshalJSON(t *testing.T) {
 }
 
 //go:embed openAPIDefinition.json
-var testSchemaNeon20260831 []byte
+var testSchemaNeon []byte
 
 func TestDeserializationNeonOpenAPISpec(t *testing.T) {
-	t.Run("20260831", func(t *testing.T) {
-		wantPathsCnt := 118
+	t.Run("20260904", func(t *testing.T) {
+		wantPathsCnt := 120
 		wantComponentsResponsesCnt := 7
-		wantComponentsSchemasCnt := 272
+		wantComponentsSchemasCnt := 275
 		wantComponentsParametersCnt := 4
 
 		var got OpenAPIDefinition
-		assert.NoError(t, json.Unmarshal(testSchemaNeon20260831, &got))
+		assert.NoError(t, json.Unmarshal(testSchemaNeon, &got))
 		assert.Len(t, got.Paths, wantPathsCnt)
 		assert.Len(t, got.Components.Responses, wantComponentsResponsesCnt)
 		assert.Len(t, got.Components.Schemas, wantComponentsSchemasCnt)

@@ -2810,7 +2810,9 @@
             ],
             "post": {
                 "summary": "Send test email",
-                "description": "Sends a test email using the configured email server settings to verify SMTP connectivity and credentials.\nThe request body must include the SMTP server settings\n(`host`, `port`, `username`, `password`, `sender_email`, `sender_name`) and the `recipient_email` address.\n",
+                "description": "Sends a test email using the SMTP server settings supplied in the request body to verify connectivity and credentials.\nThe request body must include the full SMTP server settings\n(`host`, `port`, `username`, `password`, `sender_email`, `sender_name`) and the `recipient_email` address.\n\nDeprecated: to test a branch's already-saved configuration, use `sendNeonAuthEmailProviderTest`, which\nreuses the stored SMTP password server-side so the caller never has to re-supply (or be able to read) it.\nThis endpoint remains available for testing an unsaved full configuration and for non-Better-Auth providers.\n",
+                "deprecated": true,
+                "x-sunset": "2027-02-28",
                 "tags": [
                     "Auth"
                 ],
@@ -2821,6 +2823,64 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/SendNeonAuthTestEmailRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Response with the result of the test email send",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SendNeonAuthTestEmailResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/auth/email_provider/test": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                }
+            ],
+            "post": {
+                "summary": "Send test email using the saved email provider",
+                "description": "Sends a test email using the branch's already-saved custom SMTP configuration. Only the\n`recipient_email` is provided \u2014 the stored SMTP settings and password are used server-side,\nso the caller does not need to re-supply (or be able to read) the password. This avoids the\nGET response's masked password being sent back, which would fail SMTP authentication.\n\nRequires a configured custom SMTP provider on a Better Auth integration. A shared provider,\na missing configuration, or a non-Better-Auth integration is rejected.\n",
+                "tags": [
+                    "Auth"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "sendNeonAuthEmailProviderTest",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SendNeonAuthEmailProviderTestRequest"
                             }
                         }
                     },
@@ -9424,6 +9484,140 @@
                 }
             }
         },
+        "/projects/{project_id}/branches/{branch_id}/credentials/{token_id}/reveal": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "token_id",
+                    "in": "path",
+                    "description": "The opaque credential id (e.g. nak_live_<32hex>).",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "post": {
+                "summary": "Reveal a credential's secrets",
+                "description": "Returns the live `api_token` and `s3_secret_access_key` of an existing\ncredential, so a credential whose issuance response was lost can be\nrecovered without minting a new one.\n\nThis is a POST with an explicit `/reveal` verb so the secrets never ride\na GET, where they would land in access logs, browser history and proxy\ncaches. Revoked and expired credentials return 404, as does a\n`token_id` that does not belong to this project.\n\nA credential issued before secret retrieval was supported has no\nrecoverable secret and returns 409 \u2014 rotate it to obtain one.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Credentials"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "revealCredential",
+                "responses": {
+                    "200": {
+                        "description": "The credential's live secrets.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CredentialSecret"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Credential not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The credential exists but has no recoverable secret because it was\nissued before secret retrieval was supported. Rotate the credential\nto obtain a recoverable secret.\n",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GeneralError"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/credentials/{token_id}/rotate": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "token_id",
+                    "in": "path",
+                    "description": "The opaque credential id (e.g. nak_live_<32hex>).",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "post": {
+                "summary": "Rotate a credential's secrets",
+                "description": "Replaces the secret material on an existing scoped credential in\nplace. `token_id` is preserved \u2014 it is the `AWS_ACCESS_KEY_ID` for\nS3-compatible clients, so the access key id your application already\nholds keeps working and only the secret changes. This is the analog of\nresetting a Postgres password, not of issuing a second credential.\n\nThe response carries the new `api_token` and `s3_secret_access_key`\nexactly once. Rotation is **not** idempotent: retrying after an\nambiguous timeout mints another secret and supersedes the previous\nreplacement, so a retry does not recover a lost response \u2014 it only\ninvalidates the secret you did not receive. If you lose the response,\nissue a replacement credential and revoke this one.\n\nThe old secret stops authenticating as soon as the rotation commits.\nWhere a region caches credentials on its data-plane verifiers, a\nreplica may briefly keep accepting the old secret \u2014 and rejecting the\nnew one \u2014 until its cache entry expires; where it does not, the\ncutover is immediate apart from requests already in flight. Either way\nthe changeover is not atomic across replicas, so retry an unexpected\nauthentication failure right after rotating rather than treating the\nnew secret as bad. `last_used_at` continues to report the logical\ncredential's prior usage and says nothing about whether the new secret\nhas been used yet.\n\nOnly a live, unexpired, unrevoked customer-managed (`user`) credential\non a live project and live branch is eligible. Anything else \u2014\nincluding the platform-internal `function` and `system` credentials \u2014\nis reported as not found, indistinguishable from an unknown\n`token_id`.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Credentials"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "rotateCredential",
+                "responses": {
+                    "200": {
+                        "description": "Credential rotated \u2014 new secrets shown once.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RotateCredentialResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/branches/{branch_id}/functions": {
             "parameters": [
                 {
@@ -9664,6 +9858,163 @@
                                 }
                             }
                         }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/custom-domains": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                }
+            ],
+            "post": {
+                "summary": "Register a custom domain on a branch",
+                "description": "Registers a customer-owned domain (for example `dashboard.acme.com`) on the\nbranch and points it at a target entity, chosen by `entity_type` +\n`entity_id`. In v1 only `entity_type: function` is supported (an\nunsupported type is rejected with `400`), where `entity_id` is the function\nslug and the function must already exist on the branch (else `404`).\n\nThe response includes the `cname_target` the customer must point their\ndomain at with a CNAME record; the domain goes live only once that DNS\nresolves and a certificate is issued on the first request. A domain already\nregistered to another resource is rejected with `409` and no detail about\nthe owner. Re-registering the same domain for the same entity is idempotent.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "registerProjectBranchCustomDomain",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CustomDomainRegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The registered custom domain",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CustomDomain"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "get": {
+                "summary": "List the custom domains on a branch",
+                "description": "Lists all custom domains registered on the branch, across every target\nentity.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "listProjectBranchCustomDomains",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/CursorParam"
+                    },
+                    {
+                        "name": "limit",
+                        "description": "Specify a value from 1 to 1000 to limit number of domains in the response",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The list of custom domains",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/CustomDomainsListResponse"
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/CursorPaginationResponse"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/custom-domains/{domain}": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "domain",
+                    "in": "path",
+                    "description": "The registered custom domain (case-insensitive).",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 254,
+                        "pattern": "^[A-Za-z0-9.-]+$"
+                    }
+                }
+            ],
+            "delete": {
+                "summary": "Delete a custom domain from a branch",
+                "description": "Removes a custom domain registered on the branch and stops routing it.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "deleteProjectBranchCustomDomain",
+                "responses": {
+                    "204": {
+                        "description": "Custom domain deleted"
                     },
                     "default": {
                         "$ref": "#/components/responses/GeneralError"
@@ -15469,6 +15820,22 @@
                     }
                 }
             },
+            "SendNeonAuthEmailProviderTestRequest": {
+                "type": "object",
+                "description": "Request to test the branch's saved email provider. Only the recipient is supplied; the stored\nSMTP settings and password are used server-side.\n",
+                "required": [
+                    "recipient_email"
+                ],
+                "properties": {
+                    "recipient_email": {
+                        "description": "The email address to send the test email to.",
+                        "type": "string",
+                        "format": "email",
+                        "minLength": 1,
+                        "maxLength": 256
+                    }
+                }
+            },
             "SendNeonAuthTestEmailResponse": {
                 "type": "object",
                 "required": [
@@ -16804,11 +17171,22 @@
             },
             "CredentialScope": {
                 "type": "string",
-                "description": "A single capability a credential may exercise. A credential is granted\na set of these; it may only perform actions explicitly listed in its\nscopes.\n",
+                "description": "A single capability you may request when issuing a credential. A\ncredential is granted a set of these; it may only perform actions\nexplicitly listed in its scopes.\n\nThis is the *requestable* set. Responses describing an existing\ncredential use `GrantedCredentialScope`, which is deliberately wider:\na credential may have been granted a scope that this endpoint does not\noffer, and a response must be able to report it.\n",
                 "enum": [
                     "storage:read",
                     "storage:write",
                     "ai_gateway:invoke",
+                    "functions:invoke"
+                ]
+            },
+            "GrantedCredentialScope": {
+                "type": "string",
+                "description": "A single capability a credential actually carries, as reported by\nresponses that describe an existing credential.\n\nThis set is a superset of `CredentialScope` (the requestable set)\nbecause a credential's scopes are not limited to what this API offers:\nthe platform accepts additional scopes for customer-managed (`user`)\ncredentials, so one may exist on your branch that was not issued\nthrough this endpoint. Responses must be able to report such a\ncredential rather than fail to describe it \u2014 a client that rejected\nthe value would, on rotate, discard the replacement secret after the\nrotation had already committed. Treat unknown values as opaque.\n",
+                "enum": [
+                    "storage:read",
+                    "storage:write",
+                    "ai_gateway:invoke",
+                    "telemetry:write",
                     "functions:invoke"
                 ]
             },
@@ -16880,7 +17258,7 @@
                     "scopes": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CredentialScope"
+                            "$ref": "#/components/schemas/GrantedCredentialScope"
                         }
                     },
                     "branch_id": {
@@ -16895,6 +17273,100 @@
                         "type": "string",
                         "format": "date-time",
                         "description": "When the credential expires; absent means never expires.\n"
+                    }
+                }
+            },
+            "CredentialSecret": {
+                "type": "object",
+                "required": [
+                    "token_id",
+                    "api_token",
+                    "s3_secret_access_key"
+                ],
+                "description": "The live secrets of an existing credential, recovered on demand by the\nreveal endpoint. `api_token` and `s3_secret_access_key` are the same\nvalues handed back once at issuance.\n\nThe field set is deliberately narrower than `CreateCredentialResponse`:\nit carries only what reveal can actually recover. `token_id_short`,\n`scopes`, `principal_type`, `created_at` and `expires_at` are metadata,\nnot secrets \u2014 read them from the list endpoint instead.\n\nNo `branch_id` is returned. Reveal is scoped by `(project_id,\ntoken_id)`, so the branch in the request path authorizes the call but\nis not proven to be the branch the credential was issued on. Echoing it\nback would assert an anchor this endpoint never verified. For a\ncredential's true anchor branch, read `branch_id` from the list\nendpoint, which is branch-exact.\n",
+                "x-sensitive": [
+                    "api_token",
+                    "s3_secret_access_key"
+                ],
+                "properties": {
+                    "token_id": {
+                        "type": "string",
+                        "description": "Opaque credential id (e.g. nak_live_<32hex>)."
+                    },
+                    "api_token": {
+                        "type": "string",
+                        "description": "Bearer token."
+                    },
+                    "s3_secret_access_key": {
+                        "type": "string",
+                        "description": "nsk_live_<64 hex>; the AWS_SECRET_ACCESS_KEY."
+                    }
+                }
+            },
+            "RotateCredentialResponse": {
+                "type": "object",
+                "required": [
+                    "token_id",
+                    "token_id_short",
+                    "api_token",
+                    "s3_secret_access_key",
+                    "scopes",
+                    "branch_id",
+                    "principal_type",
+                    "created_at"
+                ],
+                "x-sensitive": [
+                    "api_token",
+                    "s3_secret_access_key"
+                ],
+                "description": "The replacement secret material for an existing credential, returned\nexactly once. `token_id`, `scopes`, `branch_id` and `created_at` are\nunchanged by the rotation \u2014 only `api_token` and\n`s3_secret_access_key` are new.\n",
+                "properties": {
+                    "token_id": {
+                        "type": "string",
+                        "description": "Opaque credential id (e.g. nak_live_<32hex>), unchanged by the\nrotation. Doubles as the `AWS_ACCESS_KEY_ID` for SigV4.\n"
+                    },
+                    "token_id_short": {
+                        "type": "string",
+                        "description": "First 12 hex chars of token_id; safe to log."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Customer-supplied label carried on the credential. Absent when none was set at issuance."
+                    },
+                    "api_token": {
+                        "type": "string",
+                        "description": "The new Bearer token; returned exactly once."
+                    },
+                    "s3_secret_access_key": {
+                        "type": "string",
+                        "description": "The new nsk_live_<64 hex> AWS_SECRET_ACCESS_KEY; returned exactly once."
+                    },
+                    "scopes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GrantedCredentialScope"
+                        }
+                    },
+                    "branch_id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "principal_type": {
+                        "type": "string",
+                        "enum": [
+                            "user"
+                        ],
+                        "description": "Always `user`: only customer-managed credentials are rotatable\nthrough this endpoint.\n"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the credential was originally issued. Rotation replaces the\nsecrets in place and does not reset this.\n"
+                    },
+                    "expires_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the credential expires; absent means never expires. Rotation\ndoes not extend it.\n"
                     }
                 }
             },
@@ -16922,7 +17394,7 @@
                     "scopes": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CredentialScope"
+                            "$ref": "#/components/schemas/GrantedCredentialScope"
                         }
                     },
                     "branch_id": {
@@ -17084,6 +17556,92 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/NeonFunction"
+                        }
+                    }
+                }
+            },
+            "CustomDomain": {
+                "type": "object",
+                "required": [
+                    "domain",
+                    "entity_type",
+                    "entity_id",
+                    "cname_target"
+                ],
+                "properties": {
+                    "domain": {
+                        "type": "string",
+                        "description": "The registered custom domain (normalized, lowercase)."
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "description": "The kind of branch entity the domain targets. Possible values:\n`function` (v1 supports only `function`). Not an `enum`: new values may\nship in later spec versions \u2014 treat any undocumented value as unknown.\n"
+                    },
+                    "entity_id": {
+                        "type": "string",
+                        "description": "The target entity's identifier within the branch. For `function` this\nis the function slug.\n"
+                    },
+                    "cname_target": {
+                        "type": "string",
+                        "description": "The hostname the customer must point their custom domain at with a\nCNAME record. Empty when the serving region has no custom-domains\nfront door configured. This is the activation input: point DNS here\nand the domain goes live (see `status`) once a certificate is issued\non the first request.\n"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The domain's current validity, computed by a background check:\n`pending` (still converging \u2014 point your CNAME at `cname_target` and\nwait), `active` (live: DNS resolves to the edge, the CA is authorized,\nand routing is published), or `error` (a fixable problem \u2014 see\n`status_reason`). Not an `enum`: treat any undocumented value as\nunknown. May be absent briefly right after registration.\n"
+                    },
+                    "dns_status": {
+                        "type": "string",
+                        "description": "The DNS + CAA portion of the check: `pending` (no records yet), `ok`\n(resolves to our edge and the CA is authorized), `misconfigured` (your\nCNAME does not resolve to our edge), or `caa_blocked` (your CAA records\nforbid Let's Encrypt). Not an `enum`.\n"
+                    },
+                    "binding_status": {
+                        "type": "string",
+                        "description": "Whether Neon's internal routing for the domain is published:\n`pending`, `present`, or `missing`. `missing` is an internal fault\nsurfaced for support. Not an `enum`.\n"
+                    },
+                    "status_reason": {
+                        "type": "string",
+                        "description": "A short, stable machine-readable reason for a non-active `status`\n(e.g. `cname-not-pointing-at-edge`, `caa-blocks-lets-encrypt`,\n`binding-missing`), suitable for keying an actionable hint. Empty when\nactive or pending.\n"
+                    }
+                }
+            },
+            "CustomDomainRegisterRequest": {
+                "type": "object",
+                "required": [
+                    "domain",
+                    "entity_type",
+                    "entity_id"
+                ],
+                "properties": {
+                    "domain": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 254,
+                        "description": "The custom domain to register (for example `dashboard.acme.com`).\nCase-insensitive; normalized to lowercase (a trailing root dot is\nstripped, so the 254-char bound admits a fully-qualified name whose\nnormalized form is 253 chars). Neon-managed and internal hostnames are\nrejected.\n"
+                    },
+                    "entity_type": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "example": "function",
+                        "description": "The kind of branch entity to point the domain at. v1 supports only\n`function`; any other value is rejected with `invalid_entity_type`.\n"
+                    },
+                    "entity_id": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "description": "The target entity's identifier within the branch. For `function` this\nis the function slug (which must already exist on the branch).\n"
+                    }
+                }
+            },
+            "CustomDomainsListResponse": {
+                "type": "object",
+                "required": [
+                    "custom_domains"
+                ],
+                "properties": {
+                    "custom_domains": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CustomDomain"
                         }
                     }
                 }
