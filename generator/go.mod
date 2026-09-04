@@ -1,4 +1,4 @@
-module generator
+module github.com/kislerdm/neon-sdk-go/generator
 
 go 1.25.12
 

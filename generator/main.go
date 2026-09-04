@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"generator/generator"
 	"log"
 	"os"
+
+	"github.com/kislerdm/neon-sdk-go/generator/generator"
 )
 
 func main() {
