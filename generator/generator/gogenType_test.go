@@ -320,6 +320,7 @@ func NewFoo(s string) (Foo, error) {
 		"1-1": Foo11,
 		"2_2": Foo22,
 	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
 	if !ok {
 		return Foo{}, fmt.Errorf("unknown value: %v", s)

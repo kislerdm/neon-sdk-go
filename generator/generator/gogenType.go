@@ -337,6 +337,7 @@ func New{{.TypeName}}(s string) ({{.TypeName}}, error) {
 		"{{.Original}}": {{$.TypeName}}{{.Go}},
 	{{- end }}
 	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
 	if !ok {
 		return {{.TypeName}}{}, fmt.Errorf("unknown value: %v", s)

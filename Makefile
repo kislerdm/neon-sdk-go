@@ -19,13 +19,11 @@ generate-sdk: ## Generates the SDK codebase using code generator.
 		CGO_ENABLED=0 go run . --output $(PATH_SDK) --input $(PATH_SPEC)
 
 .PHONY: tests
-tests: go.mod.test ## Run tests.
+tests: ## Run tests.
 	@ cd $(DIR) && \
- 		cp go.mod go.mod.dump && cp go.mod.test go.mod && \
  		go mod tidy && \
   		go test -timeout 3m --tags=unittest -v -coverprofile=.coverage.out . -coverpkg=. && \
-		go tool cover -func .coverage.out && rm .coverage.out &&\
-		mv go.mod.dump go.mod
+		go tool cover -func .coverage.out && rm .coverage.out
 
 .PHONY: build
 build: ## Compiles the binary.

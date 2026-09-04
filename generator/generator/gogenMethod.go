@@ -276,9 +276,12 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 		hasResponseBody = resp.Ref != nil || schemaContentDefined(resp.Schema)
 
 		if hasResponseBody {
-			if resp.Ref != nil {
+			switch {
+			case resp.Ref != nil:
 				respType = filepath.Base(*resp.Ref)
-			} else {
+			case resp.Schema.Ref != nil:
+				respType = filepath.Base(*resp.Schema.Ref)
+			default:
 				if resp.Schema.Description == "" {
 					resp.Schema.Description = resp.Description
 				}
