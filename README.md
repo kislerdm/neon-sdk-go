@@ -19,7 +19,6 @@
     + [Code Snippets](#code-snippets)
         - [Default HTTP Client](#default-http-client)
         - [Custom HTTP Client](#custom-http-client)
-        - [Mock](#mock)
     + [End-to-end example](./e2e-example/README.md)
 - [Development](#development)
     + [Commands](#commands)
@@ -37,7 +36,7 @@ Find more about Neon [here](https://neon.tech/docs/introduction/about/).
 
 ### Prerequisites
 
-- [go ~> 1.18](https://go.dev/dl/)
+- [go ~> 1.24](https://go.dev/dl/)
 - [API Key](https://neon.tech/docs/manage/api-keys/)
 
 ### Installation
@@ -60,7 +59,7 @@ Where `{{.Ver}}` is the release version.
 
 ### Default HTTP Client
 
-The following snippet demonstrates how to initialize SDK which will use default HTTP client.
+The following snippet demonstrates how to initialize SDK which will use the default HTTP client.
 
 ```go
 package main
@@ -77,7 +76,7 @@ func main() {
 		panic(err)
 	}
 
-	v, err := client.ListProjects(nil, nil, nil)
+	v, err := client.ListProjects(nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -109,35 +108,7 @@ func main() {
 		panic(err)
 	}
 
-	v, err := client.ListProjects(nil, nil, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("%d projects found", len(v.Projects))
-}
-```
-
-#### Mock
-
-The SDK provides the http client's mock for unit tests. An example snippet is shown below.
-
-```go
-package main
-
-import (
-	"log"
-
-	neon "github.com/kislerdm/neon-sdk-go"
-)
-
-func main() {
-	client, err := neon.NewClient(neon.Config{HTTPClient: neon.NewMockHTTPClient()})
-	if err != nil {
-		panic(err)
-	}
-
-	v, err := client.ListProjects(nil, nil, nil)
+	v, err := client.ListProjects(nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -154,14 +125,14 @@ database afterward.
 ## Development
 
 The SDK codebase is generated using the [OpenAPI](https://spec.openapis.org/) from
-the [Neon API reference page](https://neon.tech/api-reference/v2/). The generator application codebase can be
-found [here](generator).
+the [Neon API reference page](https://d216pytvakpmhr.cloudfront.net/api_spec/main/v2.json). 
+The generator application codebase can be found [here](generator).
 
 ### Commands
 
 **Prerequisites**:
 
-- go ~> 1.22
+- go ~> 1.25.12
 - gnuMake / cmake
 
 Run to see all available commands:
@@ -177,22 +148,21 @@ file [`openAPIDefinition.json`](openAPIDefinition.json):
 make generate-sdk
 ```
 
-Set the flag `SKIP_TEST=1` to generate the codebase without running the unit tests afterward:
-
-```commandline
-SKIP_TEST=1 make generate-sdk
-```
-
-Run to customise the locations:
+Run to customize the locations:
 
 ```commandline
 make generate-sdk PATH_SDK=##/PATH/TO/OUTPUT/SDK/CODE## PATH_SPEC=##/PATH/TO/SPEC.json##
 ```
 
-Run to test generated SDK:
+Run to test the generated SDK by making API calls:
 
 ```commandline
-make tests
+make testacc
+```
+
+**Note**: it requires the file `.env` with the following content:
+```text
+export NEON_API_KEY=...
 ```
 
 Run to test generated SDK stored to `/PATH/TO/OUTPUT/SDK/CODE`:

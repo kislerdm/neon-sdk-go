@@ -22,7 +22,7 @@ generate-sdk: ## Generates the SDK codebase using code generator.
 tests: ## Run tests.
 	@ cd $(DIR) && \
  		go mod tidy && \
-  		go test -timeout 3m --tags=unittest -v -coverprofile=.coverage.out . -coverpkg=. && \
+  		go test -timeout 3m -v -coverprofile=.coverage.out ./... -coverpkg=./... && \
 		go tool cover -func .coverage.out && rm .coverage.out
 
 .PHONY: build
@@ -30,7 +30,7 @@ build: ## Compiles the binary.
 	@ cd $(DIR) && \
  		test -d bin || mkdir -p bin && \
  		go mod tidy && \
-  		CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -o bin/$(APP)-$(OS)-$(ARCH) -ldflags="-s -w" ./cmd/main.go
+  		CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -o bin/$(APP)-$(OS)-$(ARCH) -ldflags="-s -w" .
 
 .PHONY: testacc
 testacc: ## Runs smoke tests.
