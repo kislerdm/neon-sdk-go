@@ -8,9 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type typeDescriptor struct {
@@ -109,7 +106,9 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 }
 
 func excludeEndpoint(op *OpenAPIPathMethod) bool {
-	return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
+	// pass all endpoints through
+	return false
+	// return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
 }
 
 func newTypeDescriptor(v OpenAPIParameter, typeName string, typesRepo *TypesRepo) (typeDescriptor, error) {
@@ -190,7 +189,6 @@ func methodArgName(s string) string {
 func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	globalParametersMap map[string]typeDescriptor, pathParameters map[string]typeDescriptor, pathParameterKeys []string,
 	typesRepo *TypesRepo, o *bytes.Buffer) error {
-	spew.Dump(op.OperationID)
 	methodName := newMethodName(op.OperationID)
 	if methodName == "" {
 		return fmt.Errorf("method name cannot be defined for the endpoint: %s %s", httpMethod, urlPath)
