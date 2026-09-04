@@ -27,6 +27,7 @@ type typeDescriptor struct {
 	// Name the name as in the openAPI spec.
 	Name     string
 	Required bool
+	GoName   string
 }
 
 // newGoMethodsDefinition generates the Go methods definition based on the provided paths and the global parameters.
@@ -35,10 +36,11 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 	// the map of referenced types defined by the openAPI spec. `components.parameters` attribute
 	var globalParametersMap = make(map[string]typeDescriptor, len(globalParameters))
 	for _, v := range globalParameters {
-		err := processParams(globalParametersMap, v, v.xRefName)
+		td, err := newTypeDescriptor(v, v.xRefName, typesRepo)
 		if err != nil {
 			return "", err
 		}
+		globalParametersMap[v.xRefName] = td
 	}
 
 	var o = new(bytes.Buffer)
@@ -47,10 +49,11 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 		var pathParamKeys []string
 		for _, v := range p.Parameters {
 			if v.xRefName == "" {
-				err := processParams(pathParameters, v, v.Name)
+				td, err := newTypeDescriptor(v, p.URLPath+"_"+v.Name, typesRepo)
 				if err != nil {
 					return "", err
 				}
+				pathParameters[v.Name] = td
 				pathParamKeys = append(pathParamKeys, v.Name)
 			} else {
 				pathParameters[v.xRefName] = globalParametersMap[v.xRefName]
@@ -106,15 +109,15 @@ func excludeEndpoint(op *OpenAPIPathMethod) bool {
 	return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
 }
 
-func processParams(m map[string]typeDescriptor, v OpenAPIParameter, key string) error {
+func newTypeDescriptor(v OpenAPIParameter, typeName string, typesRepo *TypesRepo) (typeDescriptor, error) {
 	inQuery := v.In == "query"
 	if v.Schema.Type == "" && v.Schema.Ref == nil {
-		return nil
+		return typeDescriptor{}, nil
 	}
-	t, nillable, err := newGoTypeDefinition(v.Schema, filepath.Base(key), nil,
-		false)
+
+	t, nillable, err := newGoTypeDefinition(v.Schema, typeName, typesRepo, false)
 	if err != nil {
-		return err
+		return typeDescriptor{}, err
 	}
 
 	argName := methodArgName(v.Name)
@@ -125,15 +128,15 @@ func processParams(m map[string]typeDescriptor, v OpenAPIParameter, key string) 
 	}
 	argDefinition += t
 
-	m[key] = typeDescriptor{
+	return typeDescriptor{
 		FnArgumentDefinition:            argDefinition,
 		TransformationToStrFnDefinition: newArgTransformationToStrFnDefinition(argName, t, nillable, v.Required),
 		InQuery:                         inQuery,
 		Nillable:                        nillable,
 		Name:                            v.Name,
+		GoName:                          argName,
 		Required:                        v.Required,
-	}
-	return nil
+	}, nil
 }
 
 func newArgTransformationToStrFnDefinition(name string, goType string, nillable bool, required bool) string {
@@ -193,13 +196,17 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	endpointParameters := maps.Clone(pathParameters)
 	var endpointParamKeys = slices.Clone(pathParameterKeys)
 	for _, v := range op.Parameters {
-		if v.xRefName == "" {
-			err := processParams(endpointParameters, v, v.Name)
+		if v.xRefName == "" && v.Ref == nil {
+			td, err := newTypeDescriptor(v, methodName+newGoNameFromJsonAttribute(v.Name), typesRepo)
 			if err != nil {
 				return err
 			}
+			endpointParameters[v.Name] = td
 			endpointParamKeys = append(endpointParamKeys, v.Name)
 		} else {
+			if v.Ref != nil {
+				v.xRefName = filepath.Base(*v.Ref)
+			}
 			endpointParameters[v.xRefName] = globalParametersMap[v.xRefName]
 			endpointParamKeys = append(endpointParamKeys, v.xRefName)
 		}
@@ -227,7 +234,7 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	o.WriteString(methodName)
 	o.WriteString("(")
 
-	var orationQueryParamKeys []string
+	var queryParamKeys []string
 	for i, key := range endpointParamKeys {
 		param := endpointParameters[key]
 		o.WriteString(param.FnArgumentDefinition)
@@ -235,7 +242,7 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 			o.WriteString(", ")
 		}
 		if param.InQuery {
-			orationQueryParamKeys = append(orationQueryParamKeys, key)
+			queryParamKeys = append(queryParamKeys, key)
 		}
 	}
 
@@ -292,18 +299,18 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	// define the method's signature: end
 
 	// define the query string: start
-	if len(orationQueryParamKeys) > 0 {
+	if len(queryParamKeys) > 0 {
 		o.WriteString(`var (
 queryElements []string
 query string
 )
 `)
 
-		for _, key := range orationQueryParamKeys {
+		for _, key := range queryParamKeys {
 			param := endpointParameters[key]
 			if !param.Required && !param.Nillable {
 				o.WriteString("if ")
-				o.WriteString(param.Name)
+				o.WriteString(param.GoName)
 				o.WriteString(" != nil {\n")
 			}
 			o.WriteString(`queryElements = append(queryElements, "`)
@@ -344,7 +351,7 @@ query = "?" + strings.Join(queryElements, "&")
 		o.WriteString(pathCode)
 	}
 
-	if len(orationQueryParamKeys) > 0 {
+	if len(queryParamKeys) > 0 {
 		o.WriteString("+query")
 	}
 

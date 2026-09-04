@@ -204,6 +204,173 @@ return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionI
 			wantTypesRepoQueueSize: 0,
 			wantErr:                assert.NoError,
 		},
+		"getOrganizationMembers": {
+			rawSpec: []byte(`{
+  "paths": {
+    "/organizations/{org_id}/members": {
+      "parameters": [
+        {
+          "name": "org_id",
+          "in": "path",
+          "description": "The Neon organization ID",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,60}$"
+          }
+        }
+      ],
+      "get": {
+        "summary": "List organization members",
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "getOrganizationMembers",
+        "parameters": [
+          {
+            "name": "sort_by",
+            "description": "Sort the members by the specified field. Defaults to joined_at.",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "joined_at",
+              "enum": [
+                "email",
+                "role",
+                "joined_at"
+              ]
+            }
+          },
+          {
+            "$ref": "#/components/parameters/CursorParam"
+          },
+          {
+            "$ref": "#/components/parameters/SortOrderParam"
+          },
+          {
+            "name": "limit",
+            "description": "The maximum number of members to return in the response",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returned information about organization members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/OrganizationMembersResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CursorPaginationResponse"
+                    }
+                  ]
+                },
+                "example": {
+                  "members": [
+                    {
+                      "member": {
+                        "id": "d57833f2-d308-4ede-9d2e-468d9d013d1b",
+                        "user_id": "b107d689-6dd2-4c9a-8b9e-0b25e457cf56",
+                        "org_id": "my-organization-morning-bread-81040908",
+                        "role": "admin",
+                        "joined_at": "2024-02-23T17:42:25Z"
+                      },
+                      "user": {
+                        "email": "user1@email.com"
+                      }
+                    },
+                    {
+                      "member": {
+                        "id": "5fee13ac-957b-40cd-8de0-4d494cc28e28",
+                        "user_id": "6df052ac-ca9a-4321-8963-b6507b2d7dee",
+                        "org_id": "my-organization-morning-bread-81040908",
+                        "role": "member",
+                        "joined_at": "2024-02-21T16:42:25Z"
+                      },
+                      "user": {
+                        "email": "user2@email.com"
+                      }
+                    }
+                  ],
+                  "pagination": {
+                    "next": "eyJtZW1iZXJfaWQiOiI1ZmVlMTNhYy05NTdiLTQwY2QtOGRlMC00ZDQ5NGNjMjhlMjgiLCJzb3J0X2J5Ijoiam9pbmVkX2F0In0=",
+                    "sort_by": "joined_at",
+                    "sort_order": "desc"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/GeneralError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "CursorParam": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "SortOrderParam": {
+        "name": "sort_order",
+        "description": "Defines the sorting order of entities.",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "default": "desc",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      }
+    }
+  }
+}`),
+			want: `func (c Client) GetOrganizationMembers(orgID string, sortBy *GetOrganizationMembersSortBy, cursor *string, sortOrder *SortOrderParam, limit *uint16) (GetOrganizationMembersRespObj, error) {
+var (
+queryElements []string
+query string
+)
+if sortBy != nil {
+queryElements = append(queryElements, "sort_by="+fmt.Sprintf("%v", *sortBy))
+}
+if cursor != nil {
+queryElements = append(queryElements, "cursor="+*cursor)
+}
+if sortOrder != nil {
+queryElements = append(queryElements, "sort_order="+fmt.Sprintf("%v", *sortOrder))
+}
+if limit != nil {
+queryElements = append(queryElements, "limit="+strconv.FormatUint(uint64(*limit), 10))
+}
+if len(queryElements) > 0 {
+query = "?" + strings.Join(queryElements, "&")
+}
+var v GetOrganizationMembersRespObj
+if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members"+query, "GET", nil, &v); err != nil {
+return GetOrganizationMembersRespObj{}, err
+}
+return v, nil
+}
+`,
+			wantErr:                assert.NoError,
+			wantTypesRepoQueueSize: 3,
+		},
 	}
 
 	t.Parallel()
