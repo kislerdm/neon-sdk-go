@@ -5,6 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.17.0] - 2026-09-04
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-04 12:16:00 GMT.
+
+### Added
+
+- Added support for organization spending limits, organization members, project members, and project permissions.
+- Added support for project advisor issues, branch anonymization, AI Gateway, branch storage, and branch recovery.
+- Added support for branch buckets and objects, including object listing, deletion, download, and presigned URLs.
+- Added support for branch functions, deployments, custom domains, and branch log queries.
+- Added support for scoped credentials, including creation, listing, secret retrieval, rotation, and revocation.
+- Added the following Neon Auth operations for branch configuration and management:
+  - `CreateNeonAuth`;
+  - `GetNeonAuth`;
+  - `DisableNeonAuth`;
+  - `GetNeonAuthAllowLocalhost`;
+  - `GetNeonAuthEmailAndPasswordConfig`;
+  - `GetNeonAuthEmailProvider`;
+  - `GetNeonAuthPhoneNumberPlugin`;
+  - `GetNeonAuthPluginConfigs`;
+  - `GetNeonAuthWebhookConfig`;
+  - `UpdateNeonAuthUserRole`;
+  - `UpdateNeonAuthWebhookConfig`;
+  - `SendNeonAuthEmailProviderTest`;
+  - `SendNeonAuthTestEmail`;
+  - `CreateBranchNeonAuthNewUser`;
+  - `AddBranchNeonAuthTrustedDomain`;
+  - `ListBranchNeonAuthTrustedDomains`;
+  - `DeleteBranchNeonAuthTrustedDomain`;
+  - `AddBranchNeonAuthOauthProvider`;
+  - `ListBranchNeonAuthOauthProviders`;
+  - `DeleteBranchNeonAuthOauthProvider`;
+  - `DeleteBranchNeonAuthUser`.
+- Added v2 consumption-history operations for project and branch metrics.
+
+### Changed
+
+- **[BREAKING]** Regenerated the SDK from the current API contract. This changes multiple method signatures, response types, request types, and generated model names.
+- **[BREAKING]** `NewClient` now always requires an API key, including when a mock HTTP client is configured. In the latter case, it's enough to supply a dummy value.
+- **[BREAKING]** Changed the representation of the enum types from `string` aliases to structs to use Go type safety at compile time:
+  - `BillingAccountState`;
+  - `BillingPaymentMethod`;
+  - `BillingSubscriptionType`;
+  - `ConsumptionHistoryGranularity`;
+  - `EndpointPoolerMode`;
+  - `EndpointState`;
+  - `EndpointType`;
+  - `IdentityProviderId`;
+  - `MemberRole`;
+  - `NeonAuthOauthProviderId`;
+  - `NeonAuthOauthProviderType`;
+  - `NeonAuthProviderProjectOwnedBy`;
+  - `NeonAuthProviderProjectTransferStatus`;
+  - `NeonAuthSupportedAuthProvider`;
+  - `OperationAction`;
+  - `OperationStatus`;
+  - `ProjectAuditLogLevel`.
+- **[BREAKING]** Changed `AnnotationValueData`, `EmptyResponse`, `NeonAuthEmailServerConfig`, and `PgbouncerSettingsData` from empty structs to `map[string]any`.
+- **[BREAKING]** Changed `PgVersion` from `int` to `uint8`.
+- **[BREAKING]** Changed `AddProjectJWKSRequest.RoleNames` from `*[]string` to `[]string` and `AllowedIps.Ips` from `*[]string` to `[]string`.
+
+### Removed
+
+- **[BREAKING]** Removed the `Password` field from `NeonAuthCreateNewUserRequest`.
+- **[BREAKING]** Renamed the `Branch.RestoredActions` field to `Branch.RestrictedActions`.
+- **[BREAKING]** Removed `GetConsumptionHistoryPerAccount`.
+- **[BREAKING]** Removed `RefreshSchemaCacheDataAPI`.
+- **[BREAKING]** Removed `UpdateNeonAuthEmailServer` and `UpdateNeonAuthOauthProvider`.
+- **[BREAKING]** Removed `UpdateOrganizationMember`.
+- **[BREAKING]** Removed `UpdateProject`, `UpdateProjectBranch`, `UpdateProjectBranchDatabase`, `UpdateProjectEndpoint`, and `UpdateSnapshot`.
+
 ## [v0.16.0] - 2025-10-26
 
 ## Changed
@@ -248,7 +319,7 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 - Added the method `GetCurrentUserOrganizations` to read all organization which a given user belongs to.
 - Added support of the organization ID (`orgID` argument) when using the following methods:
   - `ListProjectsConsumption`, see details [here](https://api-docs.neon.tech/reference/listprojectsconsumption).
-- Added the name, the address and the tax information to the billing details of the account: `BillingAccount` struct.
+- Added the name, the address, and the tax information to the billing details of the account: `BillingAccount` struct.
 
 ### Changed
 
