@@ -16,7 +16,7 @@ PATH_SDK := $(PWD)
 generate-sdk: ## Generates the SDK codebase using code generator.
 	@ cd generator && \
 		go mod tidy && \
-		CGO_ENABLED=0 go run cmd/main.go --output $(PATH_SDK) --input $(PATH_SPEC)
+		CGO_ENABLED=0 go run . --output $(PATH_SDK) --input $(PATH_SPEC)
 
 .PHONY: tests
 tests: go.mod.test ## Run tests.

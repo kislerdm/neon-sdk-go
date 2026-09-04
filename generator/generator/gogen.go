@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -235,5 +236,17 @@ func Run(openAPISpec []byte, outputDir string) error {
 	_, _ = sdkFileOut.WriteString(methodsDef)
 	_, _ = sdkFileOut.WriteString(typeRepo.TypesDefinition())
 
+	return goFmt(outputDir)
+}
+
+func goFmt(dir string) error {
+	cmd := exec.Command("go", "fmt", ".")
+	cmd.Dir = dir
+	if err := cmd.Start(); err != nil {
+		panic(err)
+	}
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("failed to run go fmt: %w", err)
+	}
 	return nil
 }
