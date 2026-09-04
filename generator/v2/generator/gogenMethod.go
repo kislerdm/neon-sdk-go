@@ -343,6 +343,11 @@ query = "?" + strings.Join(queryElements, "&")
 		o.WriteString("+")
 		o.WriteString(pathCode)
 	}
+
+	if len(orationQueryParamKeys) > 0 {
+		o.WriteString("+query")
+	}
+
 	o.WriteString(", \"")
 	o.WriteString(httpMethod)
 	o.WriteString("\", ")

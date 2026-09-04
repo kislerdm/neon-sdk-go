@@ -127,7 +127,7 @@ if len(queryElements) > 0 {
 query = "?" + strings.Join(queryElements, "&")
 }
 var v GetFooRespObj
-if err := c.requestHandler(c.baseURL+"/foo/"+projectID, "GET", nil, &v); err != nil {
+if err := c.requestHandler(c.baseURL+"/foo/"+projectID+query, "GET", nil, &v); err != nil {
 return GetFooRespObj{}, err
 }
 return v, nil
