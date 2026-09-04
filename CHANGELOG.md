@@ -42,6 +42,7 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 
 ### Changed
 
+- **[BREAKING]** Minimal supported Go version is now 1.24.
 - **[BREAKING]** Regenerated the SDK from the current API contract. This changes multiple method signatures, response types, request types, and generated model names.
 - **[BREAKING]** `NewClient` now always requires an API key, including when a mock HTTP client is configured. In the latter case, it's enough to supply a dummy value.
 - **[BREAKING]** Changed the representation of the enum types from `string` aliases to structs to use Go type safety at compile time:
