@@ -108,6 +108,7 @@ func NewFooFooID(s string) (FooFooID, error) {
 		"0": FooFooID0,
 		"1": FooFooID1,
 	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
 	if !ok {
 		return FooFooID{}, fmt.Errorf("unknown value: %v", s)
