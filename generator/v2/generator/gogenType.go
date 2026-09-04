@@ -148,8 +148,6 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 			switch *schema.Format {
 			case "date-time":
 				return "time.Time", false, nil
-			case "uri":
-				return "url.URL", false, nil
 			}
 		}
 		return "string", false, nil
@@ -383,6 +381,11 @@ func newGoNameFromJsonAttribute(s string) string {
 		return yes
 	}
 
+	var isReservedWordPlural = func(s string) bool {
+		s = s[:len(s)-1]
+		return isReservedWord(s)
+	}
+
 	var o = new(strings.Builder)
 	s = strings.ToLower(s)
 	s = strings.Join(strings.Split(s, "_"), ".")
@@ -395,6 +398,8 @@ func newGoNameFromJsonAttribute(s string) string {
 		switch {
 		case isReservedWord(el), len(el) == 1:
 			el = strings.ToUpper(el)
+		case isReservedWordPlural(el):
+			el = strings.ToUpper(el[:len(el)-1]) + el[len(el)-1:]
 		default:
 			el = strings.ToUpper(el[:1]) + el[1:]
 		}
