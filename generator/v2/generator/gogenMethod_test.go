@@ -344,3 +344,31 @@ func Test_newPathCode(t *testing.T) {
 		})
 	}
 }
+
+func Test_newArgTransformationToStrFnDefinition(t *testing.T) {
+	type args struct {
+		name     string
+		goType   string
+		nillable bool
+		required bool
+	}
+	tests := map[string]struct {
+		args args
+		want string
+	}{
+		"bool": {
+			args: args{
+				name:     "includeDeleted",
+				goType:   "bool",
+				nillable: false,
+				required: false,
+			},
+			want: "func(v bool) string {if v {return \"true\"}; return \"false\"}(*includeDeleted)",
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, newArgTransformationToStrFnDefinition(tt.args.name, tt.args.goType, tt.args.nillable, tt.args.required), "newArgTransformationToStrFnDefinition(%v, %v, %v, %v)", tt.args.name, tt.args.goType, tt.args.nillable, tt.args.required)
+		})
+	}
+}

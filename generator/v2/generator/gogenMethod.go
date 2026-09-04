@@ -143,7 +143,7 @@ func newArgTransformationToStrFnDefinition(name string, goType string, nillable 
 
 	switch goType {
 	case "bool":
-		return "func(v bool) string {if v return \"true\"; return \"false\"}(" + name + ")"
+		return "func(v bool) string {if v {return \"true\"}; return \"false\"}(" + name + ")"
 	case "int", "int16", "int32":
 		return "strconv.FormatInt(int64(" + name + "), 10)"
 	case "int64":
