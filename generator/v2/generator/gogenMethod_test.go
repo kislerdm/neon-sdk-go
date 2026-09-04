@@ -136,6 +136,74 @@ return v, nil
 			wantTypesRepoQueueSize: 1,
 			wantErr:                assert.NoError,
 		},
+		"method with body-less response": {
+			rawSpec: []byte(`{
+		"paths": {
+			"/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}": {
+					"parameters": [
+	                {
+	                    "name": "org_id",
+	                    "in": "path",
+	                    "description": "The Neon organization ID",
+	                    "required": true,
+	                    "schema": {
+	                        "type": "string",
+	                        "pattern": "^[a-z0-9-]{1,60}$"
+	                    }
+	                },
+	                {
+	                    "name": "region_id",
+	                    "in": "path",
+	                    "description": "The Neon region ID.\nAzure regions are currently not supported.\n",
+	                    "required": true,
+	                    "schema": {
+	                        "type": "string"
+	                    }
+	                },
+	                {
+	                    "name": "vpc_endpoint_id",
+	                    "in": "path",
+	                    "description": "The VPC endpoint ID",
+	                    "required": true,
+	                    "schema": {
+	                        "type": "string"
+	                    }
+	                }
+	            ],
+				"post": {
+					"description": "Assigns a VPC endpoint to a Neon organization or updates its existing assignment.\n",
+					"operationId": "assignOrganizationVPCEndpoint",
+					"requestBody": {
+	                    "content": {
+	                        "application/json": {
+                              "schema": {
+                                    "$ref": "#/components/schemas/VPCEndpointAssignment"
+                               }
+	                        }
+	                    },
+	                    "required": true
+	                },
+	                "responses": {
+	                    "200": {
+	                        "description": "Assigned the VPC endpoint to the specified Neon organization"
+	                    },
+	                    "default": {
+	                        "$ref": "#/components/responses/GeneralError"
+	                    }
+	                }
+				}
+			}
+		}
+	}`),
+			parameters: nil,
+			want: `// AssignOrganizationVPCEndpoint Assigns a VPC endpoint to a Neon organization or updates its existing assignment.
+func (c Client) AssignOrganizationVPCEndpoint(orgID string, regionID string, vpcEndpointID string, cfg VPCEndpointAssignment) error {
+return c.requestHandler(c.baseURL+"/organizations/"+orgID+"/vpc/region/"+regionID+"/vpc_endpoints/"+vpcEndpointID, "POST", cfg, nil)
+}
+`,
+			wantTypesRepoQueueSize: 0,
+			wantErr:                assert.NoError,
+		},
 	}
 
 	t.Parallel()

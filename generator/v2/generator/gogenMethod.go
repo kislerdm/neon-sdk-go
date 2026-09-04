@@ -209,6 +209,19 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 		o.WriteString(newGoDocString(methodName, op.Description))
 	}
 
+	var requestBodyType string
+	var requestBodyNillable bool
+	hasRequestBody := httpMethod != http.MethodGet && schemaContentDefined(op.RequestBody.Schema)
+	if hasRequestBody {
+		var err error
+		requestBodyType, requestBodyNillable, err = newGoTypeDefinition(
+			op.RequestBody.Schema, methodName+"Cfg", typesRepo, false,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
 	// define the method's signature: start
 	o.WriteString("func (c Client) ")
 	o.WriteString(methodName)
@@ -226,14 +239,22 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 		}
 	}
 
-	if httpMethod != http.MethodGet {
-		// TODO: add request's body type as an argument to extend the logic for the request types beyond GET
+	if hasRequestBody {
+		if len(endpointParamKeys) > 0 {
+			o.WriteString(", ")
+		}
+		o.WriteString("cfg ")
+		if !op.RequestBody.Required && !requestBodyNillable {
+			o.WriteString("*")
+		}
+		o.WriteString(requestBodyType)
 	}
 
 	o.WriteString(") ")
 
 	respType := methodName + "RespObj"
-	if op.Responses.Code204 == nil {
+	hasResponseBody := op.Responses.Code204 == nil
+	if hasResponseBody {
 		resp := op.Responses.Code200
 		if resp == nil {
 			resp = op.Responses.Code201
@@ -244,19 +265,26 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 		if resp == nil {
 			return fmt.Errorf("no success response found for operation: %s", op.OperationID)
 		}
+		hasResponseBody = resp.Ref != nil || schemaContentDefined(resp.Schema)
 
-		if resp.Ref != nil {
-			respType = filepath.Base(*resp.Ref)
-		} else {
-			if resp.Schema.Description == "" {
-				resp.Schema.Description = resp.Description
+		if hasResponseBody {
+			if resp.Ref != nil {
+				respType = filepath.Base(*resp.Ref)
+			} else {
+				if resp.Schema.Description == "" {
+					resp.Schema.Description = resp.Description
+				}
+				typesRepo.AddTypeDefinitionInput(resp.Schema, respType)
 			}
-			typesRepo.AddTypeDefinitionInput(resp.Schema, respType)
 		}
 
-		o.WriteString("(")
-		o.WriteString(respType)
-		o.WriteString(", error) {")
+		if hasResponseBody {
+			o.WriteString("(")
+			o.WriteString(respType)
+			o.WriteString(", error) {")
+		} else {
+			o.WriteString("error {")
+		}
 	} else {
 		o.WriteString("error {")
 	}
@@ -295,7 +323,7 @@ query = "?" + strings.Join(queryElements, "&")
 	}
 	// define the query string: end
 
-	if op.Responses.Code204 == nil {
+	if hasResponseBody {
 		o.WriteString("var v ")
 		o.WriteString(respType)
 		o.WriteString("\n")
@@ -305,7 +333,7 @@ query = "?" + strings.Join(queryElements, "&")
 	if err != nil {
 		return err
 	}
-	if op.Responses.Code204 == nil {
+	if hasResponseBody {
 		o.WriteString("if err := c.requestHandler(c.baseURL")
 	} else {
 		o.WriteString("return c.requestHandler(c.baseURL")
@@ -320,12 +348,12 @@ query = "?" + strings.Join(queryElements, "&")
 	o.WriteString("\", ")
 
 	reqPayload := "nil"
-	if httpMethod != http.MethodGet {
+	if hasRequestBody {
 		reqPayload = "cfg"
 	}
 	o.WriteString(reqPayload)
 
-	if op.Responses.Code204 == nil {
+	if hasResponseBody {
 		o.WriteString(`, &v); err != nil {
 return `)
 		o.WriteString(respType)
@@ -338,6 +366,10 @@ return v, nil`)
 
 	o.WriteString("\n}\n")
 	return nil
+}
+
+func schemaContentDefined(schema OpenAPISchema) bool {
+	return schema.Type != "" || schema.Ref != nil || schema.AllOf != nil
 }
 
 func newMethodName(s string) string {
