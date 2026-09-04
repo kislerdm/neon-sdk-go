@@ -48,14 +48,17 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 		var pathParameters = make(map[string]typeDescriptor, len(p.Parameters))
 		var pathParamKeys []string
 		for _, v := range p.Parameters {
-			if v.xRefName == "" {
-				td, err := newTypeDescriptor(v, p.URLPath+"_"+v.Name, typesRepo)
+			if v.xRefName == "" && v.Ref == nil {
+				td, err := newTypeDescriptor(v, p.URLPath+newGoNameFromJsonAttribute(v.Name), typesRepo)
 				if err != nil {
 					return "", err
 				}
 				pathParameters[v.Name] = td
 				pathParamKeys = append(pathParamKeys, v.Name)
 			} else {
+				if v.Ref != nil {
+					v.xRefName = filepath.Base(*v.Ref)
+				}
 				pathParameters[v.xRefName] = globalParametersMap[v.xRefName]
 				pathParamKeys = append(pathParamKeys, v.xRefName)
 			}

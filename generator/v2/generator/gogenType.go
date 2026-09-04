@@ -388,7 +388,10 @@ func newGoNameFromJsonAttribute(s string) string {
 	s = strings.Join(strings.Split(s, "_"), ".")
 	s = strings.Join(strings.Split(s, "."), "-")
 	s = strings.Join(strings.Split(s, "-"), ":")
-	for _, el := range strings.Split(s, ":") {
+	s = strings.Join(strings.Split(s, ":"), "/")
+	s = strings.Join(strings.Split(s, "/"), "{")
+	s = strings.Join(strings.Split(s, "{"), "}")
+	for _, el := range strings.Split(s, "}") {
 		switch {
 		case isReservedWord(el), len(el) == 1:
 			el = strings.ToUpper(el)
