@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.18.0] - 2026-09-05
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-05 15:16:00 GMT.
+
+### Added
+
+- Added the following methods:
+  - `UpdateOrganizationMember`;
+  - `UpdateProject`;
+  - `UpdateProjectBranch`;
+  - `UpdateNeonAuthAllowLocalhost`;
+  - `UpdateNeonAuthConfig`;
+  - `UpdateNeonAuthEmailAndPasswordConfig`;
+  - `UpdateNeonAuthEmailProvider`;
+  - `UpdateBranchNeonAuthOauthProvider`;
+  - `UpdateNeonAuthMagicLinkPlugin`;
+  - `UpdateNeonAuthOrganizationPlugin`;
+  - `UpdateNeonAuthPhoneNumberPlugin`;
+  - `UpdateProjectBranchDataAPI`;
+  - `UpdateProjectBranchDatabase`;
+  - `UpdateProjectBranchFunction`;
+  - `UpdateMaskingRules`;
+  - `UpdateProjectEndpoint`;
+  - `UpdateSnapshot`.
+
+### Removed
+
+- **[BREAKING]** Removed deprecated `includeV1Metrics` argument from `GetConsumptionHistoryPerProject`.
+- **[BREAKING]** Removed deprecated `name` argument from `RestoreSnapshot`.
+- **[BREAKING]** Removed the following methods after their API sunset dates:
+  - `CreateNeonAuthIntegration`;
+  - `CreateNeonAuthNewUser`;
+  - `AddNeonAuthDomainToRedirectURIWhitelist`;
+  - `ListNeonAuthRedirectURIWhitelistDomains`;
+  - `DeleteNeonAuthDomainFromRedirectURIWhitelist`;
+  - `GetNeonAuthEmailServer`;
+  - `DeleteNeonAuthIntegration`;
+  - `ListNeonAuthIntegrations`;
+  - `AddNeonAuthOauthProvider`;
+  - `ListNeonAuthOauthProviders`;
+  - `DeleteNeonAuthOauthProvider`;
+  - `DeleteNeonAuthUser`;
+  - `TransferProjectsFromUserToOrg`.
+- **[BREAKING]** Removed the following types after their API sunset dates:
+  - `EndpointPoolerMode`;
+  - `PgbouncerSettingsData`;
+  - `DeleteNeonAuthIntegrationCfg`.
+
 ## [v0.17.0] - 2026-09-04
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-04 12:16:00 GMT.
