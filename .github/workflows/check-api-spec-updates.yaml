@@ -51,14 +51,17 @@ jobs:
 
       - name: MV new sdk to root
         if: steps.diff_sdk.outputs.isNew == 'true'
-        run: mv openAPIDefinition_new.json openAPIDefinition.json
+        run: mv openAPIDefinition_new.json openAPIDefinition.json && mv ${PWD}/tmp/* .
 
       - name: Create Pull Request
         if: steps.diff_sdk.outputs.isNew == 'true'
         uses: peter-evans/create-pull-request@v8
         id: pr
         with:
-          add-paths: openAPIDefinition.json
+          add-paths: |
+            openAPIDefinition.json
+            sdk.go
+            go.mod
           commit-message: |
             feat: auto-updated API Spec
           signoff: true
