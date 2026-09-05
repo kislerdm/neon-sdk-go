@@ -51,6 +51,12 @@ type OpenAPISchema struct {
 	Properties  []OpenAPISchema
 	Items       *OpenAPISchema
 	AllOf       []OpenAPISchema
+	Deprecated  bool
+	Sunset      *Date
+}
+
+func (v OpenAPISchema) Removed() bool {
+	return removedFromAPI(v.Deprecated, v.Sunset)
 }
 
 func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
@@ -66,6 +72,8 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 		Properties  map[string]OpenAPISchema `json:"properties,omitempty"`
 		Items       *OpenAPISchema           `json:"items,omitempty"`
 		AllOf       []OpenAPISchema          `json:"allOf,omitempty"`
+		Deprecated  bool                     `json:"deprecated,omitempty"`
+		Sunset      *Date                    `json:"x-sunset,omitempty"`
 	}
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
@@ -81,6 +89,8 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 	v.Required = tmp.Required
 	v.Items = tmp.Items
 	v.AllOf = tmp.AllOf
+	v.Deprecated = tmp.Deprecated
+	v.Sunset = tmp.Sunset
 
 	if len(tmp.Properties) > 0 {
 		v.Properties = make([]OpenAPISchema, 0, len(tmp.Properties))
@@ -103,6 +113,12 @@ type OpenAPIParameter struct {
 	Description string        `json:"description"`
 	Schema      OpenAPISchema `json:"schema"`
 	Ref         *string       `json:"$ref,omitempty"`
+	Deprecated  bool          `json:"deprecated,omitempty"`
+	Sunset      *Date         `json:"x-sunset,omitempty"`
+}
+
+func (v OpenAPIParameter) Removed() bool {
+	return removedFromAPI(v.Deprecated, v.Sunset)
 }
 
 type Components struct {
@@ -189,6 +205,10 @@ type OpenAPIPathMethod struct {
 	Sunset      *Date                        `json:"x-sunset,omitempty"`
 }
 
+func (v OpenAPIPathMethod) Removed() bool {
+	return removedFromAPI(v.Deprecated, v.Sunset)
+}
+
 type OpenAPIPath struct {
 	URLPath string
 
@@ -197,9 +217,8 @@ type OpenAPIPath struct {
 	Post       *OpenAPIPathMethod `json:"post,omitempty"`
 	Delete     *OpenAPIPathMethod `json:"delete,omitempty"`
 	Put        *OpenAPIPathMethod `json:"put,omitempty"`
-	Patch      *OpenAPIPathMethod `json:"path,omitempty"`
+	Patch      *OpenAPIPathMethod `json:"patch,omitempty"`
 }
-
 type OpenAPIDefinition struct {
 	ServerURL  string
 	Paths      []OpenAPIPath
@@ -258,4 +277,8 @@ func sortMapKeys[E ~map[string]V,
 	}
 	sort.Strings(o)
 	return o
+}
+
+func removedFromAPI(deprecated bool, sunset *Date) bool {
+	return deprecated && sunset != nil && time.Now().UTC().After(time.Time(*sunset))
 }
