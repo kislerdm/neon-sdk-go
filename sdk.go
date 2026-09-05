@@ -217,7 +217,7 @@ func (c Client) GetAuthDetails() (AuthDetailsResponse, error) {
 // GetConsumptionHistoryPerProject Retrieves consumption metrics for Scale, Business, and Enterprise plan projects. History begins at the time of upgrade.
 // Results are ordered by time in ascending order (oldest to newest).
 // Issuing a call to this API does not wake a project's compute endpoint.
-func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, includeV1Metrics *bool, metrics *ConsumptionHistoryQueryMetrics) (GetConsumptionHistoryPerProjectRespObj, error) {
+func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, projectIDs []string, from time.Time, to time.Time, granularity ConsumptionHistoryGranularity, orgID *string, metrics *ConsumptionHistoryQueryMetrics) (GetConsumptionHistoryPerProjectRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -234,14 +234,6 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, pr
 	queryElements = append(queryElements, "granularity="+fmt.Sprintf("%v", granularity))
 	if orgID != nil {
 		queryElements = append(queryElements, "org_id="+*orgID)
-	}
-	if includeV1Metrics != nil {
-		queryElements = append(queryElements, "include_v1_metrics="+func(v bool) string {
-			if v {
-				return "true"
-			}
-			return "false"
-		}(*includeV1Metrics))
 	}
 	if metrics != nil {
 		queryElements = append(queryElements, "metrics="+fmt.Sprintf("%v", *metrics))
@@ -482,6 +474,17 @@ func (c Client) GetOrganizationMember(orgID string, memberID string) (Member, er
 	return v, nil
 }
 
+// UpdateOrganizationMember Updates the role of an existing member in the specified organization.
+// The requested role must be valid for the organization.
+// Only organization admins can call this endpoint.
+func (c Client) UpdateOrganizationMember(orgID string, memberID string, cfg OrganizationMemberUpdateRequest) (Member, error) {
+	var v Member
+	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/members/"+memberID, "PATCH", cfg, &v); err != nil {
+		return Member{}, err
+	}
+	return v, nil
+}
+
 // RemoveOrganizationMember Removes the specified member from the organization.
 // Only organization admins can perform this action.
 // The last admin in an organization cannot be removed.
@@ -601,16 +604,6 @@ func (c Client) ListProjects(cursor *string, limit *uint16, search *string, orgI
 	return v, nil
 }
 
-// CreateNeonAuthIntegration Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth` instead. Removal scheduled for March 1, 2026.
-// Use this endpoint if the frontend integration flow can't be used.
-func (c Client) CreateNeonAuthIntegration(cfg NeonAuthCreateIntegrationRequest) (NeonAuthCreateIntegrationResponse, error) {
-	var v NeonAuthCreateIntegrationResponse
-	if err := c.requestHandler(c.baseURL+"/projects/auth/create", "POST", cfg, &v); err != nil {
-		return NeonAuthCreateIntegrationResponse{}, err
-	}
-	return v, nil
-}
-
 // CreateNeonAuthProviderSDKKeys Generates SDK or API Keys for the auth provider. These might be called different things depending
 // on the auth provider you're using, but are generally used for setting up the frontend and backend SDKs.
 func (c Client) CreateNeonAuthProviderSDKKeys(cfg NeonAuthCreateAuthProviderSDKKeysRequest) (NeonAuthCreateIntegrationResponse, error) {
@@ -626,16 +619,6 @@ func (c Client) TransferNeonAuthProviderProject(cfg NeonAuthTransferAuthProvider
 	var v NeonAuthTransferAuthProviderProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/auth/transfer_ownership", "POST", cfg, &v); err != nil {
 		return NeonAuthTransferAuthProviderProjectResponse{}, err
-	}
-	return v, nil
-}
-
-// CreateNeonAuthNewUser Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/users` instead. Removal scheduled for March 1, 2026.
-// The user will be created in your neon_auth.users_sync table and automatically propagated to your auth project, whether Neon-managed or provider-owned.
-func (c Client) CreateNeonAuthNewUser(cfg NeonAuthCreateNewUserRequest) (NeonAuthCreateNewUserResponse, error) {
-	var v NeonAuthCreateNewUserResponse
-	if err := c.requestHandler(c.baseURL+"/projects/auth/user", "POST", cfg, &v); err != nil {
-		return NeonAuthCreateNewUserResponse{}, err
 	}
 	return v, nil
 }
@@ -675,6 +658,16 @@ func (c Client) GetProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
 		return ProjectResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProject Updates the specified project.
+// Configurable properties include the project name, default compute settings, history retention period, and IP allowlist.
+func (c Client) UpdateProject(projectID string, cfg ProjectUpdateRequest) (UpdateProjectRespObj, error) {
+	var v UpdateProjectRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "PATCH", cfg, &v); err != nil {
+		return UpdateProjectRespObj{}, err
 	}
 	return v, nil
 }
@@ -719,76 +712,6 @@ func (c Client) GetProjectAdvisorSecurityIssues(projectID string, branchID *stri
 		return GetProjectAdvisorSecurityIssuesRespObj{}, err
 	}
 	return v, nil
-}
-
-// AddNeonAuthDomainToRedirectURIWhitelist Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/domains` instead. Removal scheduled for March 1, 2026.
-func (c Client) AddNeonAuthDomainToRedirectURIWhitelist(projectID string, cfg NeonAuthAddDomainToRedirectURIWhitelistRequest) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "POST", cfg, nil)
-}
-
-// ListNeonAuthRedirectURIWhitelistDomains Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/domains` instead. Removal scheduled for March 1, 2026.
-func (c Client) ListNeonAuthRedirectURIWhitelistDomains(projectID string) (NeonAuthRedirectURIWhitelistResponse, error) {
-	var v NeonAuthRedirectURIWhitelistResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "GET", nil, &v); err != nil {
-		return NeonAuthRedirectURIWhitelistResponse{}, err
-	}
-	return v, nil
-}
-
-// DeleteNeonAuthDomainFromRedirectURIWhitelist Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/domains` instead. Removal scheduled for March 1, 2026.
-func (c Client) DeleteNeonAuthDomainFromRedirectURIWhitelist(projectID string, cfg NeonAuthDeleteDomainFromRedirectURIWhitelistRequest) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/domains", "DELETE", cfg, nil)
-}
-
-// GetNeonAuthEmailServer Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/email_provider` instead. Removal scheduled for March 1, 2026.
-func (c Client) GetNeonAuthEmailServer(projectID string) (NeonAuthEmailServerConfigResponse, error) {
-	var v NeonAuthEmailServerConfigResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/email_server", "GET", nil, &v); err != nil {
-		return NeonAuthEmailServerConfigResponse{}, err
-	}
-	return v, nil
-}
-
-// DeleteNeonAuthIntegration Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth` instead. Removal scheduled for March 1, 2026.
-func (c Client) DeleteNeonAuthIntegration(projectID string, authProvider NeonAuthSupportedAuthProvider, cfg *DeleteNeonAuthIntegrationCfg) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integration/"+fmt.Sprintf("%v", authProvider), "DELETE", cfg, nil)
-}
-
-// ListNeonAuthIntegrations Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth` instead. Removal scheduled for March 1, 2026.
-func (c Client) ListNeonAuthIntegrations(projectID string) (ListNeonAuthIntegrationsResponse, error) {
-	var v ListNeonAuthIntegrationsResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/integrations", "GET", nil, &v); err != nil {
-		return ListNeonAuthIntegrationsResponse{}, err
-	}
-	return v, nil
-}
-
-// AddNeonAuthOauthProvider Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/oauth_providers` instead. Removal scheduled for March 1, 2026.
-func (c Client) AddNeonAuthOauthProvider(projectID string, cfg NeonAuthAddOAuthProviderRequest) (NeonAuthOauthProvider, error) {
-	var v NeonAuthOauthProvider
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers", "POST", cfg, &v); err != nil {
-		return NeonAuthOauthProvider{}, err
-	}
-	return v, nil
-}
-
-// ListNeonAuthOauthProviders Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/oauth_providers` instead. Removal scheduled for March 1, 2026.
-func (c Client) ListNeonAuthOauthProviders(projectID string) (ListNeonAuthOauthProvidersResponse, error) {
-	var v ListNeonAuthOauthProvidersResponse
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers", "GET", nil, &v); err != nil {
-		return ListNeonAuthOauthProvidersResponse{}, err
-	}
-	return v, nil
-}
-
-// DeleteNeonAuthOauthProvider Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}` instead. Removal scheduled for March 1, 2026.
-func (c Client) DeleteNeonAuthOauthProvider(projectID string, oauthProviderID NeonAuthOauthProviderId) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/oauth_providers/"+fmt.Sprintf("%v", oauthProviderID), "DELETE", nil, nil)
-}
-
-// DeleteNeonAuthUser Deprecated. Use `/projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}` instead. Removal scheduled for March 1, 2026.
-func (c Client) DeleteNeonAuthUser(projectID string, authUserID string) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/auth/users/"+authUserID, "DELETE", nil, nil)
 }
 
 // GetAvailablePreloadLibraries Returns the shared preload libraries available for the specified project's Postgres version.
@@ -914,6 +837,16 @@ func (c Client) GetProjectBranch(projectID string, branchID string) (GetProjectB
 	return v, nil
 }
 
+// UpdateProjectBranch Updates the specified branch.
+// For more information, see [Manage branches](https://neon.com/docs/manage/branches/).
+func (c Client) UpdateProjectBranch(projectID string, branchID string, cfg BranchUpdateRequest) (BranchOperations, error) {
+	var v BranchOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "PATCH", cfg, &v); err != nil {
+		return BranchOperations{}, err
+	}
+	return v, nil
+}
+
 // DeleteProjectBranch Deletes the specified branch from a project and places all compute endpoints into an idle state, breaking existing client connections.
 //
 // The deletion completes after all operations finish.
@@ -1021,6 +954,26 @@ func (c Client) GetNeonAuthAllowLocalhost(projectID string, branchID string) (Ne
 	return v, nil
 }
 
+// UpdateNeonAuthAllowLocalhost Updates the localhost allow setting for the specified branch's Neon Auth integration.
+// When enabled, authentication flows work from `localhost` without adding it to the redirect URI whitelist.
+func (c Client) UpdateNeonAuthAllowLocalhost(projectID string, branchID string, cfg UpdateNeonAuthAllowLocalhostRequest) (NeonAuthAllowLocalhostResponse, error) {
+	var v NeonAuthAllowLocalhostResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/allow_localhost", "PATCH", cfg, &v); err != nil {
+		return NeonAuthAllowLocalhostResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthConfig Updates the auth configuration for the branch.
+// Currently supports updating the application name used in auth emails.
+func (c Client) UpdateNeonAuthConfig(projectID string, branchID string, cfg NeonAuthConfigUpdate) (NeonAuthConfigResponse, error) {
+	var v NeonAuthConfigResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/config", "PATCH", cfg, &v); err != nil {
+		return NeonAuthConfigResponse{}, err
+	}
+	return v, nil
+}
+
 // AddBranchNeonAuthTrustedDomain Adds a domain to the redirect URI whitelist for the specified branch.
 // Only domains in this list are permitted as redirect targets after authentication.
 func (c Client) AddBranchNeonAuthTrustedDomain(projectID string, branchID string, cfg NeonAuthAddDomainToRedirectURIWhitelistRequest) error {
@@ -1053,11 +1006,36 @@ func (c Client) GetNeonAuthEmailAndPasswordConfig(projectID string, branchID str
 	return v, nil
 }
 
+// UpdateNeonAuthEmailAndPasswordConfig Updates the email and password authentication configuration for the specified branch's Neon Auth integration.
+// Only the fields provided in the request body are updated.
+func (c Client) UpdateNeonAuthEmailAndPasswordConfig(projectID string, branchID string, cfg NeonAuthEmailAndPasswordConfigUpdate) (NeonAuthEmailAndPasswordConfig, error) {
+	var v NeonAuthEmailAndPasswordConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/email_and_password", "PATCH", cfg, &v); err != nil {
+		return NeonAuthEmailAndPasswordConfig{}, err
+	}
+	return v, nil
+}
+
 // GetNeonAuthEmailProvider Retrieves the email provider configuration for the specified branch's Neon Auth integration,
 // including the provider type and server settings.
 func (c Client) GetNeonAuthEmailProvider(projectID string, branchID string) (NeonAuthEmailServerConfigResponse, error) {
 	var v NeonAuthEmailServerConfigResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/email_provider", "GET", nil, &v); err != nil {
+		return NeonAuthEmailServerConfigResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthEmailProvider Updates the email provider configuration for the specified branch's Neon Auth integration.
+// The email provider handles transactional messages such as verification emails and password reset links.
+//
+// Partial `standard` updates — omitting fields to keep their stored values — are supported only for
+// Better Auth integrations, which merge omitted fields server-side. Legacy Stack Auth integrations do
+// not merge and require all six `standard` fields (`host`, `port`, `username`, `password`,
+// `sender_email`, `sender_name`) on every update; a partial `standard` body is rejected with 400.
+func (c Client) UpdateNeonAuthEmailProvider(projectID string, branchID string, cfg NeonAuthEmailServerConfig) (NeonAuthEmailServerConfigResponse, error) {
+	var v NeonAuthEmailServerConfigResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/email_provider", "PATCH", cfg, &v); err != nil {
 		return NeonAuthEmailServerConfigResponse{}, err
 	}
 	return v, nil
@@ -1097,6 +1075,15 @@ func (c Client) ListBranchNeonAuthOauthProviders(projectID string, branchID stri
 	return v, nil
 }
 
+// UpdateBranchNeonAuthOauthProvider Updates an OAuth provider for the specified project.
+func (c Client) UpdateBranchNeonAuthOauthProvider(projectID string, branchID string, oauthProviderID NeonAuthOauthProviderId, cfg NeonAuthUpdateOAuthProviderRequest) (NeonAuthOauthProvider, error) {
+	var v NeonAuthOauthProvider
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth_providers/"+fmt.Sprintf("%v", oauthProviderID), "PATCH", cfg, &v); err != nil {
+		return NeonAuthOauthProvider{}, err
+	}
+	return v, nil
+}
+
 // DeleteBranchNeonAuthOauthProvider Deletes an OAuth provider from the specified project.
 func (c Client) DeleteBranchNeonAuthOauthProvider(projectID string, branchID string, oauthProviderID NeonAuthOauthProviderId) error {
 	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth_providers/"+fmt.Sprintf("%v", oauthProviderID), "DELETE", nil, nil)
@@ -1113,11 +1100,44 @@ func (c Client) GetNeonAuthPluginConfigs(projectID string, branchID string) (Neo
 	return v, nil
 }
 
+// UpdateNeonAuthMagicLinkPlugin Updates the magic link plugin configuration for Neon Auth.
+// The magic link plugin enables passwordless authentication via email magic links.
+func (c Client) UpdateNeonAuthMagicLinkPlugin(projectID string, branchID string, cfg NeonAuthMagicLinkConfigUpdate) (NeonAuthMagicLinkConfig, error) {
+	var v NeonAuthMagicLinkConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/magic-link", "PATCH", cfg, &v); err != nil {
+		return NeonAuthMagicLinkConfig{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthOrganizationPlugin Updates the organization plugin configuration for Neon Auth.
+// The organization plugin enables multi-tenant organization support.
+func (c Client) UpdateNeonAuthOrganizationPlugin(projectID string, branchID string, cfg NeonAuthOrganizationConfigUpdate) (NeonAuthOrganizationConfig, error) {
+	var v NeonAuthOrganizationConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/organization", "PATCH", cfg, &v); err != nil {
+		return NeonAuthOrganizationConfig{}, err
+	}
+	return v, nil
+}
+
 // GetNeonAuthPhoneNumberPlugin Returns the phone number plugin configuration for Neon Auth.
 // The phone number plugin enables phone-based OTP authentication.
 func (c Client) GetNeonAuthPhoneNumberPlugin(projectID string, branchID string) (NeonAuthPhoneNumberConfig, error) {
 	var v NeonAuthPhoneNumberConfig
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/phone-number", "GET", nil, &v); err != nil {
+		return NeonAuthPhoneNumberConfig{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthPhoneNumberPlugin Updates the phone number plugin configuration for Neon Auth.
+// Only the fields provided in the request body are updated; omitted fields retain their current values.
+// The phone number plugin enables phone-based OTP authentication.
+// OTP codes are delivered via the `send.otp` webhook event with `delivery_preference: "sms"`.
+// A webhook must be configured with the `send.otp` event enabled for SMS delivery to work.
+func (c Client) UpdateNeonAuthPhoneNumberPlugin(projectID string, branchID string, cfg NeonAuthPhoneNumberConfigUpdate) (NeonAuthPhoneNumberConfig, error) {
+	var v NeonAuthPhoneNumberConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/phone-number", "PATCH", cfg, &v); err != nil {
 		return NeonAuthPhoneNumberConfig{}, err
 	}
 	return v, nil
@@ -1555,6 +1575,17 @@ func (c Client) GetProjectBranchDataAPI(projectID string, branchID string, datab
 	return v, nil
 }
 
+// UpdateProjectBranchDataAPI Updates the Neon Data API configuration for the specified branch.
+// You can optionally provide settings to update the Data API configuration.
+// The schema cache is always refreshed as part of this operation.
+func (c Client) UpdateProjectBranchDataAPI(projectID string, branchID string, databaseName string, cfg *DataAPIUpdateRequest) (EmptyResponse, error) {
+	var v EmptyResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/data-api/"+databaseName, "PATCH", cfg, &v); err != nil {
+		return EmptyResponse{}, err
+	}
+	return v, nil
+}
+
 // DeleteProjectBranchDataAPI Deletes the Neon Data API for the specified branch.
 // Existing connections using the Data API endpoint will fail after deletion.
 func (c Client) DeleteProjectBranchDataAPI(projectID string, branchID string, databaseName string) (EmptyResponse, error) {
@@ -1593,6 +1624,16 @@ func (c Client) GetProjectBranchDatabase(projectID string, branchID string, data
 	var v DatabaseResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "GET", nil, &v); err != nil {
 		return DatabaseResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProjectBranchDatabase Updates the specified database in the branch.
+// For related information, see [Manage databases](https://neon.com/docs/manage/databases/).
+func (c Client) UpdateProjectBranchDatabase(projectID string, branchID string, databaseName string, cfg DatabaseUpdateRequest) (DatabaseOperations, error) {
+	var v DatabaseOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "PATCH", cfg, &v); err != nil {
+		return DatabaseOperations{}, err
 	}
 	return v, nil
 }
@@ -1660,6 +1701,25 @@ func (c Client) ListProjectBranchFunctions(projectID string, branchID string, cu
 func (c Client) GetProjectBranchFunction(projectID string, branchID string, slug string) (NeonFunctionResponse, error) {
 	var v NeonFunctionResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/functions/"+slug, "GET", nil, &v); err != nil {
+		return NeonFunctionResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProjectBranchFunction Updates the function's mutable metadata — currently only the display
+// `name`. A string sets the display name; `null` clears it, after which
+// the function's `name` falls back to its slug. Leading and trailing
+// whitespace is trimmed; a whitespace-only name is rejected. Acts only
+// on a function owned by the branch: a slug that is only inherited from
+// an ancestor branch returns 404 — rename it on the branch that owns
+// it. Like every other change on a branch, a rename is isolated per
+// branch: a branch forked before the rename keeps the name it had at
+// fork time.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) UpdateProjectBranchFunction(projectID string, branchID string, slug string, cfg NeonFunctionUpdateRequest) (NeonFunctionResponse, error) {
+	var v NeonFunctionResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/functions/"+slug, "PATCH", cfg, &v); err != nil {
 		return NeonFunctionResponse{}, err
 	}
 	return v, nil
@@ -1784,6 +1844,18 @@ func (c Client) QueryProjectBranchLogs(projectID string, branchID string, cfg Pr
 func (c Client) GetMaskingRules(projectID string, branchID string) (MaskingRulesResponse, error) {
 	var v MaskingRulesResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/masking_rules", "GET", nil, &v); err != nil {
+		return MaskingRulesResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateMaskingRules Updates the masking rules for the specified anonymized branch.
+// Masking rules define how sensitive data should be anonymized using PostgreSQL Anonymizer.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) UpdateMaskingRules(projectID string, branchID string, cfg MaskingRulesUpdateRequest) (MaskingRulesResponse, error) {
+	var v MaskingRulesResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/masking_rules", "PATCH", cfg, &v); err != nil {
 		return MaskingRulesResponse{}, err
 	}
 	return v, nil
@@ -2012,6 +2084,23 @@ func (c Client) GetProjectEndpoint(projectID string, endpointID string) (Endpoin
 	var v EndpointResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "GET", nil, &v); err != nil {
 		return EndpointResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProjectEndpoint Updates the specified compute endpoint.
+//
+// An `endpoint_id` has an `ep-` prefix. A `branch_id` has a `br-` prefix.
+// For more information about compute endpoints, see [Manage computes](https://neon.com/docs/manage/endpoints/).
+//
+// If the returned list of operations is not empty, the compute endpoint is not ready to use.
+// The client must wait for the last operation to finish before using the compute endpoint.
+// If the compute endpoint was idle before the update, it becomes active for a short period of time,
+// and the control plane suspends it again after the update.
+func (c Client) UpdateProjectEndpoint(projectID string, endpointID string, cfg EndpointUpdateRequest) (EndpointOperations, error) {
+	var v EndpointOperations
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/endpoints/"+endpointID, "PATCH", cfg, &v); err != nil {
+		return EndpointOperations{}, err
 	}
 	return v, nil
 }
@@ -2262,6 +2351,15 @@ func (c Client) ListSnapshots(projectID string) (ListSnapshotsRespObj, error) {
 	return v, nil
 }
 
+// UpdateSnapshot Updates the specified snapshot.
+func (c Client) UpdateSnapshot(projectID string, snapshotID string, cfg SnapshotUpdateRequest) (UpdateSnapshotRespObj, error) {
+	var v UpdateSnapshotRespObj
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID, "PATCH", cfg, &v); err != nil {
+		return UpdateSnapshotRespObj{}, err
+	}
+	return v, nil
+}
+
 // DeleteSnapshot Deletes the specified snapshot.
 func (c Client) DeleteSnapshot(projectID string, snapshotID string) (OperationsResponse, error) {
 	var v OperationsResponse
@@ -2273,19 +2371,9 @@ func (c Client) DeleteSnapshot(projectID string, snapshotID string) (OperationsR
 
 // RestoreSnapshot Restores the specified snapshot to a new branch,
 // and optionally finalizes the restore operation to replace the original branch.
-func (c Client) RestoreSnapshot(projectID string, snapshotID string, name *string, cfg *RestoreSnapshotCfg) (RestoredSnapshot, error) {
-	var (
-		queryElements []string
-		query         string
-	)
-	if name != nil {
-		queryElements = append(queryElements, "name="+*name)
-	}
-	if len(queryElements) > 0 {
-		query = "?" + strings.Join(queryElements, "&")
-	}
+func (c Client) RestoreSnapshot(projectID string, snapshotID string, cfg *RestoreSnapshotCfg) (RestoredSnapshot, error) {
 	var v RestoredSnapshot
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID+"/restore"+query, "POST", cfg, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/snapshots/"+snapshotID+"/restore", "POST", cfg, &v); err != nil {
 		return RestoredSnapshot{}, err
 	}
 	return v, nil
@@ -2372,15 +2460,6 @@ func (c Client) GetCurrentUserOrganizations() (OrganizationsResponse, error) {
 	var v OrganizationsResponse
 	if err := c.requestHandler(c.baseURL+"/users/me/organizations", "GET", nil, &v); err != nil {
 		return OrganizationsResponse{}, err
-	}
-	return v, nil
-}
-
-// TransferProjectsFromUserToOrg Deprecated. Personal accounts have been migrated to organizations, so this operation no longer applies. Removal scheduled for July 1, 2026.
-func (c Client) TransferProjectsFromUserToOrg(cfg TransferProjectsToOrganizationRequest) (EmptyResponse, error) {
-	var v EmptyResponse
-	if err := c.requestHandler(c.baseURL+"/users/me/projects/transfer", "POST", cfg, &v); err != nil {
-		return EmptyResponse{}, err
 	}
 	return v, nil
 }
@@ -3768,8 +3847,6 @@ type DefaultEndpointSettings struct {
 	// AutoscalingLimitMinCu Minimum number of Compute Units for this endpoint. At least 0.25 and no greater than `autoscaling_limit_max_cu`.
 	AutoscalingLimitMinCu *ComputeUnit    `json:"autoscaling_limit_min_cu,omitempty"`
 	PgSettings            *PgSettingsData `json:"pg_settings,omitempty"`
-	// PgbouncerSettings Deprecated. Use the endpoint-level connection pooler configuration instead. Removal scheduled for June 20, 2026.
-	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
 	// SuspendTimeoutSeconds Scale-to-zero idle timeout, in seconds, before the compute suspends. `0` uses the plan default; `-1` disables scale-to-zero (never suspends). Minimum is plan-dependent (Scale: 60); maximum 604800 (one week). Free cannot change it; Launch can only enable or disable; Scale can set any value.
 	SuspendTimeoutSeconds *SuspendTimeoutSeconds `json:"suspend_timeout_seconds,omitempty"`
 }
@@ -3814,8 +3891,6 @@ type Endpoint struct {
 	PendingState *EndpointState `json:"pending_state,omitempty"`
 	// PoolerEnabled Deprecated. To use connection pooling, append `-pooler` to the endpoint ID in the connection string.
 	PoolerEnabled bool `json:"pooler_enabled"`
-	// PoolerMode Deprecated. The connection pooler mode. Removal scheduled for June 20, 2026.
-	PoolerMode EndpointPoolerMode `json:"pooler_mode"`
 	// ProjectID The ID of the project this compute endpoint belongs to.
 	ProjectID string `json:"project_id"`
 	// Provisioner Compute provisioner. `k8s-neonvm` (default) supports Autoscaling; `k8s-pod` is fixed-size compute. Also `docker` and `serverless-platform`.
@@ -3843,45 +3918,6 @@ type EndpointOperations struct {
 	EndpointResponse
 	OperationsResponse
 }
-
-// EndpointPoolerMode Deprecated. The connection pooler mode. Neon supports PgBouncer in `transaction` mode only. Removal scheduled for June 20, 2026.
-type EndpointPoolerMode struct {
-	v string
-}
-
-func (v EndpointPoolerMode) String() string {
-	return v.v
-}
-
-func (v *EndpointPoolerMode) UnmarshalJSON(data []byte) error {
-	o, err := NewEndpointPoolerMode(string(data))
-	if err != nil {
-		return err
-	}
-	*v = o
-	return nil
-}
-
-func (v EndpointPoolerMode) MarshalJSON() ([]byte, error) {
-	return []byte(v.v), nil
-}
-
-var (
-	EndpointPoolerModeTransaction = EndpointPoolerMode{"transaction"}
-)
-
-func NewEndpointPoolerMode(s string) (EndpointPoolerMode, error) {
-	m := map[string]EndpointPoolerMode{
-		"transaction": EndpointPoolerModeTransaction,
-	}
-	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
-	v, ok := m[s]
-	if !ok {
-		return EndpointPoolerMode{}, fmt.Errorf("unknown value: %v", s)
-	}
-	return v, nil
-}
-
 type EndpointResponse struct {
 	// Endpoint Compute endpoint created or retrieved, including its current lifecycle state.
 	Endpoint Endpoint `json:"endpoint"`
@@ -3889,10 +3925,8 @@ type EndpointResponse struct {
 
 // EndpointSettingsData A collection of settings for a compute endpoint
 type EndpointSettingsData struct {
-	PgSettings *PgSettingsData `json:"pg_settings,omitempty"`
-	// PgbouncerSettings Deprecated. PgBouncer settings for the compute endpoint. Removal scheduled for June 20, 2026.
-	PgbouncerSettings *PgbouncerSettingsData `json:"pgbouncer_settings,omitempty"`
-	PreloadLibraries  *PreloadLibraries      `json:"preload_libraries,omitempty"`
+	PgSettings       *PgSettingsData   `json:"pg_settings,omitempty"`
+	PreloadLibraries *PreloadLibraries `json:"preload_libraries,omitempty"`
 }
 
 // EndpointState Lifecycle state of the compute endpoint. `init`: being initialized. `active`: running and accepting connections. `idle`: suspended (scaled to zero).
@@ -5138,9 +5172,6 @@ type PgSettingsData map[string]any
 
 // PgVersion The major Postgres version number. Supported versions are `14`, `15`, `16`, `17`, and `18`. `19` is rolling out and is accepted only in regions where it is enabled; requesting it elsewhere returns an error.
 type PgVersion uint8
-
-// PgbouncerSettingsData Deprecated. A raw representation of PgBouncer settings. Removal scheduled for June 20, 2026.
-type PgbouncerSettingsData map[string]any
 type PlanDetails struct {
 	// Name Plan name, for example `free`, `launch`, or `scale`.
 	Name string `json:"name"`
@@ -6327,6 +6358,12 @@ type ListSharedProjectsRespObj struct {
 	ProjectsResponse
 	PaginationResponse
 }
+
+// UpdateProjectRespObj Updated the specified project
+type UpdateProjectRespObj struct {
+	ProjectResponse
+	OperationsResponse
+}
 type GetProjectAdvisorSecurityIssuesMinSeverity struct {
 	v string
 }
@@ -6371,10 +6408,6 @@ func NewGetProjectAdvisorSecurityIssuesMinSeverity(s string) (GetProjectAdvisorS
 // GetProjectAdvisorSecurityIssuesRespObj Successfully retrieved security advisor issues
 type GetProjectAdvisorSecurityIssuesRespObj struct {
 	Issues []AdvisorIssue `json:"issues"`
-}
-type DeleteNeonAuthIntegrationCfg struct {
-	// DeleteData If true, deletes the `neon_auth` schema from the database
-	DeleteData *bool `json:"delete_data,omitempty"`
 }
 type CreateProjectBranchCfg struct {
 	BranchCreateRequest
@@ -6468,6 +6501,11 @@ type CreateSnapshotRespObj struct {
 // ListSnapshotsRespObj Projects snapshots
 type ListSnapshotsRespObj struct {
 	Snapshots []Snapshot `json:"snapshots"`
+}
+
+// UpdateSnapshotRespObj Successfully updated the snapshot
+type UpdateSnapshotRespObj struct {
+	Snapshot Snapshot `json:"snapshot"`
 }
 type RestoreSnapshotCfg struct {
 	// FinalizeRestore Set to `true` to finalize the restore operation immediately.
@@ -6940,8 +6978,6 @@ type EndpointCreateRequestEndpoint struct {
 	// PoolerEnabled Deprecated. To enable connection pooling, append `-pooler` to the endpoint ID in the connection string.
 	// See [How to use connection pooling](https://neon.com/docs/connect/connection-pooling#how-to-use-connection-pooling)
 	PoolerEnabled *bool `json:"pooler_enabled,omitempty"`
-	// PoolerMode Deprecated. The connection pooler mode. Removal scheduled for June 20, 2026.
-	PoolerMode *EndpointPoolerMode `json:"pooler_mode,omitempty"`
 	// Provisioner Compute provisioner. `k8s-neonvm` (default) supports Autoscaling; `k8s-pod` is fixed-size compute. Also `docker` and `serverless-platform`.
 	Provisioner *Provisioner `json:"provisioner,omitempty"`
 	// RegionID The region where the compute endpoint will be created. Only the project's `region_id` is permitted.
@@ -6977,8 +7013,6 @@ type EndpointUpdateRequestEndpoint struct {
 	// PoolerEnabled Deprecated. To enable connection pooling, append `-pooler` to the endpoint ID in the connection string.
 	// See [How to use connection pooling](https://neon.com/docs/connect/connection-pooling#how-to-use-connection-pooling)
 	PoolerEnabled *bool `json:"pooler_enabled,omitempty"`
-	// PoolerMode Deprecated. The connection pooler mode. Removal scheduled for June 20, 2026.
-	PoolerMode *EndpointPoolerMode `json:"pooler_mode,omitempty"`
 	// Provisioner Compute provisioner. `k8s-neonvm` (default) supports Autoscaling; `k8s-pod` is fixed-size compute. Also `docker` and `serverless-platform`.
 	Provisioner *Provisioner          `json:"provisioner,omitempty"`
 	Settings    *EndpointSettingsData `json:"settings,omitempty"`
