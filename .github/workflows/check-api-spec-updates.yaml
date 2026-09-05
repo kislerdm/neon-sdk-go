@@ -86,22 +86,20 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            New Neon API spec has been detected. Please take action.
+            New SDK was generated based on the updated API spec.
             PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}
 
-            The message was sent from https://github.com/kislerdm/neon-sdk-go
-            Get in touch for details: admin@dkisler.com
         continue-on-error: true
+
       - name: Ntfy
         run: |
           curl \
-              -H "Title: Neon API Spec Updated" \
-              -H "Priority: urgent" \
-              -H "Tags: warning" \
-              -H "Actions: view, Open Repo: https://github.com/kislerdm/neon-sdk-go" \
-              -d "New Neon API spec has been detected. Please take action.
-            PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}
-          
-            The message was sent from https://github.com/kislerdm/neon-sdk-go
-            Get in touch for details: admin@dkisler.com" \
-            ntfy.sh/neon-api-spec-updated
+            -H "Title: Neon API Spec Updated" \
+            -H "Authorization: Bearer tk_z83yoy47r8n3ztk3srj2kt4af86z7" \
+            -H "Email: admin@dkisler.com" \
+            -H "Priority: urgent" \
+            -H "Tags: warning" \
+            -H "Actions: view, Open Repo, https://github.com/kislerdm/neon-sdk-go; view, Open PR, https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}" \
+              -d "New SDK was generated based on the updated API spec.
+            PR: https://github.com/kislerdm/neon-sdk-go/pull/${{ needs.main.outputs.prId }}" \
+              ntfy.sh/neon-api-spec-updated
