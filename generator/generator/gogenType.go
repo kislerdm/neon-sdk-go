@@ -71,12 +71,16 @@ func typesDefinitionInputFromComponents(typesRepo *TypesRepo, components Compone
 			(v.Schema.Ref != nil && filepath.Base(*v.Schema.Ref) == v.xRefName) {
 			continue
 		}
-		v.Schema.Description = v.Description
-		typesRepo.AddTypeDefinitionInput(v.Schema, v.xRefName)
+		if !v.Schema.Removed() {
+			v.Schema.Description = v.Description
+			typesRepo.AddTypeDefinitionInput(v.Schema, v.xRefName)
+		}
 	}
 
 	for _, v := range components.Schemas {
-		typesRepo.AddTypeDefinitionInput(v, v.xRefName)
+		if !v.Removed() {
+			typesRepo.AddTypeDefinitionInput(v, v.xRefName)
+		}
 	}
 }
 
@@ -121,7 +125,7 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 		if returnComplexTypeDefinition {
 			definition, err = newGoEnumDefinition(schema, typeName)
 		} else {
-			if repo != nil {
+			if repo != nil && !schema.Removed() {
 				repo.AddTypeDefinitionInput(schema, typeName)
 			}
 			definition = typeName
@@ -134,7 +138,7 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 			if returnComplexTypeDefinition {
 				definition, err = newGoStructDefinition(schema, typeName, repo)
 			} else {
-				if repo != nil {
+				if repo != nil && !schema.Removed() {
 					repo.AddTypeDefinitionInput(schema, typeName)
 				}
 				definition = typeName
@@ -216,6 +220,9 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 		}
 		var subSchemas = make([]tmp, 0, len(schema.AllOf))
 		for _, subSchema := range schema.AllOf {
+			if subSchema.Removed() {
+				continue
+			}
 			if subSchema.Ref == nil && subSchema.Type != "object" {
 				return "", fmt.Errorf("%s is unsupported type for allOf clause", subSchema.Type)
 			}
@@ -264,6 +271,9 @@ func writeGoStructProperties(schema OpenAPISchema, typeName string, repo *TypesR
 		}
 
 		for _, prop := range schema.Properties {
+			if prop.Removed() {
+				continue
+			}
 			jsonAttrName := prop.xRefName
 			_, isRequired := requiredProps[jsonAttrName]
 

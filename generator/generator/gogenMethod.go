@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 )
 
 type typeDescriptor struct {
@@ -33,6 +34,9 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 	// the map of referenced types defined by the openAPI spec. `components.parameters` attribute
 	var globalParametersMap = make(map[string]typeDescriptor, len(globalParameters))
 	for _, v := range globalParameters {
+		if v.Removed() {
+			continue
+		}
 		td, err := newTypeDescriptor(v, v.xRefName, typesRepo)
 		if err != nil {
 			return "", err
@@ -45,6 +49,9 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 		var pathParameters = make(map[string]typeDescriptor, len(p.Parameters))
 		var pathParamKeys []string
 		for _, v := range p.Parameters {
+			if v.Removed() {
+				continue
+			}
 			if v.xRefName == "" && v.Ref == nil {
 				td, err := newTypeDescriptor(v, p.URLPath+newGoNameFromJsonAttribute(v.Name), typesRepo)
 				if err != nil {
@@ -106,9 +113,7 @@ func newGoMethodsDefinition(paths []OpenAPIPath, globalParameters []OpenAPIParam
 }
 
 func excludeEndpoint(op *OpenAPIPathMethod) bool {
-	// pass all endpoints through
-	return false
-	// return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
+	return op.Deprecated && op.Sunset != nil && time.Now().UTC().After(time.Time(*op.Sunset))
 }
 
 func newTypeDescriptor(v OpenAPIParameter, typeName string, typesRepo *TypesRepo) (typeDescriptor, error) {
@@ -197,6 +202,9 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	endpointParameters := maps.Clone(pathParameters)
 	var endpointParamKeys = slices.Clone(pathParameterKeys)
 	for _, v := range op.Parameters {
+		if v.Removed() || (v.Deprecated && v.In == "query") {
+			continue
+		}
 		if v.xRefName == "" && v.Ref == nil {
 			td, err := newTypeDescriptor(v, methodName+newGoNameFromJsonAttribute(v.Name), typesRepo)
 			if err != nil {
