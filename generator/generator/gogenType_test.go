@@ -85,7 +85,7 @@ func (v FooFooID) String() string {
 	return v.v
 }
 
-func (v *FooFooID) UnmarshalJSON(data []byte) error {
+func (v *FooFooID) UnmarshalText(data []byte) error {
 	o, err := NewFooFooID(string(data))
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (v *FooFooID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v FooFooID) MarshalJSON() ([]byte, error) {
+func (v FooFooID) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -296,7 +296,7 @@ func (v Foo) String() string {
 	return v.v
 }
 
-func (v *Foo) UnmarshalJSON(data []byte) error {
+func (v *Foo) UnmarshalText(data []byte) error {
 	o, err := NewFoo(string(data))
 	if err != nil {
 		return err
@@ -305,7 +305,7 @@ func (v *Foo) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v Foo) MarshalJSON() ([]byte, error) {
+func (v Foo) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 

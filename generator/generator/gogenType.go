@@ -322,7 +322,7 @@ func (v {{.TypeName}}) String() string {
 	return v.v
 }
 
-func (v *{{.TypeName}}) UnmarshalJSON(data []byte) error {
+func (v *{{.TypeName}}) UnmarshalText(data []byte) error {
 	o, err := New{{.TypeName}}(string(data))
 	if err != nil {
 		return err
@@ -331,7 +331,7 @@ func (v *{{.TypeName}}) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v {{.TypeName}}) MarshalJSON() ([]byte, error) {
+func (v {{.TypeName}}) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 

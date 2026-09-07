@@ -2537,7 +2537,7 @@ func (v AdvisorCategory) String() string {
 	return v.v
 }
 
-func (v *AdvisorCategory) UnmarshalJSON(data []byte) error {
+func (v *AdvisorCategory) UnmarshalText(data []byte) error {
 	o, err := NewAdvisorCategory(string(data))
 	if err != nil {
 		return err
@@ -2546,7 +2546,7 @@ func (v *AdvisorCategory) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v AdvisorCategory) MarshalJSON() ([]byte, error) {
+func (v AdvisorCategory) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -2726,7 +2726,7 @@ func (v ApplicationType) String() string {
 	return v.v
 }
 
-func (v *ApplicationType) UnmarshalJSON(data []byte) error {
+func (v *ApplicationType) UnmarshalText(data []byte) error {
 	o, err := NewApplicationType(string(data))
 	if err != nil {
 		return err
@@ -2735,7 +2735,7 @@ func (v *ApplicationType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ApplicationType) MarshalJSON() ([]byte, error) {
+func (v ApplicationType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -2857,7 +2857,7 @@ func (v BillingAccountState) String() string {
 	return v.v
 }
 
-func (v *BillingAccountState) UnmarshalJSON(data []byte) error {
+func (v *BillingAccountState) UnmarshalText(data []byte) error {
 	o, err := NewBillingAccountState(string(data))
 	if err != nil {
 		return err
@@ -2866,7 +2866,7 @@ func (v *BillingAccountState) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BillingAccountState) MarshalJSON() ([]byte, error) {
+func (v BillingAccountState) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -2903,7 +2903,7 @@ func (v BillingPaymentMethod) String() string {
 	return v.v
 }
 
-func (v *BillingPaymentMethod) UnmarshalJSON(data []byte) error {
+func (v *BillingPaymentMethod) UnmarshalText(data []byte) error {
 	o, err := NewBillingPaymentMethod(string(data))
 	if err != nil {
 		return err
@@ -2912,7 +2912,7 @@ func (v *BillingPaymentMethod) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BillingPaymentMethod) MarshalJSON() ([]byte, error) {
+func (v BillingPaymentMethod) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -2962,7 +2962,7 @@ func (v BillingSubscriptionType) String() string {
 	return v.v
 }
 
-func (v *BillingSubscriptionType) UnmarshalJSON(data []byte) error {
+func (v *BillingSubscriptionType) UnmarshalText(data []byte) error {
 	o, err := NewBillingSubscriptionType(string(data))
 	if err != nil {
 		return err
@@ -2971,7 +2971,7 @@ func (v *BillingSubscriptionType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BillingSubscriptionType) MarshalJSON() ([]byte, error) {
+func (v BillingSubscriptionType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -3266,7 +3266,7 @@ func (v BucketAccessLevel) String() string {
 	return v.v
 }
 
-func (v *BucketAccessLevel) UnmarshalJSON(data []byte) error {
+func (v *BucketAccessLevel) UnmarshalText(data []byte) error {
 	o, err := NewBucketAccessLevel(string(data))
 	if err != nil {
 		return err
@@ -3275,7 +3275,7 @@ func (v *BucketAccessLevel) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BucketAccessLevel) MarshalJSON() ([]byte, error) {
+func (v BucketAccessLevel) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -3380,7 +3380,7 @@ func (v ConsumptionHistoryGranularity) String() string {
 	return v.v
 }
 
-func (v *ConsumptionHistoryGranularity) UnmarshalJSON(data []byte) error {
+func (v *ConsumptionHistoryGranularity) UnmarshalText(data []byte) error {
 	o, err := NewConsumptionHistoryGranularity(string(data))
 	if err != nil {
 		return err
@@ -3389,7 +3389,7 @@ func (v *ConsumptionHistoryGranularity) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ConsumptionHistoryGranularity) MarshalJSON() ([]byte, error) {
+func (v ConsumptionHistoryGranularity) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -3571,7 +3571,7 @@ func (v CredentialScope) String() string {
 	return v.v
 }
 
-func (v *CredentialScope) UnmarshalJSON(data []byte) error {
+func (v *CredentialScope) UnmarshalText(data []byte) error {
 	o, err := NewCredentialScope(string(data))
 	if err != nil {
 		return err
@@ -3580,7 +3580,7 @@ func (v *CredentialScope) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v CredentialScope) MarshalJSON() ([]byte, error) {
+func (v CredentialScope) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -3938,7 +3938,7 @@ func (v EndpointState) String() string {
 	return v.v
 }
 
-func (v *EndpointState) UnmarshalJSON(data []byte) error {
+func (v *EndpointState) UnmarshalText(data []byte) error {
 	o, err := NewEndpointState(string(data))
 	if err != nil {
 		return err
@@ -3947,7 +3947,7 @@ func (v *EndpointState) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v EndpointState) MarshalJSON() ([]byte, error) {
+func (v EndpointState) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -3980,7 +3980,7 @@ func (v EndpointType) String() string {
 	return v.v
 }
 
-func (v *EndpointType) UnmarshalJSON(data []byte) error {
+func (v *EndpointType) UnmarshalText(data []byte) error {
 	o, err := NewEndpointType(string(data))
 	if err != nil {
 		return err
@@ -3989,7 +3989,7 @@ func (v *EndpointType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v EndpointType) MarshalJSON() ([]byte, error) {
+func (v EndpointType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4073,7 +4073,7 @@ func (v GrantedCredentialScope) String() string {
 	return v.v
 }
 
-func (v *GrantedCredentialScope) UnmarshalJSON(data []byte) error {
+func (v *GrantedCredentialScope) UnmarshalText(data []byte) error {
 	o, err := NewGrantedCredentialScope(string(data))
 	if err != nil {
 		return err
@@ -4082,7 +4082,7 @@ func (v *GrantedCredentialScope) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v GrantedCredentialScope) MarshalJSON() ([]byte, error) {
+func (v GrantedCredentialScope) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4119,7 +4119,7 @@ func (v IdentityProviderId) String() string {
 	return v.v
 }
 
-func (v *IdentityProviderId) UnmarshalJSON(data []byte) error {
+func (v *IdentityProviderId) UnmarshalText(data []byte) error {
 	o, err := NewIdentityProviderId(string(data))
 	if err != nil {
 		return err
@@ -4128,7 +4128,7 @@ func (v *IdentityProviderId) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v IdentityProviderId) MarshalJSON() ([]byte, error) {
+func (v IdentityProviderId) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4275,7 +4275,7 @@ func (v MemberRole) String() string {
 	return v.v
 }
 
-func (v *MemberRole) UnmarshalJSON(data []byte) error {
+func (v *MemberRole) UnmarshalText(data []byte) error {
 	o, err := NewMemberRole(string(data))
 	if err != nil {
 		return err
@@ -4284,7 +4284,7 @@ func (v *MemberRole) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v MemberRole) MarshalJSON() ([]byte, error) {
+func (v MemberRole) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4458,7 +4458,7 @@ func (v NeonAuthEmailVerificationMethod) String() string {
 	return v.v
 }
 
-func (v *NeonAuthEmailVerificationMethod) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthEmailVerificationMethod) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthEmailVerificationMethod(string(data))
 	if err != nil {
 		return err
@@ -4467,7 +4467,7 @@ func (v *NeonAuthEmailVerificationMethod) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonAuthEmailVerificationMethod) MarshalJSON() ([]byte, error) {
+func (v NeonAuthEmailVerificationMethod) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4544,7 +4544,7 @@ func (v NeonAuthOauthProviderId) String() string {
 	return v.v
 }
 
-func (v *NeonAuthOauthProviderId) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthOauthProviderId) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthOauthProviderId(string(data))
 	if err != nil {
 		return err
@@ -4553,7 +4553,7 @@ func (v *NeonAuthOauthProviderId) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonAuthOauthProviderId) MarshalJSON() ([]byte, error) {
+func (v NeonAuthOauthProviderId) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4587,7 +4587,7 @@ func (v NeonAuthOauthProviderType) String() string {
 	return v.v
 }
 
-func (v *NeonAuthOauthProviderType) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthOauthProviderType) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthOauthProviderType(string(data))
 	if err != nil {
 		return err
@@ -4596,7 +4596,7 @@ func (v *NeonAuthOauthProviderType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonAuthOauthProviderType) MarshalJSON() ([]byte, error) {
+func (v NeonAuthOauthProviderType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4680,7 +4680,7 @@ func (v NeonAuthProviderProjectOwnedBy) String() string {
 	return v.v
 }
 
-func (v *NeonAuthProviderProjectOwnedBy) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthProviderProjectOwnedBy) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthProviderProjectOwnedBy(string(data))
 	if err != nil {
 		return err
@@ -4689,7 +4689,7 @@ func (v *NeonAuthProviderProjectOwnedBy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonAuthProviderProjectOwnedBy) MarshalJSON() ([]byte, error) {
+func (v NeonAuthProviderProjectOwnedBy) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4719,7 +4719,7 @@ func (v NeonAuthProviderProjectTransferStatus) String() string {
 	return v.v
 }
 
-func (v *NeonAuthProviderProjectTransferStatus) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthProviderProjectTransferStatus) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthProviderProjectTransferStatus(string(data))
 	if err != nil {
 		return err
@@ -4728,7 +4728,7 @@ func (v *NeonAuthProviderProjectTransferStatus) UnmarshalJSON(data []byte) error
 	return nil
 }
 
-func (v NeonAuthProviderProjectTransferStatus) MarshalJSON() ([]byte, error) {
+func (v NeonAuthProviderProjectTransferStatus) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4769,7 +4769,7 @@ func (v NeonAuthSupportedAuthProvider) String() string {
 	return v.v
 }
 
-func (v *NeonAuthSupportedAuthProvider) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthSupportedAuthProvider) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthSupportedAuthProvider(string(data))
 	if err != nil {
 		return err
@@ -4778,7 +4778,7 @@ func (v *NeonAuthSupportedAuthProvider) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonAuthSupportedAuthProvider) MarshalJSON() ([]byte, error) {
+func (v NeonAuthSupportedAuthProvider) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -4918,7 +4918,7 @@ func (v OperationAction) String() string {
 	return v.v
 }
 
-func (v *OperationAction) UnmarshalJSON(data []byte) error {
+func (v *OperationAction) UnmarshalText(data []byte) error {
 	o, err := NewOperationAction(string(data))
 	if err != nil {
 		return err
@@ -4927,7 +4927,7 @@ func (v *OperationAction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v OperationAction) MarshalJSON() ([]byte, error) {
+func (v OperationAction) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5030,7 +5030,7 @@ func (v OperationStatus) String() string {
 	return v.v
 }
 
-func (v *OperationStatus) UnmarshalJSON(data []byte) error {
+func (v *OperationStatus) UnmarshalText(data []byte) error {
 	o, err := NewOperationStatus(string(data))
 	if err != nil {
 		return err
@@ -5039,7 +5039,7 @@ func (v *OperationStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v OperationStatus) MarshalJSON() ([]byte, error) {
+func (v OperationStatus) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5305,7 +5305,7 @@ func (v ProjectAuditLogLevel) String() string {
 	return v.v
 }
 
-func (v *ProjectAuditLogLevel) UnmarshalJSON(data []byte) error {
+func (v *ProjectAuditLogLevel) UnmarshalText(data []byte) error {
 	o, err := NewProjectAuditLogLevel(string(data))
 	if err != nil {
 		return err
@@ -5314,7 +5314,7 @@ func (v *ProjectAuditLogLevel) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectAuditLogLevel) MarshalJSON() ([]byte, error) {
+func (v ProjectAuditLogLevel) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5397,7 +5397,7 @@ func (v ProjectBranchLogSeverity) String() string {
 	return v.v
 }
 
-func (v *ProjectBranchLogSeverity) UnmarshalJSON(data []byte) error {
+func (v *ProjectBranchLogSeverity) UnmarshalText(data []byte) error {
 	o, err := NewProjectBranchLogSeverity(string(data))
 	if err != nil {
 		return err
@@ -5406,7 +5406,7 @@ func (v *ProjectBranchLogSeverity) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectBranchLogSeverity) MarshalJSON() ([]byte, error) {
+func (v ProjectBranchLogSeverity) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5445,7 +5445,7 @@ func (v ProjectBranchLogSource) String() string {
 	return v.v
 }
 
-func (v *ProjectBranchLogSource) UnmarshalJSON(data []byte) error {
+func (v *ProjectBranchLogSource) UnmarshalText(data []byte) error {
 	o, err := NewProjectBranchLogSource(string(data))
 	if err != nil {
 		return err
@@ -5454,7 +5454,7 @@ func (v *ProjectBranchLogSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectBranchLogSource) MarshalJSON() ([]byte, error) {
+func (v ProjectBranchLogSource) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5667,7 +5667,7 @@ func (v ProjectMemberGrantSource) String() string {
 	return v.v
 }
 
-func (v *ProjectMemberGrantSource) UnmarshalJSON(data []byte) error {
+func (v *ProjectMemberGrantSource) UnmarshalText(data []byte) error {
 	o, err := NewProjectMemberGrantSource(string(data))
 	if err != nil {
 		return err
@@ -5676,7 +5676,7 @@ func (v *ProjectMemberGrantSource) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectMemberGrantSource) MarshalJSON() ([]byte, error) {
+func (v ProjectMemberGrantSource) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5711,7 +5711,7 @@ func (v ProjectMemberOrgRole) String() string {
 	return v.v
 }
 
-func (v *ProjectMemberOrgRole) UnmarshalJSON(data []byte) error {
+func (v *ProjectMemberOrgRole) UnmarshalText(data []byte) error {
 	o, err := NewProjectMemberOrgRole(string(data))
 	if err != nil {
 		return err
@@ -5720,7 +5720,7 @@ func (v *ProjectMemberOrgRole) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectMemberOrgRole) MarshalJSON() ([]byte, error) {
+func (v ProjectMemberOrgRole) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5804,7 +5804,7 @@ func (v ProjectPermissionLevel) String() string {
 	return v.v
 }
 
-func (v *ProjectPermissionLevel) UnmarshalJSON(data []byte) error {
+func (v *ProjectPermissionLevel) UnmarshalText(data []byte) error {
 	o, err := NewProjectPermissionLevel(string(data))
 	if err != nil {
 		return err
@@ -5813,7 +5813,7 @@ func (v *ProjectPermissionLevel) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectPermissionLevel) MarshalJSON() ([]byte, error) {
+func (v ProjectPermissionLevel) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -5893,7 +5893,7 @@ func (v ProjectRole) String() string {
 	return v.v
 }
 
-func (v *ProjectRole) UnmarshalJSON(data []byte) error {
+func (v *ProjectRole) UnmarshalText(data []byte) error {
 	o, err := NewProjectRole(string(data))
 	if err != nil {
 		return err
@@ -5902,7 +5902,7 @@ func (v *ProjectRole) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectRole) MarshalJSON() ([]byte, error) {
+func (v ProjectRole) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6244,7 +6244,7 @@ func (v SortOrderParam) String() string {
 	return v.v
 }
 
-func (v *SortOrderParam) UnmarshalJSON(data []byte) error {
+func (v *SortOrderParam) UnmarshalText(data []byte) error {
 	o, err := NewSortOrderParam(string(data))
 	if err != nil {
 		return err
@@ -6253,7 +6253,7 @@ func (v *SortOrderParam) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v SortOrderParam) MarshalJSON() ([]byte, error) {
+func (v SortOrderParam) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6306,7 +6306,7 @@ func (v GetOrganizationMembersSortBy) String() string {
 	return v.v
 }
 
-func (v *GetOrganizationMembersSortBy) UnmarshalJSON(data []byte) error {
+func (v *GetOrganizationMembersSortBy) UnmarshalText(data []byte) error {
 	o, err := NewGetOrganizationMembersSortBy(string(data))
 	if err != nil {
 		return err
@@ -6315,7 +6315,7 @@ func (v *GetOrganizationMembersSortBy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v GetOrganizationMembersSortBy) MarshalJSON() ([]byte, error) {
+func (v GetOrganizationMembersSortBy) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6372,7 +6372,7 @@ func (v GetProjectAdvisorSecurityIssuesMinSeverity) String() string {
 	return v.v
 }
 
-func (v *GetProjectAdvisorSecurityIssuesMinSeverity) UnmarshalJSON(data []byte) error {
+func (v *GetProjectAdvisorSecurityIssuesMinSeverity) UnmarshalText(data []byte) error {
 	o, err := NewGetProjectAdvisorSecurityIssuesMinSeverity(string(data))
 	if err != nil {
 		return err
@@ -6381,7 +6381,7 @@ func (v *GetProjectAdvisorSecurityIssuesMinSeverity) UnmarshalJSON(data []byte) 
 	return nil
 }
 
-func (v GetProjectAdvisorSecurityIssuesMinSeverity) MarshalJSON() ([]byte, error) {
+func (v GetProjectAdvisorSecurityIssuesMinSeverity) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6421,7 +6421,7 @@ func (v ListProjectBranchesSortBy) String() string {
 	return v.v
 }
 
-func (v *ListProjectBranchesSortBy) UnmarshalJSON(data []byte) error {
+func (v *ListProjectBranchesSortBy) UnmarshalText(data []byte) error {
 	o, err := NewListProjectBranchesSortBy(string(data))
 	if err != nil {
 		return err
@@ -6430,7 +6430,7 @@ func (v *ListProjectBranchesSortBy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ListProjectBranchesSortBy) MarshalJSON() ([]byte, error) {
+func (v ListProjectBranchesSortBy) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6543,7 +6543,7 @@ func (v AdvisorIssueFacing) String() string {
 	return v.v
 }
 
-func (v *AdvisorIssueFacing) UnmarshalJSON(data []byte) error {
+func (v *AdvisorIssueFacing) UnmarshalText(data []byte) error {
 	o, err := NewAdvisorIssueFacing(string(data))
 	if err != nil {
 		return err
@@ -6552,7 +6552,7 @@ func (v *AdvisorIssueFacing) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v AdvisorIssueFacing) MarshalJSON() ([]byte, error) {
+func (v AdvisorIssueFacing) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6588,7 +6588,7 @@ func (v AuthDetailsResponseAuthMethod) String() string {
 	return v.v
 }
 
-func (v *AuthDetailsResponseAuthMethod) UnmarshalJSON(data []byte) error {
+func (v *AuthDetailsResponseAuthMethod) UnmarshalText(data []byte) error {
 	o, err := NewAuthDetailsResponseAuthMethod(string(data))
 	if err != nil {
 		return err
@@ -6597,7 +6597,7 @@ func (v *AuthDetailsResponseAuthMethod) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v AuthDetailsResponseAuthMethod) MarshalJSON() ([]byte, error) {
+func (v AuthDetailsResponseAuthMethod) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6645,7 +6645,7 @@ func (v BranchAiGatewayNotEnabledReason) String() string {
 	return v.v
 }
 
-func (v *BranchAiGatewayNotEnabledReason) UnmarshalJSON(data []byte) error {
+func (v *BranchAiGatewayNotEnabledReason) UnmarshalText(data []byte) error {
 	o, err := NewBranchAiGatewayNotEnabledReason(string(data))
 	if err != nil {
 		return err
@@ -6654,7 +6654,7 @@ func (v *BranchAiGatewayNotEnabledReason) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BranchAiGatewayNotEnabledReason) MarshalJSON() ([]byte, error) {
+func (v BranchAiGatewayNotEnabledReason) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6707,7 +6707,7 @@ func (v BranchRecoveryInfoDeletionMethod) String() string {
 	return v.v
 }
 
-func (v *BranchRecoveryInfoDeletionMethod) UnmarshalJSON(data []byte) error {
+func (v *BranchRecoveryInfoDeletionMethod) UnmarshalText(data []byte) error {
 	o, err := NewBranchRecoveryInfoDeletionMethod(string(data))
 	if err != nil {
 		return err
@@ -6716,7 +6716,7 @@ func (v *BranchRecoveryInfoDeletionMethod) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BranchRecoveryInfoDeletionMethod) MarshalJSON() ([]byte, error) {
+func (v BranchRecoveryInfoDeletionMethod) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6763,7 +6763,7 @@ func (v BranchStorageNotEnabledReason) String() string {
 	return v.v
 }
 
-func (v *BranchStorageNotEnabledReason) UnmarshalJSON(data []byte) error {
+func (v *BranchStorageNotEnabledReason) UnmarshalText(data []byte) error {
 	o, err := NewBranchStorageNotEnabledReason(string(data))
 	if err != nil {
 		return err
@@ -6772,7 +6772,7 @@ func (v *BranchStorageNotEnabledReason) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BranchStorageNotEnabledReason) MarshalJSON() ([]byte, error) {
+func (v BranchStorageNotEnabledReason) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6820,7 +6820,7 @@ func (v BucketCreateRequestAccessLevel) String() string {
 	return v.v
 }
 
-func (v *BucketCreateRequestAccessLevel) UnmarshalJSON(data []byte) error {
+func (v *BucketCreateRequestAccessLevel) UnmarshalText(data []byte) error {
 	o, err := NewBucketCreateRequestAccessLevel(string(data))
 	if err != nil {
 		return err
@@ -6829,7 +6829,7 @@ func (v *BucketCreateRequestAccessLevel) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v BucketCreateRequestAccessLevel) MarshalJSON() ([]byte, error) {
+func (v BucketCreateRequestAccessLevel) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6863,7 +6863,7 @@ func (v CreateCredentialRequestPrincipalType) String() string {
 	return v.v
 }
 
-func (v *CreateCredentialRequestPrincipalType) UnmarshalJSON(data []byte) error {
+func (v *CreateCredentialRequestPrincipalType) UnmarshalText(data []byte) error {
 	o, err := NewCreateCredentialRequestPrincipalType(string(data))
 	if err != nil {
 		return err
@@ -6872,7 +6872,7 @@ func (v *CreateCredentialRequestPrincipalType) UnmarshalJSON(data []byte) error 
 	return nil
 }
 
-func (v CreateCredentialRequestPrincipalType) MarshalJSON() ([]byte, error) {
+func (v CreateCredentialRequestPrincipalType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -6901,7 +6901,7 @@ func (v DataAPICreateRequestAuthProvider) String() string {
 	return v.v
 }
 
-func (v *DataAPICreateRequestAuthProvider) UnmarshalJSON(data []byte) error {
+func (v *DataAPICreateRequestAuthProvider) UnmarshalText(data []byte) error {
 	o, err := NewDataAPICreateRequestAuthProvider(string(data))
 	if err != nil {
 		return err
@@ -6910,7 +6910,7 @@ func (v *DataAPICreateRequestAuthProvider) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v DataAPICreateRequestAuthProvider) MarshalJSON() ([]byte, error) {
+func (v DataAPICreateRequestAuthProvider) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7027,7 +7027,7 @@ func (v FunctionDeployRequestRuntime) String() string {
 	return v.v
 }
 
-func (v *FunctionDeployRequestRuntime) UnmarshalJSON(data []byte) error {
+func (v *FunctionDeployRequestRuntime) UnmarshalText(data []byte) error {
 	o, err := NewFunctionDeployRequestRuntime(string(data))
 	if err != nil {
 		return err
@@ -7036,7 +7036,7 @@ func (v *FunctionDeployRequestRuntime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v FunctionDeployRequestRuntime) MarshalJSON() ([]byte, error) {
+func (v FunctionDeployRequestRuntime) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7077,7 +7077,7 @@ func (v NeonAuthOrganizationConfigCreatorRole) String() string {
 	return v.v
 }
 
-func (v *NeonAuthOrganizationConfigCreatorRole) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthOrganizationConfigCreatorRole) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthOrganizationConfigCreatorRole(string(data))
 	if err != nil {
 		return err
@@ -7086,7 +7086,7 @@ func (v *NeonAuthOrganizationConfigCreatorRole) UnmarshalJSON(data []byte) error
 	return nil
 }
 
-func (v NeonAuthOrganizationConfigCreatorRole) MarshalJSON() ([]byte, error) {
+func (v NeonAuthOrganizationConfigCreatorRole) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7117,7 +7117,7 @@ func (v NeonAuthOrganizationConfigUpdateCreatorRole) String() string {
 	return v.v
 }
 
-func (v *NeonAuthOrganizationConfigUpdateCreatorRole) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthOrganizationConfigUpdateCreatorRole) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthOrganizationConfigUpdateCreatorRole(string(data))
 	if err != nil {
 		return err
@@ -7126,7 +7126,7 @@ func (v *NeonAuthOrganizationConfigUpdateCreatorRole) UnmarshalJSON(data []byte)
 	return nil
 }
 
-func (v NeonAuthOrganizationConfigUpdateCreatorRole) MarshalJSON() ([]byte, error) {
+func (v NeonAuthOrganizationConfigUpdateCreatorRole) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7156,7 +7156,7 @@ func (v NeonAuthWebhookConfigEnabledEventsItem) String() string {
 	return v.v
 }
 
-func (v *NeonAuthWebhookConfigEnabledEventsItem) UnmarshalJSON(data []byte) error {
+func (v *NeonAuthWebhookConfigEnabledEventsItem) UnmarshalText(data []byte) error {
 	o, err := NewNeonAuthWebhookConfigEnabledEventsItem(string(data))
 	if err != nil {
 		return err
@@ -7165,7 +7165,7 @@ func (v *NeonAuthWebhookConfigEnabledEventsItem) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-func (v NeonAuthWebhookConfigEnabledEventsItem) MarshalJSON() ([]byte, error) {
+func (v NeonAuthWebhookConfigEnabledEventsItem) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7220,7 +7220,7 @@ func (v NeonFunctionDeploymentStatus) String() string {
 	return v.v
 }
 
-func (v *NeonFunctionDeploymentStatus) UnmarshalJSON(data []byte) error {
+func (v *NeonFunctionDeploymentStatus) UnmarshalText(data []byte) error {
 	o, err := NewNeonFunctionDeploymentStatus(string(data))
 	if err != nil {
 		return err
@@ -7229,7 +7229,7 @@ func (v *NeonFunctionDeploymentStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v NeonFunctionDeploymentStatus) MarshalJSON() ([]byte, error) {
+func (v NeonFunctionDeploymentStatus) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7264,7 +7264,7 @@ func (v PaymentSourceBankCardBrand) String() string {
 	return v.v
 }
 
-func (v *PaymentSourceBankCardBrand) UnmarshalJSON(data []byte) error {
+func (v *PaymentSourceBankCardBrand) UnmarshalText(data []byte) error {
 	o, err := NewPaymentSourceBankCardBrand(string(data))
 	if err != nil {
 		return err
@@ -7273,7 +7273,7 @@ func (v *PaymentSourceBankCardBrand) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v PaymentSourceBankCardBrand) MarshalJSON() ([]byte, error) {
+func (v PaymentSourceBankCardBrand) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7317,7 +7317,7 @@ func (v PresignRequestOperation) String() string {
 	return v.v
 }
 
-func (v *PresignRequestOperation) UnmarshalJSON(data []byte) error {
+func (v *PresignRequestOperation) UnmarshalText(data []byte) error {
 	o, err := NewPresignRequestOperation(string(data))
 	if err != nil {
 		return err
@@ -7326,7 +7326,7 @@ func (v *PresignRequestOperation) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v PresignRequestOperation) MarshalJSON() ([]byte, error) {
+func (v PresignRequestOperation) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7372,7 +7372,7 @@ func (v ProjectBranchLogsInvalidQueryReason) String() string {
 	return v.v
 }
 
-func (v *ProjectBranchLogsInvalidQueryReason) UnmarshalJSON(data []byte) error {
+func (v *ProjectBranchLogsInvalidQueryReason) UnmarshalText(data []byte) error {
 	o, err := NewProjectBranchLogsInvalidQueryReason(string(data))
 	if err != nil {
 		return err
@@ -7381,7 +7381,7 @@ func (v *ProjectBranchLogsInvalidQueryReason) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectBranchLogsInvalidQueryReason) MarshalJSON() ([]byte, error) {
+func (v ProjectBranchLogsInvalidQueryReason) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7426,7 +7426,7 @@ func (v ProjectBranchLogsNotAvailableReason) String() string {
 	return v.v
 }
 
-func (v *ProjectBranchLogsNotAvailableReason) UnmarshalJSON(data []byte) error {
+func (v *ProjectBranchLogsNotAvailableReason) UnmarshalText(data []byte) error {
 	o, err := NewProjectBranchLogsNotAvailableReason(string(data))
 	if err != nil {
 		return err
@@ -7435,7 +7435,7 @@ func (v *ProjectBranchLogsNotAvailableReason) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (v ProjectBranchLogsNotAvailableReason) MarshalJSON() ([]byte, error) {
+func (v ProjectBranchLogsNotAvailableReason) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7475,7 +7475,7 @@ func (v ProjectBranchLogsQueryRequestSortOrder) String() string {
 	return v.v
 }
 
-func (v *ProjectBranchLogsQueryRequestSortOrder) UnmarshalJSON(data []byte) error {
+func (v *ProjectBranchLogsQueryRequestSortOrder) UnmarshalText(data []byte) error {
 	o, err := NewProjectBranchLogsQueryRequestSortOrder(string(data))
 	if err != nil {
 		return err
@@ -7484,7 +7484,7 @@ func (v *ProjectBranchLogsQueryRequestSortOrder) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-func (v ProjectBranchLogsQueryRequestSortOrder) MarshalJSON() ([]byte, error) {
+func (v ProjectBranchLogsQueryRequestSortOrder) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
@@ -7575,7 +7575,7 @@ func (v RotateCredentialResponsePrincipalType) String() string {
 	return v.v
 }
 
-func (v *RotateCredentialResponsePrincipalType) UnmarshalJSON(data []byte) error {
+func (v *RotateCredentialResponsePrincipalType) UnmarshalText(data []byte) error {
 	o, err := NewRotateCredentialResponsePrincipalType(string(data))
 	if err != nil {
 		return err
@@ -7584,7 +7584,7 @@ func (v *RotateCredentialResponsePrincipalType) UnmarshalJSON(data []byte) error
 	return nil
 }
 
-func (v RotateCredentialResponsePrincipalType) MarshalJSON() ([]byte, error) {
+func (v RotateCredentialResponsePrincipalType) MarshalText() ([]byte, error) {
 	return []byte(v.v), nil
 }
 
