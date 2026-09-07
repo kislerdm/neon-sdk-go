@@ -371,6 +371,77 @@ return v, nil
 			wantErr:                assert.NoError,
 			wantTypesRepoQueueSize: 3,
 		},
+		"deleteProjectBranchDatabase": {
+			rawSpec: []byte(`{
+	"paths": {
+		"/projects/{project_id}/branches/{branch_id}/databases/{database_name}": {
+"parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "database_name",
+                    "in": "path",
+                    "description": "The database name",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+"delete": {
+  "summary": "Delete database",
+  "description": "Deletes the specified database from the branch.\nFor related information, see [Manage databases](https://neon.com/docs/manage/databases/).\n",
+  "operationId": "deleteProjectBranchDatabase",
+  "responses": {
+    "200": {
+      "description": "Deleted the specified database",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "#/components/schemas/DatabaseOperations"
+          }
+        }
+      }
+    },
+    "204": {
+      "description": "Returned if the database doesn't exist or has already been deleted"
+    },
+    "default": {
+      "$ref": "#/components/responses/GeneralError"
+    }
+  }
+}
+}}}`),
+			want: `// DeleteProjectBranchDatabase Deletes the specified database from the branch.
+// For related information, see [Manage databases](https://neon.com/docs/manage/databases/).
+func (c Client) DeleteProjectBranchDatabase(projectID string, branchID string, databaseName string) (DatabaseOperations, error) {
+var v DatabaseOperations
+if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/databases/"+databaseName, "DELETE", nil, &v); err != nil {
+return DatabaseOperations{}, err
+}
+return v, nil
+}
+`,
+			wantErr: assert.NoError,
+		},
 	}
 
 	t.Parallel()

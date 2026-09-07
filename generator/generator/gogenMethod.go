@@ -269,44 +269,31 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 	o.WriteString(") ")
 
 	respType := methodName + "RespObj"
-	hasResponseBody := op.Responses.Code204 == nil
+	resp, hasResponseBody := selectSuccessResponse(op.Responses)
+	if resp == nil {
+		return fmt.Errorf("no success response found for operation: %s", op.OperationID)
+	}
+
 	if hasResponseBody {
-		resp := op.Responses.Code200
-		if resp == nil {
-			resp = op.Responses.Code201
-		}
-		if resp == nil {
-			resp = op.Responses.Code202
-		}
-		if resp == nil {
-			return fmt.Errorf("no success response found for operation: %s", op.OperationID)
-		}
-		hasResponseBody = resp.Ref != nil || schemaContentDefined(resp.Schema)
-
-		if hasResponseBody {
-			switch {
-			case resp.Ref != nil:
-				respType = filepath.Base(*resp.Ref)
-			case resp.Schema.Ref != nil:
-				respType = filepath.Base(*resp.Schema.Ref)
-			default:
-				if resp.Schema.Description == "" {
-					resp.Schema.Description = resp.Description
-				}
-				typesRepo.AddTypeDefinitionInput(resp.Schema, respType)
+		switch {
+		case resp.Ref != nil:
+			respType = filepath.Base(*resp.Ref)
+		case resp.Schema.Ref != nil:
+			respType = filepath.Base(*resp.Schema.Ref)
+		default:
+			if resp.Schema.Description == "" {
+				resp.Schema.Description = resp.Description
 			}
+			typesRepo.AddTypeDefinitionInput(resp.Schema, respType)
 		}
 
-		if hasResponseBody {
-			o.WriteString("(")
-			o.WriteString(respType)
-			o.WriteString(", error) {")
-		} else {
-			o.WriteString("error {")
-		}
+		o.WriteString("(")
+		o.WriteString(respType)
+		o.WriteString(", error) {")
 	} else {
 		o.WriteString("error {")
 	}
+
 	o.WriteString("\n")
 	// define the method's signature: end
 
@@ -390,6 +377,23 @@ return v, nil`)
 
 	o.WriteString("\n}\n")
 	return nil
+}
+
+func selectSuccessResponse(v OpenAPIPathMethodResponses) (*OpenAPIResponse, bool) {
+	var hasResponseBody bool
+	resp := v.Code200
+	if resp == nil {
+		resp = v.Code201
+	}
+	if resp == nil {
+		resp = v.Code202
+	}
+	if resp == nil {
+		resp = v.Code204
+	} else {
+		hasResponseBody = resp.Ref != nil || schemaContentDefined(resp.Schema)
+	}
+	return resp, hasResponseBody
 }
 
 func schemaContentDefined(schema OpenAPISchema) bool {
