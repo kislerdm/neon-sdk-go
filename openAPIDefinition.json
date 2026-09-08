@@ -9865,6 +9865,196 @@
                 }
             }
         },
+        "/projects/{project_id}/branches/{branch_id}/triggers": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "List triggers on the branch",
+                "description": "Lists the complete project-bounded set of triggers visible on the branch,\nordered by `trigger_id`. An inherited trigger keeps its project-wide ID\nand source branch, and is disabled on the child until explicitly enabled\nthere.\n\nThe only currently supported trigger type is `schedule`.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "listProjectBranchTriggers",
+                "responses": {
+                    "200": {
+                        "description": "The branch-effective trigger list",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TriggersListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a trigger",
+                "description": "Creates a trigger for a Function visible on the branch. The required\n`type` discriminator selects the trigger-specific configuration. The\nonly currently supported type is `schedule`, whose cron is a numeric\nfive-field expression and timezone is an IANA timezone name.\n\nThe name must be unique among triggers visible on the branch, including\ninherited triggers.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "createProjectBranchTrigger",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TriggerCreateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Trigger created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TriggerResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/projects/{project_id}/branches/{branch_id}/triggers/{trigger_id}": {
+            "parameters": [
+                {
+                    "name": "project_id",
+                    "in": "path",
+                    "description": "The Neon project ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "branch_id",
+                    "in": "path",
+                    "description": "The Neon branch ID",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    }
+                },
+                {
+                    "name": "trigger_id",
+                    "in": "path",
+                    "description": "The opaque, project-wide trigger ID",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/TriggerID"
+                    }
+                }
+            ],
+            "get": {
+                "summary": "Get a trigger",
+                "description": "Returns the trigger visible on the branch. The only currently supported\ntrigger type is `schedule`.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "getProjectBranchTrigger",
+                "responses": {
+                    "200": {
+                        "description": "The trigger",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TriggerResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Update a trigger",
+                "description": "Applies a partial update. The required `type` discriminator must identify\nthe existing trigger kind; the only currently supported type is\n`schedule`. Editing an inherited trigger creates a child-local shadow\nwith the same `trigger_id`; it remains disabled unless this request\nexplicitly enables it. Updating the schedule or enabled state increments\n`version` and recomputes `next_run_at`.\n\nDisabling stops future scheduling but does not cancel occurrences already\ncommitted for delivery.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "updateProjectBranchTrigger",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TriggerUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated trigger",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TriggerResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a trigger",
+                "description": "Deletes a branch-local trigger or writes a branch-local tombstone for an\ninherited trigger so it does not reappear. Deletion stops future\nscheduling but does not cancel occurrences already committed for delivery.\nThe only currently supported trigger type is `schedule`.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "tags": [
+                    "Functions"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "deleteProjectBranchTrigger",
+                "responses": {
+                    "204": {
+                        "description": "Trigger deleted"
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
         "/projects/{project_id}/branches/{branch_id}/custom-domains": {
             "parameters": [
                 {
@@ -17556,6 +17746,259 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/NeonFunction"
+                        }
+                    }
+                }
+            },
+            "TriggerID": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.\\-]{0,127}$",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "Opaque, server-minted project-wide trigger identifier."
+            },
+            "FunctionTriggerSchedule": {
+                "type": "object",
+                "required": [
+                    "cron"
+                ],
+                "properties": {
+                    "cron": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1024,
+                        "description": "Numeric five-field cron expression (minute through day-of-week).",
+                        "example": "0 9 * * 1-5"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1024,
+                        "default": "UTC",
+                        "description": "IANA timezone name. Defaults to UTC when omitted.",
+                        "example": "America/New_York"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "TriggerCreateRequest": {
+                "type": "object",
+                "description": "Trigger creation payload discriminated by `type`. The only currently\nsupported trigger type is `schedule`.\n",
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "schedule": "#/components/schemas/ScheduleTriggerCreateRequest"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ScheduleTriggerCreateRequest"
+                    }
+                ]
+            },
+            "ScheduleTriggerCreateRequest": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "function_slug",
+                    "name",
+                    "schedule"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "schedule"
+                        ],
+                        "description": "Trigger type discriminator."
+                    },
+                    "function_slug": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]{1,20}$",
+                        "description": "The branch-local Function slug to invoke."
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256,
+                        "description": "Human-readable name, unique among triggers visible on the branch."
+                    },
+                    "function_path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2048,
+                        "default": "/",
+                        "description": "Path passed to the target Function. Defaults to `/`."
+                    },
+                    "schedule": {
+                        "$ref": "#/components/schemas/FunctionTriggerSchedule"
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Whether future occurrences should be scheduled."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "TriggerUpdateRequest": {
+                "type": "object",
+                "description": "Partial trigger update discriminated by `type`. The only currently\nsupported trigger type is `schedule`.\n",
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "schedule": "#/components/schemas/ScheduleTriggerUpdateRequest"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ScheduleTriggerUpdateRequest"
+                    }
+                ]
+            },
+            "ScheduleTriggerUpdateRequest": {
+                "type": "object",
+                "required": [
+                    "type"
+                ],
+                "minProperties": 2,
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "schedule"
+                        ],
+                        "description": "Trigger type discriminator; it does not change the trigger type."
+                    },
+                    "function_slug": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]{1,20}$",
+                        "description": "Replacement branch-local Function slug."
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 256
+                    },
+                    "function_path": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2048
+                    },
+                    "schedule": {
+                        "$ref": "#/components/schemas/FunctionTriggerSchedule"
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True enables and false disables future scheduling."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "Trigger": {
+                "type": "object",
+                "description": "A branch-effective trigger discriminated by `type`. The only currently\nsupported trigger type is `schedule`.\n",
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "schedule": "#/components/schemas/ScheduleTrigger"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ScheduleTrigger"
+                    }
+                ]
+            },
+            "ScheduleTrigger": {
+                "type": "object",
+                "description": "A branch-effective schedule trigger for a Function.",
+                "required": [
+                    "type",
+                    "trigger_id",
+                    "function_slug",
+                    "name",
+                    "function_path",
+                    "schedule",
+                    "enabled",
+                    "version",
+                    "next_run_at",
+                    "source_branch_id",
+                    "inherited"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "schedule"
+                        ],
+                        "description": "Trigger type discriminator."
+                    },
+                    "trigger_id": {
+                        "$ref": "#/components/schemas/TriggerID"
+                    },
+                    "function_slug": {
+                        "type": "string",
+                        "description": "The branch-local Function slug resolved when an occurrence is consumed."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Human-readable trigger name."
+                    },
+                    "function_path": {
+                        "type": "string",
+                        "description": "Path passed to the target Function."
+                    },
+                    "schedule": {
+                        "$ref": "#/components/schemas/FunctionTriggerSchedule"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int64",
+                        "minimum": 1,
+                        "description": "Monotonic configuration version."
+                    },
+                    "next_run_at": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Next scheduled occurrence as an RFC 3339 UTC timestamp, or null\nwhile disabled or inherited and not explicitly enabled on this branch.\n"
+                    },
+                    "source_branch_id": {
+                        "description": "The public `branch_id` of the branch that authored the effective configuration.",
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]{1,60}$"
+                    },
+                    "inherited": {
+                        "type": "boolean",
+                        "description": "True when the effective configuration was authored on an ancestor branch."
+                    }
+                },
+                "additionalProperties": false
+            },
+            "TriggerResponse": {
+                "type": "object",
+                "required": [
+                    "trigger"
+                ],
+                "properties": {
+                    "trigger": {
+                        "$ref": "#/components/schemas/Trigger"
+                    }
+                }
+            },
+            "TriggersListResponse": {
+                "type": "object",
+                "required": [
+                    "triggers"
+                ],
+                "properties": {
+                    "triggers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Trigger"
                         }
                     }
                 }

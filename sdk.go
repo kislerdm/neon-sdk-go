@@ -2030,6 +2030,80 @@ func (c Client) GetProjectBranchStorage(projectID string, branchID string) (Bran
 	return v, nil
 }
 
+// CreateProjectBranchTrigger Creates a trigger for a Function visible on the branch. The required
+// `type` discriminator selects the trigger-specific configuration. The
+// only currently supported type is `schedule`, whose cron is a numeric
+// five-field expression and timezone is an IANA timezone name.
+//
+// The name must be unique among triggers visible on the branch, including
+// inherited triggers.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) CreateProjectBranchTrigger(projectID string, branchID string, cfg TriggerCreateRequest) (TriggerResponse, error) {
+	var v TriggerResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/triggers", "POST", cfg, &v); err != nil {
+		return TriggerResponse{}, err
+	}
+	return v, nil
+}
+
+// ListProjectBranchTriggers Lists the complete project-bounded set of triggers visible on the branch,
+// ordered by `trigger_id`. An inherited trigger keeps its project-wide ID
+// and source branch, and is disabled on the child until explicitly enabled
+// there.
+//
+// The only currently supported trigger type is `schedule`.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) ListProjectBranchTriggers(projectID string, branchID string) (TriggersListResponse, error) {
+	var v TriggersListResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/triggers", "GET", nil, &v); err != nil {
+		return TriggersListResponse{}, err
+	}
+	return v, nil
+}
+
+// GetProjectBranchTrigger Returns the trigger visible on the branch. The only currently supported
+// trigger type is `schedule`.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) GetProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID) (TriggerResponse, error) {
+	var v TriggerResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/triggers/"+fmt.Sprintf("%v", triggerID), "GET", nil, &v); err != nil {
+		return TriggerResponse{}, err
+	}
+	return v, nil
+}
+
+// UpdateProjectBranchTrigger Applies a partial update. The required `type` discriminator must identify
+// the existing trigger kind; the only currently supported type is
+// `schedule`. Editing an inherited trigger creates a child-local shadow
+// with the same `trigger_id`; it remains disabled unless this request
+// explicitly enables it. Updating the schedule or enabled state increments
+// `version` and recomputes `next_run_at`.
+//
+// Disabling stops future scheduling but does not cancel occurrences already
+// committed for delivery.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) UpdateProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID, cfg TriggerUpdateRequest) (TriggerResponse, error) {
+	var v TriggerResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/triggers/"+fmt.Sprintf("%v", triggerID), "PATCH", cfg, &v); err != nil {
+		return TriggerResponse{}, err
+	}
+	return v, nil
+}
+
+// DeleteProjectBranchTrigger Deletes a branch-local trigger or writes a branch-local tombstone for an
+// inherited trigger so it does not reappear. Deletion stops future
+// scheduling but does not cancel occurrences already committed for delivery.
+// The only currently supported trigger type is `schedule`.
+//
+// **Note**: This endpoint is currently in Beta.
+func (c Client) DeleteProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/triggers/"+fmt.Sprintf("%v", triggerID), "DELETE", nil, nil)
+}
+
 // GetConnectionURI Retrieves a connection URI for the specified database.
 // The URI uses the standard PostgreSQL connection string format. Set `pooled=true` to include the `-pooler` suffix for a connection pooler URI.
 func (c Client) GetConnectionURI(projectID string, branchID *string, endpointID *string, databaseName string, roleName string, pooled *bool) (ConnectionURIResponse, error) {
@@ -4057,6 +4131,12 @@ type FunctionDeployRequest struct {
 	// first deployment of a function.
 	Zip *string `json:"zip,omitempty"`
 }
+type FunctionTriggerSchedule struct {
+	// Cron Numeric five-field cron expression (minute through day-of-week).
+	Cron string `json:"cron"`
+	// Timezone IANA timezone name. Defaults to UTC when omitted.
+	Timezone *string `json:"timezone,omitempty"`
+}
 type GeneralError struct {
 	// Code Machine-readable code classifying the error type. See `message` for a human-readable explanation.
 	Code ErrorCode `json:"code"`
@@ -6079,6 +6159,54 @@ type RotateCredentialResponse struct {
 	TokenIDShort string `json:"token_id_short"`
 }
 
+// ScheduleTrigger A branch-effective schedule trigger for a Function.
+type ScheduleTrigger struct {
+	Enabled bool `json:"enabled"`
+	// FunctionPath Path passed to the target Function.
+	FunctionPath string `json:"function_path"`
+	// FunctionSlug The branch-local Function slug resolved when an occurrence is consumed.
+	FunctionSlug string `json:"function_slug"`
+	// Inherited True when the effective configuration was authored on an ancestor branch.
+	Inherited bool `json:"inherited"`
+	// Name Human-readable trigger name.
+	Name string `json:"name"`
+	// NextRunAt Next scheduled occurrence as an RFC 3339 UTC timestamp, or null
+	// while disabled or inherited and not explicitly enabled on this branch.
+	NextRunAt string                  `json:"next_run_at"`
+	Schedule  FunctionTriggerSchedule `json:"schedule"`
+	// SourceBranchID The public `branch_id` of the branch that authored the effective configuration.
+	SourceBranchID string    `json:"source_branch_id"`
+	TriggerID      TriggerID `json:"trigger_id"`
+	// Type Trigger type discriminator.
+	Type ScheduleTriggerType `json:"type"`
+	// Version Monotonic configuration version.
+	Version int64 `json:"version"`
+}
+type ScheduleTriggerCreateRequest struct {
+	// Enabled Whether future occurrences should be scheduled.
+	Enabled *bool `json:"enabled,omitempty"`
+	// FunctionPath Path passed to the target Function. Defaults to `/`.
+	FunctionPath *string `json:"function_path,omitempty"`
+	// FunctionSlug The branch-local Function slug to invoke.
+	FunctionSlug string `json:"function_slug"`
+	// Name Human-readable name, unique among triggers visible on the branch.
+	Name     string                  `json:"name"`
+	Schedule FunctionTriggerSchedule `json:"schedule"`
+	// Type Trigger type discriminator.
+	Type ScheduleTriggerCreateRequestType `json:"type"`
+}
+type ScheduleTriggerUpdateRequest struct {
+	// Enabled True enables and false disables future scheduling.
+	Enabled      *bool   `json:"enabled,omitempty"`
+	FunctionPath *string `json:"function_path,omitempty"`
+	// FunctionSlug Replacement branch-local Function slug.
+	FunctionSlug *string                  `json:"function_slug,omitempty"`
+	Name         *string                  `json:"name,omitempty"`
+	Schedule     *FunctionTriggerSchedule `json:"schedule,omitempty"`
+	// Type Trigger type discriminator; it does not change the trigger type.
+	Type ScheduleTriggerUpdateRequestType `json:"type"`
+}
+
 // SendNeonAuthEmailProviderTestRequest Request to test the branch's saved email provider. Only the recipient is supplied; the stored
 // SMTP settings and password are used server-side.
 type SendNeonAuthEmailProviderTestRequest struct {
@@ -6204,6 +6332,27 @@ type TransferProjectsToOrganizationRequest struct {
 	DestinationOrgID string `json:"destination_org_id"`
 	// ProjectIDs The list of projects ids to transfer. Maximum of 400 project ids
 	ProjectIDs []string `json:"project_ids"`
+}
+
+// Trigger A branch-effective trigger discriminated by `type`. The only currently
+// supported trigger type is `schedule`.
+type Trigger map[string]any
+
+// TriggerCreateRequest Trigger creation payload discriminated by `type`. The only currently
+// supported trigger type is `schedule`.
+type TriggerCreateRequest map[string]any
+
+// TriggerID Opaque, server-minted project-wide trigger identifier.
+type TriggerID string
+type TriggerResponse struct {
+	Trigger Trigger `json:"trigger"`
+}
+
+// TriggerUpdateRequest Partial trigger update discriminated by `type`. The only currently
+// supported trigger type is `schedule`.
+type TriggerUpdateRequest map[string]any
+type TriggersListResponse struct {
+	Triggers []Trigger `json:"triggers"`
 }
 type UpdateNeonAuthAllowLocalhostRequest struct {
 	// AllowLocalhost Whether to allow localhost connections
@@ -7617,6 +7766,120 @@ func NewRotateCredentialResponsePrincipalType(s string) (RotateCredentialRespons
 	v, ok := m[s]
 	if !ok {
 		return RotateCredentialResponsePrincipalType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// ScheduleTriggerType Trigger type discriminator.
+type ScheduleTriggerType struct {
+	v string
+}
+
+func (v ScheduleTriggerType) String() string {
+	return v.v
+}
+
+func (v *ScheduleTriggerType) UnmarshalText(data []byte) error {
+	o, err := NewScheduleTriggerType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v ScheduleTriggerType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	ScheduleTriggerTypeSchedule = ScheduleTriggerType{"schedule"}
+)
+
+func NewScheduleTriggerType(s string) (ScheduleTriggerType, error) {
+	m := map[string]ScheduleTriggerType{
+		"schedule": ScheduleTriggerTypeSchedule,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return ScheduleTriggerType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// ScheduleTriggerCreateRequestType Trigger type discriminator.
+type ScheduleTriggerCreateRequestType struct {
+	v string
+}
+
+func (v ScheduleTriggerCreateRequestType) String() string {
+	return v.v
+}
+
+func (v *ScheduleTriggerCreateRequestType) UnmarshalText(data []byte) error {
+	o, err := NewScheduleTriggerCreateRequestType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v ScheduleTriggerCreateRequestType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	ScheduleTriggerCreateRequestTypeSchedule = ScheduleTriggerCreateRequestType{"schedule"}
+)
+
+func NewScheduleTriggerCreateRequestType(s string) (ScheduleTriggerCreateRequestType, error) {
+	m := map[string]ScheduleTriggerCreateRequestType{
+		"schedule": ScheduleTriggerCreateRequestTypeSchedule,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return ScheduleTriggerCreateRequestType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// ScheduleTriggerUpdateRequestType Trigger type discriminator; it does not change the trigger type.
+type ScheduleTriggerUpdateRequestType struct {
+	v string
+}
+
+func (v ScheduleTriggerUpdateRequestType) String() string {
+	return v.v
+}
+
+func (v *ScheduleTriggerUpdateRequestType) UnmarshalText(data []byte) error {
+	o, err := NewScheduleTriggerUpdateRequestType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v ScheduleTriggerUpdateRequestType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	ScheduleTriggerUpdateRequestTypeSchedule = ScheduleTriggerUpdateRequestType{"schedule"}
+)
+
+func NewScheduleTriggerUpdateRequestType(s string) (ScheduleTriggerUpdateRequestType, error) {
+	m := map[string]ScheduleTriggerUpdateRequestType{
+		"schedule": ScheduleTriggerUpdateRequestTypeSchedule,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return ScheduleTriggerUpdateRequestType{}, fmt.Errorf("unknown value: %v", s)
 	}
 	return v, nil
 }
