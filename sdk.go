@@ -854,27 +854,10 @@ func (c Client) UpdateProjectBranch(projectID string, branchID string, cfg Branc
 // You cannot delete a project's root or default branch, or a branch that has a child branch.
 // A project must have at least one branch.
 //
-// By default, deleted branches can be recovered within a 7-day grace period.
-// Use the `hard_delete` parameter to permanently delete the branch immediately.
 // For related information, see [Manage branches](https://neon.com/docs/manage/branches/).
-func (c Client) DeleteProjectBranch(projectID string, branchID string, hardDelete *bool) (BranchOperations, error) {
-	var (
-		queryElements []string
-		query         string
-	)
-	if hardDelete != nil {
-		queryElements = append(queryElements, "hard_delete="+func(v bool) string {
-			if v {
-				return "true"
-			}
-			return "false"
-		}(*hardDelete))
-	}
-	if len(queryElements) > 0 {
-		query = "?" + strings.Join(queryElements, "&")
-	}
+func (c Client) DeleteProjectBranch(projectID string, branchID string) (BranchOperations, error) {
 	var v BranchOperations
-	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+query, "DELETE", nil, &v); err != nil {
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "DELETE", nil, &v); err != nil {
 		return BranchOperations{}, err
 	}
 	return v, nil
@@ -2033,7 +2016,7 @@ func (c Client) GetProjectBranchStorage(projectID string, branchID string) (Bran
 // CreateProjectBranchTrigger Creates a trigger for a Function visible on the branch. The required
 // `type` discriminator selects the trigger-specific configuration. The
 // only currently supported type is `schedule`, whose cron is a numeric
-// five-field expression and timezone is an IANA timezone name.
+// five-field expression interpreted in UTC.
 //
 // The name must be unique among triggers visible on the branch, including
 // inherited triggers.
@@ -4131,11 +4114,11 @@ type FunctionDeployRequest struct {
 	// first deployment of a function.
 	Zip *string `json:"zip,omitempty"`
 }
+
+// FunctionTriggerSchedule A numeric five-field cron schedule interpreted in UTC.
 type FunctionTriggerSchedule struct {
-	// Cron Numeric five-field cron expression (minute through day-of-week).
+	// Cron Numeric five-field cron expression (minute through day-of-week), interpreted in UTC.
 	Cron string `json:"cron"`
-	// Timezone IANA timezone name. Defaults to UTC when omitted.
-	Timezone *string `json:"timezone,omitempty"`
 }
 type GeneralError struct {
 	// Code Machine-readable code classifying the error type. See `message` for a human-readable explanation.

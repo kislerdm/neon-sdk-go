@@ -4071,23 +4071,12 @@
             },
             "delete": {
                 "summary": "Delete branch",
-                "description": "Deletes the specified branch from a project and places all compute endpoints into an idle state, breaking existing client connections.\n\nThe deletion completes after all operations finish.\nYou cannot delete a project's root or default branch, or a branch that has a child branch.\nA project must have at least one branch.\n\nBy default, deleted branches can be recovered within a 7-day grace period.\nUse the `hard_delete` parameter to permanently delete the branch immediately.\nFor related information, see [Manage branches](https://neon.com/docs/manage/branches/).\n",
+                "description": "Deletes the specified branch from a project and places all compute endpoints into an idle state, breaking existing client connections.\n\nThe deletion completes after all operations finish.\nYou cannot delete a project's root or default branch, or a branch that has a child branch.\nA project must have at least one branch.\n\nFor related information, see [Manage branches](https://neon.com/docs/manage/branches/).\n",
                 "tags": [
                     "Branch"
                 ],
                 "operationId": "deleteProjectBranch",
-                "parameters": [
-                    {
-                        "name": "hard_delete",
-                        "in": "query",
-                        "description": "If true, the branch is permanently deleted immediately without a recovery window.\nIf false (default), the branch can be recovered within 7 days via the recover endpoint.\n\nThis parameter is part of the Branch Recovery feature, which is in preview and not available to all users.\n",
-                        "required": false,
-                        "schema": {
-                            "type": "boolean",
-                            "default": false
-                        }
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": "Deleted the specified branch",
@@ -9914,7 +9903,7 @@
             },
             "post": {
                 "summary": "Create a trigger",
-                "description": "Creates a trigger for a Function visible on the branch. The required\n`type` discriminator selects the trigger-specific configuration. The\nonly currently supported type is `schedule`, whose cron is a numeric\nfive-field expression and timezone is an IANA timezone name.\n\nThe name must be unique among triggers visible on the branch, including\ninherited triggers.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "description": "Creates a trigger for a Function visible on the branch. The required\n`type` discriminator selects the trigger-specific configuration. The\nonly currently supported type is `schedule`, whose cron is a numeric\nfive-field expression interpreted in UTC.\n\nThe name must be unique among triggers visible on the branch, including\ninherited triggers.\n\n**Note**: This endpoint is currently in Beta.\n",
                 "tags": [
                     "Functions"
                 ],
@@ -17759,6 +17748,7 @@
             },
             "FunctionTriggerSchedule": {
                 "type": "object",
+                "description": "A numeric five-field cron schedule interpreted in UTC.",
                 "required": [
                     "cron"
                 ],
@@ -17767,16 +17757,8 @@
                         "type": "string",
                         "minLength": 1,
                         "maxLength": 1024,
-                        "description": "Numeric five-field cron expression (minute through day-of-week).",
+                        "description": "Numeric five-field cron expression (minute through day-of-week), interpreted in UTC.",
                         "example": "0 9 * * 1-5"
-                    },
-                    "timezone": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 1024,
-                        "default": "UTC",
-                        "description": "IANA timezone name. Defaults to UTC when omitted.",
-                        "example": "America/New_York"
                     }
                 },
                 "additionalProperties": false
