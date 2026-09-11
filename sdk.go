@@ -2015,8 +2015,10 @@ func (c Client) GetProjectBranchStorage(projectID string, branchID string) (Bran
 
 // CreateProjectBranchTrigger Creates a trigger for a Function visible on the branch. The required
 // `type` discriminator selects the trigger-specific configuration. The
-// only currently supported type is `schedule`, whose cron is a numeric
-// five-field expression interpreted in UTC.
+// supported types are `schedule` and `storage_object_created`. A schedule
+// trigger uses a numeric five-field cron expression interpreted in UTC. A
+// storage-object-created trigger fires only after a successful upload to
+// one exact bucket and may narrow matches to an object-key prefix.
 //
 // The name must be unique among triggers visible on the branch, including
 // inherited triggers.
@@ -2035,7 +2037,9 @@ func (c Client) CreateProjectBranchTrigger(projectID string, branchID string, cf
 // and source branch, and is disabled on the child until explicitly enabled
 // there.
 //
-// The only currently supported trigger type is `schedule`.
+// The supported trigger types are `schedule` and
+// `storage_object_created`. A storage-object-created trigger watches one
+// exact bucket and fires only after an object upload succeeds.
 //
 // **Note**: This endpoint is currently in Beta.
 func (c Client) ListProjectBranchTriggers(projectID string, branchID string) (TriggersListResponse, error) {
@@ -2046,8 +2050,8 @@ func (c Client) ListProjectBranchTriggers(projectID string, branchID string) (Tr
 	return v, nil
 }
 
-// GetProjectBranchTrigger Returns the trigger visible on the branch. The only currently supported
-// trigger type is `schedule`.
+// GetProjectBranchTrigger Returns the trigger visible on the branch. The supported trigger types
+// are `schedule` and `storage_object_created`.
 //
 // **Note**: This endpoint is currently in Beta.
 func (c Client) GetProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID) (TriggerResponse, error) {
@@ -2059,14 +2063,19 @@ func (c Client) GetProjectBranchTrigger(projectID string, branchID string, trigg
 }
 
 // UpdateProjectBranchTrigger Applies a partial update. The required `type` discriminator must identify
-// the existing trigger kind; the only currently supported type is
-// `schedule`. Editing an inherited trigger creates a child-local shadow
-// with the same `trigger_id`; it remains disabled unless this request
-// explicitly enables it. Updating the schedule or enabled state increments
-// `version` and recomputes `next_run_at`.
+// the existing trigger kind. The supported types are `schedule` and
+// `storage_object_created`. Editing an inherited trigger creates a
+// child-local shadow with the same `trigger_id`; it remains disabled unless
+// this request explicitly enables it. For a schedule trigger, updating the
+// schedule or enabled state increments `version` and recomputes
+// `next_run_at`.
 //
 // Disabling stops future scheduling but does not cancel occurrences already
-// committed for delivery.
+// committed for delivery. For `storage_object_created`, the configuration
+// selects one exact bucket. An omitted object-key prefix matches every key
+// in that bucket; a present prefix is matched byte-for-byte and
+// case-sensitively against the full key, without path normalization or a
+// path-segment boundary.
 //
 // **Note**: This endpoint is currently in Beta.
 func (c Client) UpdateProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID, cfg TriggerUpdateRequest) (TriggerResponse, error) {
@@ -2079,8 +2088,9 @@ func (c Client) UpdateProjectBranchTrigger(projectID string, branchID string, tr
 
 // DeleteProjectBranchTrigger Deletes a branch-local trigger or writes a branch-local tombstone for an
 // inherited trigger so it does not reappear. Deletion stops future
-// scheduling but does not cancel occurrences already committed for delivery.
-// The only currently supported trigger type is `schedule`.
+// scheduling or storage-event matching but does not cancel invocations
+// already committed for delivery. The supported trigger types are
+// `schedule` and `storage_object_created`.
 //
 // **Note**: This endpoint is currently in Beta.
 func (c Client) DeleteProjectBranchTrigger(projectID string, branchID string, triggerID TriggerID) error {
@@ -4119,6 +4129,22 @@ type FunctionDeployRequest struct {
 type FunctionTriggerSchedule struct {
 	// Cron Numeric five-field cron expression (minute through day-of-week), interpreted in UTC.
 	Cron string `json:"cron"`
+}
+
+// FunctionTriggerStorageObjectCreated Matches successful uploads to one exact bucket and, when configured, an
+// object-key prefix. The Function receives a JSON request body with
+// `type` set to `storage_object_created` and a `data` object containing
+// exactly `bucket_name` and `object_key`.
+type FunctionTriggerStorageObjectCreated struct {
+	// BucketName The exact object-storage bucket name to watch.
+	BucketName string `json:"bucket_name"`
+	// Prefix Optional object-key prefix of at most 1024 UTF-8 bytes. When omitted,
+	// every key in the bucket matches. When present, the full object key
+	// must start with these exact bytes; matching is case-sensitive and
+	// does not normalize paths or require a path-segment boundary.
+	// Match-all responses omit this field rather than returning an empty
+	// string.
+	Prefix *string `json:"prefix,omitempty"`
 }
 type GeneralError struct {
 	// Code Machine-readable code classifying the error type. See `message` for a human-readable explanation.
@@ -6303,6 +6329,52 @@ type StandardEmailServerResponse struct {
 	Username string `json:"username"`
 }
 
+// StorageObjectCreatedTrigger A branch-effective trigger that invokes a Function after a successful
+// upload matching its exact bucket and optional object-key prefix.
+type StorageObjectCreatedTrigger struct {
+	Enabled bool `json:"enabled"`
+	// FunctionPath Path passed to the target Function.
+	FunctionPath string `json:"function_path"`
+	// FunctionSlug The branch-local Function slug resolved when an invocation is consumed.
+	FunctionSlug string `json:"function_slug"`
+	// Inherited True when the effective configuration was authored on an ancestor branch.
+	Inherited bool `json:"inherited"`
+	// Name Human-readable trigger name.
+	Name string `json:"name"`
+	// SourceBranchID The public `branch_id` of the branch that authored the effective configuration.
+	SourceBranchID       string                              `json:"source_branch_id"`
+	StorageObjectCreated FunctionTriggerStorageObjectCreated `json:"storage_object_created"`
+	TriggerID            TriggerID                           `json:"trigger_id"`
+	// Type Trigger type discriminator.
+	Type StorageObjectCreatedTriggerType `json:"type"`
+	// Version Monotonic configuration version.
+	Version int64 `json:"version"`
+}
+type StorageObjectCreatedTriggerCreateRequest struct {
+	// Enabled Whether successful matching uploads should invoke the Function.
+	Enabled *bool `json:"enabled,omitempty"`
+	// FunctionPath Path passed to the target Function. Defaults to `/`.
+	FunctionPath *string `json:"function_path,omitempty"`
+	// FunctionSlug The branch-local Function slug to invoke.
+	FunctionSlug string `json:"function_slug"`
+	// Name Human-readable name, unique among triggers visible on the branch.
+	Name                 string                              `json:"name"`
+	StorageObjectCreated FunctionTriggerStorageObjectCreated `json:"storage_object_created"`
+	// Type Trigger type discriminator.
+	Type StorageObjectCreatedTriggerCreateRequestType `json:"type"`
+}
+type StorageObjectCreatedTriggerUpdateRequest struct {
+	// Enabled True enables and false disables future matching uploads.
+	Enabled      *bool   `json:"enabled,omitempty"`
+	FunctionPath *string `json:"function_path,omitempty"`
+	// FunctionSlug Replacement branch-local Function slug.
+	FunctionSlug         *string                              `json:"function_slug,omitempty"`
+	Name                 *string                              `json:"name,omitempty"`
+	StorageObjectCreated *FunctionTriggerStorageObjectCreated `json:"storage_object_created,omitempty"`
+	// Type Trigger type discriminator; it does not change the trigger type.
+	Type StorageObjectCreatedTriggerUpdateRequestType `json:"type"`
+}
+
 // SuspendTimeoutSeconds Duration of inactivity in seconds after which the compute endpoint is
 // automatically suspended. The value `0` means use the default value.
 // The value `-1` means never suspend. The default value is `300` seconds (5 minutes).
@@ -6317,12 +6389,12 @@ type TransferProjectsToOrganizationRequest struct {
 	ProjectIDs []string `json:"project_ids"`
 }
 
-// Trigger A branch-effective trigger discriminated by `type`. The only currently
-// supported trigger type is `schedule`.
+// Trigger A branch-effective trigger discriminated by `type`. The supported trigger
+// types are `schedule` and `storage_object_created`.
 type Trigger map[string]any
 
-// TriggerCreateRequest Trigger creation payload discriminated by `type`. The only currently
-// supported trigger type is `schedule`.
+// TriggerCreateRequest Trigger creation payload discriminated by `type`. The supported trigger
+// types are `schedule` and `storage_object_created`.
 type TriggerCreateRequest map[string]any
 
 // TriggerID Opaque, server-minted project-wide trigger identifier.
@@ -6331,8 +6403,8 @@ type TriggerResponse struct {
 	Trigger Trigger `json:"trigger"`
 }
 
-// TriggerUpdateRequest Partial trigger update discriminated by `type`. The only currently
-// supported trigger type is `schedule`.
+// TriggerUpdateRequest Partial trigger update discriminated by `type`. The supported trigger
+// types are `schedule` and `storage_object_created`.
 type TriggerUpdateRequest map[string]any
 type TriggersListResponse struct {
 	Triggers []Trigger `json:"triggers"`
@@ -7878,6 +7950,121 @@ type SnapshotUpdateRequestSnapshot struct {
 	// Name Human-readable label for the snapshot.
 	Name *string `json:"name,omitempty"`
 }
+
+// StorageObjectCreatedTriggerType Trigger type discriminator.
+type StorageObjectCreatedTriggerType struct {
+	v string
+}
+
+func (v StorageObjectCreatedTriggerType) String() string {
+	return v.v
+}
+
+func (v *StorageObjectCreatedTriggerType) UnmarshalText(data []byte) error {
+	o, err := NewStorageObjectCreatedTriggerType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v StorageObjectCreatedTriggerType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	StorageObjectCreatedTriggerTypeStorageObjectCreated = StorageObjectCreatedTriggerType{"storage_object_created"}
+)
+
+func NewStorageObjectCreatedTriggerType(s string) (StorageObjectCreatedTriggerType, error) {
+	m := map[string]StorageObjectCreatedTriggerType{
+		"storage_object_created": StorageObjectCreatedTriggerTypeStorageObjectCreated,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return StorageObjectCreatedTriggerType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// StorageObjectCreatedTriggerCreateRequestType Trigger type discriminator.
+type StorageObjectCreatedTriggerCreateRequestType struct {
+	v string
+}
+
+func (v StorageObjectCreatedTriggerCreateRequestType) String() string {
+	return v.v
+}
+
+func (v *StorageObjectCreatedTriggerCreateRequestType) UnmarshalText(data []byte) error {
+	o, err := NewStorageObjectCreatedTriggerCreateRequestType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v StorageObjectCreatedTriggerCreateRequestType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	StorageObjectCreatedTriggerCreateRequestTypeStorageObjectCreated = StorageObjectCreatedTriggerCreateRequestType{"storage_object_created"}
+)
+
+func NewStorageObjectCreatedTriggerCreateRequestType(s string) (StorageObjectCreatedTriggerCreateRequestType, error) {
+	m := map[string]StorageObjectCreatedTriggerCreateRequestType{
+		"storage_object_created": StorageObjectCreatedTriggerCreateRequestTypeStorageObjectCreated,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return StorageObjectCreatedTriggerCreateRequestType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// StorageObjectCreatedTriggerUpdateRequestType Trigger type discriminator; it does not change the trigger type.
+type StorageObjectCreatedTriggerUpdateRequestType struct {
+	v string
+}
+
+func (v StorageObjectCreatedTriggerUpdateRequestType) String() string {
+	return v.v
+}
+
+func (v *StorageObjectCreatedTriggerUpdateRequestType) UnmarshalText(data []byte) error {
+	o, err := NewStorageObjectCreatedTriggerUpdateRequestType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v StorageObjectCreatedTriggerUpdateRequestType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	StorageObjectCreatedTriggerUpdateRequestTypeStorageObjectCreated = StorageObjectCreatedTriggerUpdateRequestType{"storage_object_created"}
+)
+
+func NewStorageObjectCreatedTriggerUpdateRequestType(s string) (StorageObjectCreatedTriggerUpdateRequestType, error) {
+	m := map[string]StorageObjectCreatedTriggerUpdateRequestType{
+		"storage_object_created": StorageObjectCreatedTriggerUpdateRequestTypeStorageObjectCreated,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return StorageObjectCreatedTriggerUpdateRequestType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
 type BranchSchemaJSONTablesItemColumnsItem struct {
 	// Generated Whether the column is a generated (computed) column
 	Generated *bool `json:"generated,omitempty"`
