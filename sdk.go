@@ -4593,8 +4593,14 @@ type NeonAuthEmailAndPasswordConfigUpdate struct {
 	// SendVerificationEmailOnSignUp Whether to send a verification email when users sign up.
 	SendVerificationEmailOnSignUp *bool `json:"send_verification_email_on_sign_up,omitempty"`
 }
-type NeonAuthEmailServerConfig map[string]any
-type NeonAuthEmailServerConfigResponse map[string]any
+type NeonAuthEmailServerConfig struct {
+	StandardEmailServer
+	SharedEmailServer
+}
+type NeonAuthEmailServerConfigResponse struct {
+	StandardEmailServerResponse
+	SharedEmailServer
+}
 
 // NeonAuthEmailVerificationMethod The email verification method to use.
 // - `link`: Sends a verification link via email
@@ -6434,11 +6440,17 @@ type TransferProjectsToOrganizationRequest struct {
 
 // Trigger A branch-effective trigger discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
-type Trigger map[string]any
+type Trigger struct {
+	ScheduleTrigger
+	StorageObjectCreatedTrigger
+}
 
 // TriggerCreateRequest Trigger creation payload discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
-type TriggerCreateRequest map[string]any
+type TriggerCreateRequest struct {
+	ScheduleTriggerCreateRequest
+	StorageObjectCreatedTriggerCreateRequest
+}
 
 // TriggerID Opaque, server-minted project-wide trigger identifier.
 type TriggerID string
@@ -6448,7 +6460,10 @@ type TriggerResponse struct {
 
 // TriggerUpdateRequest Partial trigger update discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
-type TriggerUpdateRequest map[string]any
+type TriggerUpdateRequest struct {
+	ScheduleTriggerUpdateRequest
+	StorageObjectCreatedTriggerUpdateRequest
+}
 type TriggersListResponse struct {
 	Triggers []Trigger `json:"triggers"`
 }

@@ -51,6 +51,7 @@ type OpenAPISchema struct {
 	Properties  []OpenAPISchema
 	Items       *OpenAPISchema
 	AllOf       []OpenAPISchema
+	OneOf       []OpenAPISchema
 	Deprecated  bool
 	Sunset      *Date
 }
@@ -74,6 +75,7 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 		AllOf       []OpenAPISchema          `json:"allOf,omitempty"`
 		Deprecated  bool                     `json:"deprecated,omitempty"`
 		Sunset      *Date                    `json:"x-sunset,omitempty"`
+		OneOf       []OpenAPISchema          `json:"oneOf,omitempty"`
 	}
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
@@ -91,6 +93,7 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 	v.AllOf = tmp.AllOf
 	v.Deprecated = tmp.Deprecated
 	v.Sunset = tmp.Sunset
+	v.OneOf = tmp.OneOf
 
 	if len(tmp.Properties) > 0 {
 		v.Properties = make([]OpenAPISchema, 0, len(tmp.Properties))

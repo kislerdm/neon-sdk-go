@@ -132,8 +132,8 @@ func newGoTypeDefinition(schema OpenAPISchema, typeName string, repo *TypesRepo,
 		}
 		return definition, false, err
 
-	case schema.Type == "object" || len(schema.AllOf) > 0:
-		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 {
+	case schema.Type == "object" || len(schema.AllOf) > 0 || len(schema.OneOf) > 0:
+		if len(schema.Properties) > 0 || len(schema.AllOf) > 0 || len(schema.OneOf) > 0 {
 			var definition string
 			if returnComplexTypeDefinition {
 				definition, err = newGoStructDefinition(schema, typeName, repo)
@@ -212,14 +212,18 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 			return "", err
 		}
 
-	case len(schema.AllOf) > 0:
+	case len(schema.AllOf) > 0 || len(schema.OneOf) > 0:
 		// presort sub-schemas so the referenced types come first
 		type tmp struct {
 			schema OpenAPISchema
 			isRef  bool
 		}
-		var subSchemas = make([]tmp, 0, len(schema.AllOf))
-		for _, subSchema := range schema.AllOf {
+		subSchemasSource := schema.AllOf
+		if len(subSchemasSource) == 0 {
+			subSchemasSource = schema.OneOf
+		}
+		var subSchemas = make([]tmp, 0, len(subSchemasSource))
+		for _, subSchema := range subSchemasSource {
 			if subSchema.Removed() {
 				continue
 			}
@@ -243,7 +247,7 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 			if subSchema.Ref != nil {
 				buf.WriteString("\n")
 				buf.WriteString(filepath.Base(*subSchema.Ref))
-				if i == len(schema.AllOf)-1 {
+				if i == len(subSchemasSource)-1 {
 					buf.WriteString("\n")
 				}
 

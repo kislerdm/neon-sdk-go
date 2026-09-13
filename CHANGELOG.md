@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.23.0] - 2026-09-13
 
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-13 00:26:00 GMT.
+
+### Added
+
+- Added explicit definition of the types `Trigger`, `NeonAuthEmailServerConfig` and `NeonAuthEmailServerConfigResponse`.
+
 ### Fixed
 
 - **[BREAKING]** Fixed the method `CreateProjectBranchFunctionDeployment` to enable Neon functions provisioning.
