@@ -1,3 +1,5 @@
+// TODO: add handling of the request body as multipart/form-data
+// TODO: add handling of the response handlers and octet-stream body type
 package generator
 
 import (
@@ -223,6 +225,23 @@ func processEndpoint(urlPath string, op *OpenAPIPathMethod, httpMethod string,
 
 	if op.Description != "" {
 		o.WriteString(newGoDocString(methodName, op.Description))
+	}
+
+	impl, ok := hardcodedOperationIDtoMethodImplementation[op.OperationID]
+	if ok {
+		o.WriteString(impl)
+		respType := methodName + "RespObj"
+		resp, hasResponseBody := selectSuccessResponse(op.Responses)
+		if resp == nil {
+			return fmt.Errorf("no success response found for operation: %s", op.OperationID)
+		}
+		if hasResponseBody && resp.Ref == nil && resp.Schema.Ref == nil {
+			if resp.Schema.Description == "" {
+				resp.Schema.Description = resp.Description
+			}
+			typesRepo.AddTypeDefinitionInput(resp.Schema, respType)
+		}
+		return nil
 	}
 
 	var requestBodyType string

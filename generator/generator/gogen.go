@@ -36,6 +36,7 @@ import (
     "errors"
     "fmt"
     "io"
+	"mime/multipart"
     "net/http"
     "reflect"
 	"strconv"
@@ -190,6 +191,60 @@ func (c Client) requestHandler(url string, t string, reqPayload any, responsePay
 
 `
 )
+
+var hardcodedOperationIDtoMethodImplementation = map[string]string{
+	"createProjectBranchFunctionDeployment": `func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID string, slug string, 
+zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunctionDeploymentResponse, error) {
+	var body bytes.Buffer
+	w := multipart.NewWriter(&body)
+	defer func() { _ = w.Close() }()
+
+	if zip != nil {
+		part, _ := w.CreateFormFile("zip", "function.zip")
+		_, err := io.Copy(part, zip)
+		if err != nil {
+			return NeonFunctionDeploymentResponse{},
+				fmt.Errorf("could not copy content of the archive to the multiform: %w", err)
+		}
+	}
+
+	if len(environment) > 0 {
+		env, err := json.Marshal(environment)
+		if err != nil {
+			return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not JSON-serialize environemnt: %w", err)
+		}
+		_ = w.WriteField("environment", string(env))
+	}
+
+	if runtime != nil {
+		_ = w.WriteField("runtime", *runtime)
+	}
+
+	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/functions/" + slug + "/deployments"
+	req, _ := http.NewRequest("POST", urlStr, &body)
+	setHeaders(req, c.cfg.Key)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	res, err := c.cfg.HTTPClient.Do(req)
+	if err != nil {
+		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not perform the request: %w", err)
+	}
+
+	if res.StatusCode > 299 {
+		return NeonFunctionDeploymentResponse{}, convertErrorResponse(res)
+	}
+
+	var v NeonFunctionDeploymentResponse
+	err = json.NewDecoder(res.Body).Decode(&v)
+	_ = res.Body.Close()
+	if err != nil {
+		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not decode the response: %w", err)
+	}
+	return v, nil
+}
+
+`,
+}
 
 func Run(openAPISpec []byte, outputDir string) error {
 	var spec OpenAPIDefinition
