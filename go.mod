@@ -11,3 +11,6 @@ go 1.24
 // faulty API response treatment for the methods:
 // DeleteProjectBranch, DeleteProjectBranchDatabase, DeleteProjectBranchRole, DeleteProjectEndpoint
 retract [v0.17.0, v0.19.0]
+
+// faulty encoding of the multiform data
+retract v0.23.0

@@ -1777,7 +1777,6 @@ func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID
 	zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunctionDeploymentResponse, error) {
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)
-	defer func() { _ = w.Close() }()
 
 	if zip != nil {
 		part, _ := w.CreateFormFile("zip", "function.zip")
@@ -1798,6 +1797,10 @@ func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID
 
 	if runtime != nil {
 		_ = w.WriteField("runtime", *runtime)
+	}
+
+	if err := w.Close(); err != nil {
+		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not close multipart form: %w", err)
 	}
 
 	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/functions/" + slug + "/deployments"

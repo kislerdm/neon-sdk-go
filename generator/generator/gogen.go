@@ -23,6 +23,9 @@ go 1.24
 // faulty API response treatment for the methods:
 // DeleteProjectBranch, DeleteProjectBranchDatabase, DeleteProjectBranchRole, DeleteProjectEndpoint
 retract [v0.17.0, v0.19.0]
+
+// faulty encoding of the multiform data
+retract v0.23.0
 `
 	sdkFile = `// Package sdk to communicate to the Neon Postgres SaaS Platform.
 // Find more about the service: https://neon.com/docs/reference/api/get-started
@@ -197,7 +200,6 @@ var hardcodedOperationIDtoMethodImplementation = map[string]string{
 zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunctionDeploymentResponse, error) {
 	var body bytes.Buffer
 	w := multipart.NewWriter(&body)
-	defer func() { _ = w.Close() }()
 
 	if zip != nil {
 		part, _ := w.CreateFormFile("zip", "function.zip")
@@ -218,6 +220,10 @@ zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunction
 
 	if runtime != nil {
 		_ = w.WriteField("runtime", *runtime)
+	}
+	
+	if err := w.Close(); err != nil {
+		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not close multipart form: %w", err)
 	}
 
 	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/functions/" + slug + "/deployments"
