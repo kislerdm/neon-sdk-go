@@ -15,7 +15,8 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 
 ### Fixed
 
-- **[BREAKING]** Fixed the method `CreateProjectBranchFunctionDeployment` to enable Neon functions provisioning.
+- Fixed the method `CreateProjectBranchFunctionDeployment` to enable Neon functions provisioning.
+- Fixed the method `GetProjectBranchBucketObject` to read the object from the Neon bucket.
 
 ## [v0.22.0] - 2026-09-09
 

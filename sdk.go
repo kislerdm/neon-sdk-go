@@ -1338,8 +1338,49 @@ func (c Client) DeleteProjectBranchBucketObject(projectID string, branchID strin
 // responses still use the generated `GeneralError` shape.
 //
 // **Note**: This endpoint is currently in Beta.
-func (c Client) GetProjectBranchBucketObject(projectID string, branchID string, bucketName string, objectKey string) error {
-	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/buckets/"+bucketName+"/objects/"+objectKey+"/download", "GET", nil, nil)
+func (c Client) GetProjectBranchBucketObject(projectID string, branchID string, bucketName string, objectKey string,
+	objectWriter io.WriteCloser) (ObjectHeaders, error) {
+	if objectWriter == nil {
+		return ObjectHeaders{}, fmt.Errorf("objectWriter is nil")
+	}
+
+	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/buckets/" + bucketName + "/objects/" +
+		objectKey + "/download"
+	req, _ := http.NewRequest("GET", urlStr, nil)
+	setHeaders(req, c.cfg.Key)
+
+	res, err := c.cfg.HTTPClient.Do(req)
+	if err != nil {
+		return ObjectHeaders{}, err
+	}
+
+	if res.StatusCode > 299 {
+		return ObjectHeaders{}, convertErrorResponse(res)
+	}
+
+	headers := ObjectHeaders{
+		ContentLength:       res.Header.Get("Content-Length"),
+		ETag:                res.Header.Get("ETag"),
+		XContentTypeOptions: res.Header.Get("X-Content-Type-Options"),
+		ContentDisposition:  res.Header.Get("Content-Disposition"),
+	}
+
+	_, err = io.Copy(objectWriter, res.Body)
+	if err != nil {
+		return ObjectHeaders{}, fmt.Errorf("could not extract the object string: %w", err)
+	}
+	return headers, err
+}
+
+type ObjectHeaders struct {
+	// ContentLength The object size in bytes.
+	ContentLength string
+	// ETag The object's entity tag (content hash).
+	ETag string
+	// XContentTypeOptions Always 'nosniff'. Stops the browser from MIME-sniffing the caller-controlled bytes into an executable type.
+	XContentTypeOptions string
+	// ContentDisposition Always 'attachment'. Forces a download rather than inline rendering, neutralizing stored-XSS via the object body.
+	ContentDisposition string
 }
 
 // PresignProjectBranchBucketObject Returns a presigned URL that transfers bytes directly to or from the
