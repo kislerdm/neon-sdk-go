@@ -211,7 +211,7 @@ zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunction
 	if len(environment) > 0 {
 		env, err := json.Marshal(environment)
 		if err != nil {
-			return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not JSON-serialize environemnt: %w", err)
+			return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not JSON-serialize environment: %w", err)
 		}
 		_ = w.WriteField("environment", string(env))
 	}
