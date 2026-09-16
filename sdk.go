@@ -4638,10 +4638,14 @@ type NeonAuthEmailAndPasswordConfigUpdate struct {
 	SendVerificationEmailOnSignUp *bool `json:"send_verification_email_on_sign_up,omitempty"`
 }
 type NeonAuthEmailServerConfig struct {
+	Type string `json:"type"`
+
 	StandardEmailServer
 	SharedEmailServer
 }
 type NeonAuthEmailServerConfigResponse struct {
+	Type string `json:"type"`
+
 	StandardEmailServerResponse
 	SharedEmailServer
 }
@@ -6481,6 +6485,8 @@ type TransferProjectsToOrganizationRequest struct {
 // Trigger A branch-effective trigger discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
 type Trigger struct {
+	Type string `json:"type"`
+
 	ScheduleTrigger
 	StorageObjectCreatedTrigger
 }
@@ -6488,6 +6494,8 @@ type Trigger struct {
 // TriggerCreateRequest Trigger creation payload discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
 type TriggerCreateRequest struct {
+	Type string `json:"type"`
+
 	ScheduleTriggerCreateRequest
 	StorageObjectCreatedTriggerCreateRequest
 }
@@ -6501,6 +6509,8 @@ type TriggerResponse struct {
 // TriggerUpdateRequest Partial trigger update discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
 type TriggerUpdateRequest struct {
+	Type string `json:"type"`
+
 	ScheduleTriggerUpdateRequest
 	StorageObjectCreatedTriggerUpdateRequest
 }

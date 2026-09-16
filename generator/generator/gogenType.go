@@ -211,6 +211,7 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 		if err != nil {
 			return "", err
 		}
+		fallthrough
 
 	case len(schema.AllOf) > 0 || len(schema.OneOf) > 0:
 		// presort sub-schemas so the referenced types come first

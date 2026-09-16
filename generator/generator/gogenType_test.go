@@ -247,6 +247,36 @@ type AllowedIps struct {
 				"}",
 			errFn: assert.NoError,
 		},
+		"schema TriggerCreateRequest/2026-09-16": {
+			raw: []byte(`{
+				"schemas": {
+					"TriggerCreateRequest": {
+                        "type": "object",
+						"discriminator": {
+		                    "propertyName": "type",
+		                    "mapping": {
+		                        "schedule": "#/components/schemas/ScheduleTriggerCreateRequest",
+		                        "storage_object_created": "#/components/schemas/StorageObjectCreatedTriggerCreateRequest"
+		                    }
+		                },
+		                "oneOf": [
+		                    {
+		                        "$ref": "#/components/schemas/ScheduleTriggerCreateRequest"
+		                    },
+		                    {
+		                        "$ref": "#/components/schemas/StorageObjectCreatedTriggerCreateRequest"
+		                    }
+		                ]
+	                }
+				}
+			}`),
+			want: `type TriggerCreateRequest struct {
+Type string ` + "`json:\"type\"`\n\n" +
+				`ScheduleTriggerCreateRequest
+StorageObjectCreatedTriggerCreateRequest
+}`,
+			errFn: assert.NoError,
+		},
 	}
 
 	t.Parallel()

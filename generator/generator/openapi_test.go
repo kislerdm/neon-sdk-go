@@ -237,6 +237,40 @@ func TestOpenAPISchema_UnmarshalJSON(t *testing.T) {
 				Maximum: pointer(604800.),
 			},
 		},
+		"shall deserialize schema with discriminator": {
+			in: []byte(`{
+                "type": "object",
+                "discriminator": {
+                    "propertyName": "type",
+                    "mapping": {
+                        "schedule": "#/components/schemas/ScheduleTriggerCreateRequest",
+                        "storage_object_created": "#/components/schemas/StorageObjectCreatedTriggerCreateRequest"
+                    }
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/ScheduleTriggerCreateRequest"
+                    },
+                    {
+                        "$ref": "#/components/schemas/StorageObjectCreatedTriggerCreateRequest"
+                    }
+                ]
+            }`),
+			want: OpenAPISchema{
+				Type:     "object",
+				Required: []string{"type"},
+				Properties: []OpenAPISchema{
+					{
+						xRefName: "type",
+						Type:     "string",
+					},
+				},
+				OneOf: []OpenAPISchema{
+					{Ref: pointer("#/components/schemas/ScheduleTriggerCreateRequest")},
+					{Ref: pointer("#/components/schemas/StorageObjectCreatedTriggerCreateRequest")},
+				},
+			},
+		},
 	}
 
 	for name, test := range tests {

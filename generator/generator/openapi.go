@@ -61,21 +61,26 @@ func (v OpenAPISchema) Removed() bool {
 }
 
 func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
+	type discriminator struct {
+		PropertyName string `json:"propertyName"`
+	}
+
 	var tmp struct {
-		Type        string                   `json:"type,omitempty"`
-		Format      *string                  `json:"format,omitempty"`
-		Enum        []string                 `json:"enum,omitempty"`
-		Minimum     *float64                 `json:"minimum,omitempty"`
-		Maximum     *float64                 `json:"maximum,omitempty"`
-		Ref         *string                  `json:"$ref,omitempty"`
-		Description string                   `json:"description,omitempty"`
-		Required    []string                 `json:"required,omitempty"`
-		Properties  map[string]OpenAPISchema `json:"properties,omitempty"`
-		Items       *OpenAPISchema           `json:"items,omitempty"`
-		AllOf       []OpenAPISchema          `json:"allOf,omitempty"`
-		Deprecated  bool                     `json:"deprecated,omitempty"`
-		Sunset      *Date                    `json:"x-sunset,omitempty"`
-		OneOf       []OpenAPISchema          `json:"oneOf,omitempty"`
+		Type          string                   `json:"type,omitempty"`
+		Format        *string                  `json:"format,omitempty"`
+		Enum          []string                 `json:"enum,omitempty"`
+		Minimum       *float64                 `json:"minimum,omitempty"`
+		Maximum       *float64                 `json:"maximum,omitempty"`
+		Ref           *string                  `json:"$ref,omitempty"`
+		Description   string                   `json:"description,omitempty"`
+		Required      []string                 `json:"required,omitempty"`
+		Properties    map[string]OpenAPISchema `json:"properties,omitempty"`
+		Items         *OpenAPISchema           `json:"items,omitempty"`
+		AllOf         []OpenAPISchema          `json:"allOf,omitempty"`
+		Deprecated    bool                     `json:"deprecated,omitempty"`
+		Sunset        *Date                    `json:"x-sunset,omitempty"`
+		OneOf         []OpenAPISchema          `json:"oneOf,omitempty"`
+		Discriminator *discriminator           `json:"discriminator,omitempty"`
 	}
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
@@ -95,12 +100,24 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 	v.Sunset = tmp.Sunset
 	v.OneOf = tmp.OneOf
 
-	if len(tmp.Properties) > 0 {
-		v.Properties = make([]OpenAPISchema, 0, len(tmp.Properties))
+	cntProps := len(tmp.Properties)
+	if tmp.Discriminator != nil {
+		cntProps++
+		v.Required = append(v.Required, tmp.Discriminator.PropertyName)
+	}
+
+	if cntProps > 0 {
+		v.Properties = make([]OpenAPISchema, 0, cntProps)
 		for _, k := range sortMapKeys(tmp.Properties) {
 			vv := tmp.Properties[k]
 			vv.xRefName = k
 			v.Properties = append(v.Properties, vv)
+		}
+		if tmp.Discriminator != nil {
+			v.Properties = append(v.Properties, OpenAPISchema{
+				Type:     "string",
+				xRefName: tmp.Discriminator.PropertyName,
+			})
 		}
 	}
 

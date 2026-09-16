@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.25.0] - 2026-09-16
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-16 12:32:00 GMT.
+
+
+### Added
+
+- Added the field `Type` to the following types:
+  - `NeonAuthEmailServerConfig`;
+  - `NeonAuthEmailServerConfigResponse`;
+  - `Trigger`;
+  - `TriggerCreateRequest`;
+  - `TriggerUpdateRequest`.
+
+### Removed
+
+- **[BREAKING]** Removed field `SourceBranchID` from the types  `ScheduleTrigger` and `StorageObjectCreatedTrigger`.
+
+### Fixed
+
+- Fixed the following methods by adding missing discriminator field `Type` to the configuration types:
+  - `UpdateNeonAuthEmailProvider`;
+  - `CreateProjectBranchTrigger`.
+
 ## [v0.24.0] - 2026-09-13
 
 ### Fixed
