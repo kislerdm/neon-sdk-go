@@ -40,31 +40,33 @@ type OpenAPISchema struct {
 	//  or from the properties of an `object`.
 	xRefName string
 
-	Type        string
-	Format      *string
-	Enum        []string
-	Minimum     *float64
-	Maximum     *float64
-	Ref         *string
-	Description string
-	Required    []string
-	Properties  []OpenAPISchema
-	Items       *OpenAPISchema
-	AllOf       []OpenAPISchema
-	OneOf       []OpenAPISchema
-	Deprecated  bool
-	Sunset      *Date
+	Type          string
+	Format        *string
+	Enum          []string
+	Minimum       *float64
+	Maximum       *float64
+	Ref           *string
+	Description   string
+	Required      []string
+	Properties    []OpenAPISchema
+	Items         *OpenAPISchema
+	AllOf         []OpenAPISchema
+	OneOf         []OpenAPISchema
+	Deprecated    bool
+	Sunset        *Date
+	Discriminator *discriminator
 }
 
 func (v OpenAPISchema) Removed() bool {
 	return removedFromAPI(v.Deprecated, v.Sunset)
 }
 
-func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
-	type discriminator struct {
-		PropertyName string `json:"propertyName"`
-	}
+type discriminator struct {
+	PropertyName string            `json:"propertyName"`
+	Mapping      map[string]string `json:"mapping"`
+}
 
+func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 	var tmp struct {
 		Type          string                   `json:"type,omitempty"`
 		Format        *string                  `json:"format,omitempty"`
@@ -99,6 +101,7 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 	v.Deprecated = tmp.Deprecated
 	v.Sunset = tmp.Sunset
 	v.OneOf = tmp.OneOf
+	v.Discriminator = tmp.Discriminator
 
 	cntProps := len(tmp.Properties)
 	if tmp.Discriminator != nil {
@@ -114,10 +117,12 @@ func (v *OpenAPISchema) UnmarshalJSON(data []byte) error {
 			v.Properties = append(v.Properties, vv)
 		}
 		if tmp.Discriminator != nil {
-			v.Properties = append(v.Properties, OpenAPISchema{
-				Type:     "string",
-				xRefName: tmp.Discriminator.PropertyName,
-			})
+			if _, ok := tmp.Properties[tmp.Discriminator.PropertyName]; !ok {
+				v.Properties = append(v.Properties, OpenAPISchema{
+					Type:     "string",
+					xRefName: tmp.Discriminator.PropertyName,
+				})
+			}
 		}
 	}
 

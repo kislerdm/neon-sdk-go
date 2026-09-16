@@ -26,6 +26,9 @@ retract [v0.17.0, v0.19.0]
 
 // faulty encoding of the multiform data
 retract v0.23.0
+
+// faulty serialization of the types with polymorphism, i.e., discriminating field
+retract [v0.24.0, v0.25.0]
 `
 	sdkFile = `// Package sdk to communicate to the Neon Postgres SaaS Platform.
 // Find more about the service: https://neon.com/docs/reference/api/get-started
@@ -350,7 +353,6 @@ func Run(openAPISpec []byte, outputDir string) error {
 	if err := newGoTypesDefinition(typeRepo); err != nil {
 		return err
 	}
-
 	_, _ = sdkFileOut.WriteString(methodsDef)
 	_, _ = sdkFileOut.WriteString(typeRepo.TypesDefinition())
 

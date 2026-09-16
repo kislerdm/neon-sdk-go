@@ -274,6 +274,31 @@ type AllowedIps struct {
 Type string ` + "`json:\"type\"`\n\n" +
 				`ScheduleTriggerCreateRequest
 StorageObjectCreatedTriggerCreateRequest
+}
+
+func (v TriggerCreateRequest) MarshalJSON() ([]byte, error) {
+switch v.Type {
+case "schedule":
+tmp := struct{
+Type string ` + "`json:\"type\"`" + `
+ScheduleTriggerCreateRequest
+}{
+Type: v.Type,
+ScheduleTriggerCreateRequest: v.ScheduleTriggerCreateRequest,
+}
+return json.Marshal(tmp)
+case "storage_object_created":
+tmp := struct{
+Type string ` + "`json:\"type\"`" + `
+StorageObjectCreatedTriggerCreateRequest
+}{
+Type: v.Type,
+StorageObjectCreatedTriggerCreateRequest: v.StorageObjectCreatedTriggerCreateRequest,
+}
+return json.Marshal(tmp)
+default:
+return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+}
 }`,
 			errFn: assert.NoError,
 		},

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -262,6 +263,50 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 	}
 
 	buf.WriteString("}")
+
+	if schema.Discriminator != nil {
+		discriminatorJsonAttrName := schema.Discriminator.PropertyName
+		discriminatorGoStructAttrName := newGoNameFromJsonAttribute(discriminatorJsonAttrName)
+
+		buf.WriteString("\n\n")
+		buf.WriteString("func (v ")
+		buf.WriteString(typeName)
+		buf.WriteString(") MarshalJSON() ([]byte, error) {\n")
+		buf.WriteString("switch v.")
+		buf.WriteString(discriminatorGoStructAttrName)
+		buf.WriteString(" {\n")
+
+		mappingVals := slices.Sorted(maps.Keys(schema.Discriminator.Mapping))
+
+		for _, discriminatorValue := range mappingVals {
+			goTypeName := filepath.Base(schema.Discriminator.Mapping[discriminatorValue])
+
+			buf.WriteString("case \"")
+			buf.WriteString(discriminatorValue)
+			buf.WriteString("\":\n")
+			buf.WriteString("tmp := struct{\n")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString(" string `json:\"")
+			buf.WriteString(discriminatorJsonAttrName)
+			buf.WriteString("\"`\n")
+			buf.WriteString(goTypeName)
+			buf.WriteString("\n}{\n")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString(": v.")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString(",\n")
+			buf.WriteString(goTypeName)
+			buf.WriteString(": v.")
+			buf.WriteString(goTypeName)
+			buf.WriteString(",\n}\n")
+			buf.WriteString("return json.Marshal(tmp)\n")
+		}
+
+		buf.WriteString("default:\n")
+		buf.WriteString("return nil, fmt.Errorf(\"unknown discriminator value: %q\", v.")
+		buf.WriteString(discriminatorGoStructAttrName)
+		buf.WriteString(")\n}\n}")
+	}
 
 	return buf.String(), nil
 }

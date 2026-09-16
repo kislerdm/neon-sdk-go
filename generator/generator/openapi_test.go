@@ -265,6 +265,13 @@ func TestOpenAPISchema_UnmarshalJSON(t *testing.T) {
 						Type:     "string",
 					},
 				},
+				Discriminator: &discriminator{
+					PropertyName: "type",
+					Mapping: map[string]string{
+						"schedule":               "#/components/schemas/ScheduleTriggerCreateRequest",
+						"storage_object_created": "#/components/schemas/StorageObjectCreatedTriggerCreateRequest",
+					},
+				},
 				OneOf: []OpenAPISchema{
 					{Ref: pointer("#/components/schemas/ScheduleTriggerCreateRequest")},
 					{Ref: pointer("#/components/schemas/StorageObjectCreatedTriggerCreateRequest")},

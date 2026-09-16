@@ -4643,11 +4643,62 @@ type NeonAuthEmailServerConfig struct {
 	StandardEmailServer
 	SharedEmailServer
 }
+
+func (v NeonAuthEmailServerConfig) MarshalJSON() ([]byte, error) {
+	switch v.Type {
+	case "shared":
+		tmp := struct {
+			Type string `json:"type"`
+			SharedEmailServer
+		}{
+			Type:              v.Type,
+			SharedEmailServer: v.SharedEmailServer,
+		}
+		return json.Marshal(tmp)
+	case "standard":
+		tmp := struct {
+			Type string `json:"type"`
+			StandardEmailServer
+		}{
+			Type:                v.Type,
+			StandardEmailServer: v.StandardEmailServer,
+		}
+		return json.Marshal(tmp)
+	default:
+		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+	}
+}
+
 type NeonAuthEmailServerConfigResponse struct {
 	Type string `json:"type"`
 
 	StandardEmailServerResponse
 	SharedEmailServer
+}
+
+func (v NeonAuthEmailServerConfigResponse) MarshalJSON() ([]byte, error) {
+	switch v.Type {
+	case "shared":
+		tmp := struct {
+			Type string `json:"type"`
+			SharedEmailServer
+		}{
+			Type:              v.Type,
+			SharedEmailServer: v.SharedEmailServer,
+		}
+		return json.Marshal(tmp)
+	case "standard":
+		tmp := struct {
+			Type string `json:"type"`
+			StandardEmailServerResponse
+		}{
+			Type:                        v.Type,
+			StandardEmailServerResponse: v.StandardEmailServerResponse,
+		}
+		return json.Marshal(tmp)
+	default:
+		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+	}
 }
 
 // NeonAuthEmailVerificationMethod The email verification method to use.
@@ -6491,6 +6542,31 @@ type Trigger struct {
 	StorageObjectCreatedTrigger
 }
 
+func (v Trigger) MarshalJSON() ([]byte, error) {
+	switch v.Type {
+	case "schedule":
+		tmp := struct {
+			Type string `json:"type"`
+			ScheduleTrigger
+		}{
+			Type:            v.Type,
+			ScheduleTrigger: v.ScheduleTrigger,
+		}
+		return json.Marshal(tmp)
+	case "storage_object_created":
+		tmp := struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTrigger
+		}{
+			Type:                        v.Type,
+			StorageObjectCreatedTrigger: v.StorageObjectCreatedTrigger,
+		}
+		return json.Marshal(tmp)
+	default:
+		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+	}
+}
+
 // TriggerCreateRequest Trigger creation payload discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
 type TriggerCreateRequest struct {
@@ -6498,6 +6574,31 @@ type TriggerCreateRequest struct {
 
 	ScheduleTriggerCreateRequest
 	StorageObjectCreatedTriggerCreateRequest
+}
+
+func (v TriggerCreateRequest) MarshalJSON() ([]byte, error) {
+	switch v.Type {
+	case "schedule":
+		tmp := struct {
+			Type string `json:"type"`
+			ScheduleTriggerCreateRequest
+		}{
+			Type:                         v.Type,
+			ScheduleTriggerCreateRequest: v.ScheduleTriggerCreateRequest,
+		}
+		return json.Marshal(tmp)
+	case "storage_object_created":
+		tmp := struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTriggerCreateRequest
+		}{
+			Type:                                     v.Type,
+			StorageObjectCreatedTriggerCreateRequest: v.StorageObjectCreatedTriggerCreateRequest,
+		}
+		return json.Marshal(tmp)
+	default:
+		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+	}
 }
 
 // TriggerID Opaque, server-minted project-wide trigger identifier.
@@ -6514,6 +6615,32 @@ type TriggerUpdateRequest struct {
 	ScheduleTriggerUpdateRequest
 	StorageObjectCreatedTriggerUpdateRequest
 }
+
+func (v TriggerUpdateRequest) MarshalJSON() ([]byte, error) {
+	switch v.Type {
+	case "schedule":
+		tmp := struct {
+			Type string `json:"type"`
+			ScheduleTriggerUpdateRequest
+		}{
+			Type:                         v.Type,
+			ScheduleTriggerUpdateRequest: v.ScheduleTriggerUpdateRequest,
+		}
+		return json.Marshal(tmp)
+	case "storage_object_created":
+		tmp := struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTriggerUpdateRequest
+		}{
+			Type:                                     v.Type,
+			StorageObjectCreatedTriggerUpdateRequest: v.StorageObjectCreatedTriggerUpdateRequest,
+		}
+		return json.Marshal(tmp)
+	default:
+		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
+	}
+}
+
 type TriggersListResponse struct {
 	Triggers []Trigger `json:"triggers"`
 }
