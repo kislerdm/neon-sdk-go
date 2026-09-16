@@ -2121,7 +2121,7 @@ func (c Client) CreateProjectBranchTrigger(projectID string, branchID string, cf
 
 // ListProjectBranchTriggers Lists the complete project-bounded set of triggers visible on the branch,
 // ordered by `trigger_id`. An inherited trigger keeps its project-wide ID
-// and source branch, and is disabled on the child until explicitly enabled
+// and configuration, and is disabled on the child until explicitly enabled
 // there.
 //
 // The supported trigger types are `schedule` and
@@ -6276,9 +6276,7 @@ type ScheduleTrigger struct {
 	// while disabled or inherited and not explicitly enabled on this branch.
 	NextRunAt string                  `json:"next_run_at"`
 	Schedule  FunctionTriggerSchedule `json:"schedule"`
-	// SourceBranchID The public `branch_id` of the branch that authored the effective configuration.
-	SourceBranchID string    `json:"source_branch_id"`
-	TriggerID      TriggerID `json:"trigger_id"`
+	TriggerID TriggerID               `json:"trigger_id"`
 	// Type Trigger type discriminator.
 	Type ScheduleTriggerType `json:"type"`
 	// Version Monotonic configuration version.
@@ -6433,9 +6431,7 @@ type StorageObjectCreatedTrigger struct {
 	// Inherited True when the effective configuration was authored on an ancestor branch.
 	Inherited bool `json:"inherited"`
 	// Name Human-readable trigger name.
-	Name string `json:"name"`
-	// SourceBranchID The public `branch_id` of the branch that authored the effective configuration.
-	SourceBranchID       string                              `json:"source_branch_id"`
+	Name                 string                              `json:"name"`
 	StorageObjectCreated FunctionTriggerStorageObjectCreated `json:"storage_object_created"`
 	TriggerID            TriggerID                           `json:"trigger_id"`
 	// Type Trigger type discriminator.
