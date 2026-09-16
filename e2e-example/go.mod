@@ -1,10 +1,10 @@
 module github.com/kislerdm/neon-sdk-go/e2e-example
 
-go 1.24.0
+go 1.24
 
 require (
-	github.com/jackc/pgx/v5 v5.10.0
-	github.com/kislerdm/neon-sdk-go v0.23.0
+	github.com/jackc/pgx/v5 v5.11.0
+	github.com/kislerdm/neon-sdk-go v0.26.0
 )
 
 require (
