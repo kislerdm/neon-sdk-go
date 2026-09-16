@@ -9879,7 +9879,7 @@
             ],
             "get": {
                 "summary": "List triggers on the branch",
-                "description": "Lists the complete project-bounded set of triggers visible on the branch,\nordered by `trigger_id`. An inherited trigger keeps its project-wide ID\nand source branch, and is disabled on the child until explicitly enabled\nthere.\n\nThe supported trigger types are `schedule` and\n`storage_object_created`. A storage-object-created trigger watches one\nexact bucket and fires only after an object upload succeeds.\n\n**Note**: This endpoint is currently in Beta.\n",
+                "description": "Lists the complete project-bounded set of triggers visible on the branch,\nordered by `trigger_id`. An inherited trigger keeps its project-wide ID\nand configuration, and is disabled on the child until explicitly enabled\nthere.\n\nThe supported trigger types are `schedule` and\n`storage_object_created`. A storage-object-created trigger watches one\nexact bucket and fires only after an object upload succeeds.\n\n**Note**: This endpoint is currently in Beta.\n",
                 "tags": [
                     "Functions"
                 ],
@@ -18024,7 +18024,6 @@
                     "enabled",
                     "version",
                     "next_run_at",
-                    "source_branch_id",
                     "inherited"
                 ],
                 "properties": {
@@ -18067,11 +18066,6 @@
                         "nullable": true,
                         "description": "Next scheduled occurrence as an RFC 3339 UTC timestamp, or null\nwhile disabled or inherited and not explicitly enabled on this branch.\n"
                     },
-                    "source_branch_id": {
-                        "description": "The public `branch_id` of the branch that authored the effective configuration.",
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
-                    },
                     "inherited": {
                         "type": "boolean",
                         "description": "True when the effective configuration was authored on an ancestor branch."
@@ -18091,7 +18085,6 @@
                     "storage_object_created",
                     "enabled",
                     "version",
-                    "source_branch_id",
                     "inherited"
                 ],
                 "properties": {
@@ -18128,11 +18121,6 @@
                         "format": "int64",
                         "minimum": 1,
                         "description": "Monotonic configuration version."
-                    },
-                    "source_branch_id": {
-                        "description": "The public `branch_id` of the branch that authored the effective configuration.",
-                        "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
                     },
                     "inherited": {
                         "type": "boolean",
