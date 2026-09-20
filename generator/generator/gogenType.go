@@ -267,6 +267,7 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 	if schema.Discriminator != nil {
 		discriminatorJsonAttrName := schema.Discriminator.PropertyName
 		discriminatorGoStructAttrName := newGoNameFromJsonAttribute(discriminatorJsonAttrName)
+		mappingVals := slices.Sorted(maps.Keys(schema.Discriminator.Mapping))
 
 		buf.WriteString("\n\n")
 		buf.WriteString("func (v ")
@@ -275,9 +276,6 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 		buf.WriteString("switch v.")
 		buf.WriteString(discriminatorGoStructAttrName)
 		buf.WriteString(" {\n")
-
-		mappingVals := slices.Sorted(maps.Keys(schema.Discriminator.Mapping))
-
 		for _, discriminatorValue := range mappingVals {
 			goTypeName := filepath.Base(schema.Discriminator.Mapping[discriminatorValue])
 
@@ -306,6 +304,69 @@ func newGoStructDefinition(schema OpenAPISchema, typeName string, repo *TypesRep
 		buf.WriteString("return nil, fmt.Errorf(\"unknown discriminator value: %q\", v.")
 		buf.WriteString(discriminatorGoStructAttrName)
 		buf.WriteString(")\n}\n}")
+
+		buf.WriteString("\n\n")
+		buf.WriteString("func (v *")
+		buf.WriteString(typeName)
+		buf.WriteString(") UnmarshalJSON(data []byte) error {\n")
+		buf.WriteString(`els := bytes.SplitN(data, []byte("\"`)
+		buf.WriteString(discriminatorJsonAttrName)
+		buf.WriteString(`\":"), 2)
+if len(els) < 2 {
+return fmt.Errorf("required field \"`)
+		buf.WriteString(discriminatorJsonAttrName)
+		buf.WriteString(`\" is missing")
+}
+var buf = new(strings.Builder)
+var start bool
+for _, el := range string(els[1]) {
+if el == '"' {
+if start {
+break
+}
+start = true
+continue
+}
+buf.WriteRune(el)
+}
+t := buf.String()
+switch t {
+`)
+		for _, discriminatorValue := range mappingVals {
+			goTypeName := filepath.Base(schema.Discriminator.Mapping[discriminatorValue])
+
+			buf.WriteString("case \"")
+			buf.WriteString(discriminatorValue)
+			buf.WriteString("\":\n")
+			buf.WriteString("var tmp struct {\n")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString(" string `json:\"")
+			buf.WriteString(discriminatorJsonAttrName)
+			buf.WriteString("\"`\n")
+			buf.WriteString(goTypeName)
+			buf.WriteString(`
+}
+if err := json.Unmarshal(data, &tmp); err != nil {
+return err
+}
+`)
+			buf.WriteString("v.")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString(" = tmp.")
+			buf.WriteString(discriminatorGoStructAttrName)
+			buf.WriteString("\nv.")
+			buf.WriteString(goTypeName)
+			buf.WriteString(" = tmp.")
+			buf.WriteString(goTypeName)
+			buf.WriteString("\n")
+		}
+
+		buf.WriteString(`default:
+return fmt.Errorf("unknown discriminator value: %q", t)
+}
+return nil
+}
+`)
 	}
 
 	return buf.String(), nil

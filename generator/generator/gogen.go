@@ -29,6 +29,9 @@ retract v0.23.0
 
 // faulty serialization of the types with polymorphism, i.e., discriminating field
 retract [v0.24.0, v0.25.0]
+
+// faulty deserialization of the types with polymorphism, i.e., discriminating field
+retract v0.26.0
 `
 	sdkFile = `// Package sdk to communicate to the Neon Postgres SaaS Platform.
 // Find more about the service: https://neon.com/docs/reference/api/get-started

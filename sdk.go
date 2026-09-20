@@ -4669,6 +4669,51 @@ func (v NeonAuthEmailServerConfig) MarshalJSON() ([]byte, error) {
 	}
 }
 
+func (v *NeonAuthEmailServerConfig) UnmarshalJSON(data []byte) error {
+	els := bytes.SplitN(data, []byte("\"type\":"), 2)
+	if len(els) < 2 {
+		return fmt.Errorf("required field \"type\" is missing")
+	}
+	var buf = new(strings.Builder)
+	var start bool
+	for _, el := range string(els[1]) {
+		if el == '"' {
+			if start {
+				break
+			}
+			start = true
+			continue
+		}
+		buf.WriteRune(el)
+	}
+	t := buf.String()
+	switch t {
+	case "shared":
+		var tmp struct {
+			Type string `json:"type"`
+			SharedEmailServer
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.SharedEmailServer = tmp.SharedEmailServer
+	case "standard":
+		var tmp struct {
+			Type string `json:"type"`
+			StandardEmailServer
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.StandardEmailServer = tmp.StandardEmailServer
+	default:
+		return fmt.Errorf("unknown discriminator value: %q", t)
+	}
+	return nil
+}
+
 type NeonAuthEmailServerConfigResponse struct {
 	Type string `json:"type"`
 
@@ -4699,6 +4744,51 @@ func (v NeonAuthEmailServerConfigResponse) MarshalJSON() ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
 	}
+}
+
+func (v *NeonAuthEmailServerConfigResponse) UnmarshalJSON(data []byte) error {
+	els := bytes.SplitN(data, []byte("\"type\":"), 2)
+	if len(els) < 2 {
+		return fmt.Errorf("required field \"type\" is missing")
+	}
+	var buf = new(strings.Builder)
+	var start bool
+	for _, el := range string(els[1]) {
+		if el == '"' {
+			if start {
+				break
+			}
+			start = true
+			continue
+		}
+		buf.WriteRune(el)
+	}
+	t := buf.String()
+	switch t {
+	case "shared":
+		var tmp struct {
+			Type string `json:"type"`
+			SharedEmailServer
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.SharedEmailServer = tmp.SharedEmailServer
+	case "standard":
+		var tmp struct {
+			Type string `json:"type"`
+			StandardEmailServerResponse
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.StandardEmailServerResponse = tmp.StandardEmailServerResponse
+	default:
+		return fmt.Errorf("unknown discriminator value: %q", t)
+	}
+	return nil
 }
 
 // NeonAuthEmailVerificationMethod The email verification method to use.
@@ -6567,6 +6657,51 @@ func (v Trigger) MarshalJSON() ([]byte, error) {
 	}
 }
 
+func (v *Trigger) UnmarshalJSON(data []byte) error {
+	els := bytes.SplitN(data, []byte("\"type\":"), 2)
+	if len(els) < 2 {
+		return fmt.Errorf("required field \"type\" is missing")
+	}
+	var buf = new(strings.Builder)
+	var start bool
+	for _, el := range string(els[1]) {
+		if el == '"' {
+			if start {
+				break
+			}
+			start = true
+			continue
+		}
+		buf.WriteRune(el)
+	}
+	t := buf.String()
+	switch t {
+	case "schedule":
+		var tmp struct {
+			Type string `json:"type"`
+			ScheduleTrigger
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.ScheduleTrigger = tmp.ScheduleTrigger
+	case "storage_object_created":
+		var tmp struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTrigger
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.StorageObjectCreatedTrigger = tmp.StorageObjectCreatedTrigger
+	default:
+		return fmt.Errorf("unknown discriminator value: %q", t)
+	}
+	return nil
+}
+
 // TriggerCreateRequest Trigger creation payload discriminated by `type`. The supported trigger
 // types are `schedule` and `storage_object_created`.
 type TriggerCreateRequest struct {
@@ -6599,6 +6734,51 @@ func (v TriggerCreateRequest) MarshalJSON() ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
 	}
+}
+
+func (v *TriggerCreateRequest) UnmarshalJSON(data []byte) error {
+	els := bytes.SplitN(data, []byte("\"type\":"), 2)
+	if len(els) < 2 {
+		return fmt.Errorf("required field \"type\" is missing")
+	}
+	var buf = new(strings.Builder)
+	var start bool
+	for _, el := range string(els[1]) {
+		if el == '"' {
+			if start {
+				break
+			}
+			start = true
+			continue
+		}
+		buf.WriteRune(el)
+	}
+	t := buf.String()
+	switch t {
+	case "schedule":
+		var tmp struct {
+			Type string `json:"type"`
+			ScheduleTriggerCreateRequest
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.ScheduleTriggerCreateRequest = tmp.ScheduleTriggerCreateRequest
+	case "storage_object_created":
+		var tmp struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTriggerCreateRequest
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.StorageObjectCreatedTriggerCreateRequest = tmp.StorageObjectCreatedTriggerCreateRequest
+	default:
+		return fmt.Errorf("unknown discriminator value: %q", t)
+	}
+	return nil
 }
 
 // TriggerID Opaque, server-minted project-wide trigger identifier.
@@ -6639,6 +6819,51 @@ func (v TriggerUpdateRequest) MarshalJSON() ([]byte, error) {
 	default:
 		return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
 	}
+}
+
+func (v *TriggerUpdateRequest) UnmarshalJSON(data []byte) error {
+	els := bytes.SplitN(data, []byte("\"type\":"), 2)
+	if len(els) < 2 {
+		return fmt.Errorf("required field \"type\" is missing")
+	}
+	var buf = new(strings.Builder)
+	var start bool
+	for _, el := range string(els[1]) {
+		if el == '"' {
+			if start {
+				break
+			}
+			start = true
+			continue
+		}
+		buf.WriteRune(el)
+	}
+	t := buf.String()
+	switch t {
+	case "schedule":
+		var tmp struct {
+			Type string `json:"type"`
+			ScheduleTriggerUpdateRequest
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.ScheduleTriggerUpdateRequest = tmp.ScheduleTriggerUpdateRequest
+	case "storage_object_created":
+		var tmp struct {
+			Type string `json:"type"`
+			StorageObjectCreatedTriggerUpdateRequest
+		}
+		if err := json.Unmarshal(data, &tmp); err != nil {
+			return err
+		}
+		v.Type = tmp.Type
+		v.StorageObjectCreatedTriggerUpdateRequest = tmp.StorageObjectCreatedTriggerUpdateRequest
+	default:
+		return fmt.Errorf("unknown discriminator value: %q", t)
+	}
+	return nil
 }
 
 type TriggersListResponse struct {

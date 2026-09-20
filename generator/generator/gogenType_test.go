@@ -299,7 +299,53 @@ return json.Marshal(tmp)
 default:
 return nil, fmt.Errorf("unknown discriminator value: %q", v.Type)
 }
-}`,
+}
+
+func (v *TriggerCreateRequest) UnmarshalJSON(data []byte) error {
+els := bytes.SplitN(data, []byte("\"type\":"), 2)
+if len(els) < 2 {
+return fmt.Errorf("required field \"type\" is missing")
+}
+var buf = new(strings.Builder)
+var start bool
+for _, el := range string(els[1]) {
+if el == '"' {
+if start {
+break
+}
+start = true
+continue
+}
+buf.WriteRune(el)
+}
+t := buf.String()
+switch t {
+case "schedule":
+var tmp struct {
+Type string ` + "`json:\"type\"`" + `
+ScheduleTriggerCreateRequest
+}
+if err := json.Unmarshal(data, &tmp); err != nil {
+return err
+}
+v.Type = tmp.Type
+v.ScheduleTriggerCreateRequest = tmp.ScheduleTriggerCreateRequest
+case "storage_object_created":
+var tmp struct {
+Type string ` + "`json:\"type\"`" + `
+StorageObjectCreatedTriggerCreateRequest
+}
+if err := json.Unmarshal(data, &tmp); err != nil {
+return err
+}
+v.Type = tmp.Type
+v.StorageObjectCreatedTriggerCreateRequest = tmp.StorageObjectCreatedTriggerCreateRequest
+default:
+return fmt.Errorf("unknown discriminator value: %q", t)
+}
+return nil
+}
+`,
 			errFn: assert.NoError,
 		},
 	}

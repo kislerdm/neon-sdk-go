@@ -1,7 +1,10 @@
 package sdk_test
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"testing"
@@ -9,6 +12,9 @@ import (
 
 	sdk "github.com/kislerdm/neon-sdk-go"
 )
+
+//go:embed triggerFn.zip
+var functionZip []byte
 
 func TestSmoke(t *testing.T) {
 	if os.Getenv("TF_ACC") != "1" {
@@ -105,6 +111,54 @@ func TestSmoke(t *testing.T) {
 
 		if r.RevokedAt == nil || r.GrantedAt.After(*r.RevokedAt) {
 			t.Fatal("unexpected revokedAt, it must be not nil and not before the grantedAt")
+		}
+	})
+
+	t.Run("shall provision a schedule trigger", func(t *testing.T) {
+		branchID := o.BranchResponse.Branch.ID
+		runtime := "nodejs24"
+		_, err = cl.CreateProjectBranchFunctionDeployment(projectID, branchID, "foo",
+			io.NopCloser(bytes.NewReader(functionZip)), map[string]string{"FOO": "bar"},
+			&runtime)
+		if err != nil {
+			t.Fatalf("could not deploy function: %s", err.Error())
+		}
+
+		wantName := "bar"
+		wantCron := "*/5 * * * *"
+		triggerResp, err := cl.CreateProjectBranchTrigger(projectID, branchID, sdk.TriggerCreateRequest{
+			Type: "schedule",
+			ScheduleTriggerCreateRequest: sdk.ScheduleTriggerCreateRequest{
+				FunctionSlug: "foo",
+				Name:         wantName,
+				Schedule: sdk.FunctionTriggerSchedule{
+					Cron: wantCron,
+				},
+				Type: sdk.ScheduleTriggerCreateRequestTypeSchedule,
+			},
+		})
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		got := triggerResp.Trigger
+		if got.Type != "schedule" {
+			t.Errorf("unexpected trigger type, want: schedule, got: %s", got.Type)
+			return
+		}
+		if got.ScheduleTrigger.TriggerID == "" {
+			t.Error("unexpected triggerID")
+			return
+		}
+		if got.ScheduleTrigger.Name != wantName {
+			t.Errorf("unexpected trigger name, want: bar, got: %s", got.ScheduleTrigger.Name)
+			return
+		}
+		if got.ScheduleTrigger.Schedule.Cron != wantCron {
+			t.Errorf("unexpected trigger schedule, want: %s, got: %s", wantCron,
+				got.ScheduleTrigger.Schedule.Cron)
+			return
 		}
 	})
 
