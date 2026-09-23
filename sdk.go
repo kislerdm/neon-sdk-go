@@ -2059,7 +2059,7 @@ func (c Client) SetDefaultProjectBranch(projectID string, branchID string) (Bran
 
 // CreateSnapshot Creates a snapshot from the specified branch.
 // This operation may initiate an asynchronous process.
-func (c Client) CreateSnapshot(projectID string, branchID string, lsn *string, timestamp *string, name *string, expiresAt *string) (CreateSnapshotRespObj, error) {
+func (c Client) CreateSnapshot(projectID string, branchID string, lsn *string, timestamp *string, name *string, slug *string, expiresAt *string) (CreateSnapshotRespObj, error) {
 	var (
 		queryElements []string
 		query         string
@@ -2072,6 +2072,9 @@ func (c Client) CreateSnapshot(projectID string, branchID string, lsn *string, t
 	}
 	if name != nil {
 		queryElements = append(queryElements, "name="+*name)
+	}
+	if slug != nil {
+		queryElements = append(queryElements, "slug="+*slug)
 	}
 	if expiresAt != nil {
 		queryElements = append(queryElements, "expires_at="+*expiresAt)
@@ -6512,6 +6515,8 @@ type Snapshot struct {
 	Manual *bool `json:"manual,omitempty"`
 	// Name Human-readable label for the snapshot.
 	Name string `json:"name"`
+	// Slug Snapshot resource ID, unique within the project. Distinct from the internal snapshot ID and display name.
+	Slug *string `json:"slug,omitempty"`
 	// SourceBranchID Branch from which this snapshot was created.
 	SourceBranchID *string `json:"source_branch_id,omitempty"`
 	// Timestamp Point in time captured by the snapshot, in RFC 3339 format (UTC).
