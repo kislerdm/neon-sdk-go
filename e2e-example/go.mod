@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/kislerdm/neon-sdk-go v0.27.0
+	github.com/kislerdm/neon-sdk-go v0.28.0
 )
 
 require (
