@@ -3654,7 +3654,8 @@ type ConsumptionHistoryPerTimeframe struct {
 	LogicalSizeBytes *int `json:"logical_size_bytes,omitempty"`
 	// LogicalSizeBytesHour Bytes-Hour. The amount of logical size consumed hourly.
 	LogicalSizeBytesHour *int `json:"logical_size_bytes_hour,omitempty"`
-	// SyntheticStorageSizeBytes Bytes. The space occupied in Postgres storage. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches.
+	// SyntheticStorageSizeBytes Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// Bytes. The space occupied in Postgres storage. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches.
 	SyntheticStorageSizeBytes int `json:"synthetic_storage_size_bytes"`
 	// TimeframeEnd The specified end date-time for the reported consumption.
 	TimeframeEnd time.Time `json:"timeframe_end"`
