@@ -6455,6 +6455,32 @@ type ScheduleTriggerUpdateRequest struct {
 	// Type Trigger type discriminator; it does not change the trigger type.
 	Type ScheduleTriggerUpdateRequestType `json:"type"`
 }
+type ScimToken struct {
+	// CreatedAt A timestamp indicating when the SCIM token was created
+	CreatedAt time.Time `json:"created_at"`
+	// ID The SCIM token's unique ID. Distinct from the token value.
+	ID string `json:"id"`
+	// LastUsedAt A timestamp indicating when the token was last used to authenticate, if ever
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	// Name The admin-specified token name
+	Name string `json:"name"`
+}
+type ScimTokenCreateRequest struct {
+	// Name A name to identify the SCIM token
+	Name string `json:"name"`
+}
+type ScimTokenCreateResponse struct {
+	ScimToken ScimToken `json:"scim_token"`
+	// Token The generated SCIM bearer token. Shown once — store it securely; it cannot be retrieved later.
+	Token string `json:"token"`
+}
+type ScimTokenRevokeResponse struct {
+	// ID The revoked SCIM token's unique ID
+	ID string `json:"id"`
+}
+type ScimTokensListResponse struct {
+	Tokens []ScimToken `json:"tokens"`
+}
 
 // SendNeonAuthEmailProviderTestRequest Request to test the branch's saved email provider. Only the recipient is supplied; the stored
 // SMTP settings and password are used server-side.
