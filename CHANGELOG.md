@@ -14,6 +14,10 @@ The release incorporates the up-to-date [API contract](openAPIDefinition.json) a
 - **[BREAKING]** Removed `slug` attribute from the method `CreateSnapshot`.
 - **[BREAKING]** Removed `Slug` attribute from the type `Snapshot`.
 
+### Changed
+
+- **[BREAKING]** Deprecated attr. `SyntheticStorageSizeBytes` of the type `ConsumptionHistoryPerTimeframe`. It will always return `0`. Use the method `GetConsumptionHistoryPerBranchV2` to retrieve the metric's value.
+
 ## [v0.28.0] - 2026-09-23
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-23 02:42:00 GMT.
