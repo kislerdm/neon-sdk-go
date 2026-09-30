@@ -29,7 +29,8 @@ func TestSmoke(t *testing.T) {
 	// GIVEN
 	// Project name and autoscalling limit
 	var wantName = fmt.Sprintf("%d", time.Now().UnixMilli())
-	var wantAutoscallingLimit sdk.ComputeUnit = 1. / 4
+	var wantAutoscallingLimitMin sdk.ComputeUnit = 1. / 4
+	var wantAutoscallingLimitMax sdk.ComputeUnit = 1.
 
 	// WHEN
 	o, err := cl.CreateProject(
@@ -37,8 +38,8 @@ func TestSmoke(t *testing.T) {
 			Project: sdk.ProjectCreateRequestProject{
 				Name: &wantName,
 				DefaultEndpointSettings: &sdk.DefaultEndpointSettings{
-					AutoscalingLimitMinCu: &wantAutoscallingLimit,
-					AutoscalingLimitMaxCu: &wantAutoscallingLimit,
+					AutoscalingLimitMinCu: &wantAutoscallingLimitMin,
+					AutoscalingLimitMaxCu: &wantAutoscallingLimitMax,
 				},
 			},
 		},
@@ -57,19 +58,19 @@ func TestSmoke(t *testing.T) {
 				t.Errorf("unexpected error, project name does not match expected %s", wantName)
 			}
 
-			gotAutoscallingLimit := project.DefaultEndpointSettings.AutoscalingLimitMaxCu
-			if *gotAutoscallingLimit != wantAutoscallingLimit {
+			gotAutoscallingLimitMax := project.DefaultEndpointSettings.AutoscalingLimitMaxCu
+			if *gotAutoscallingLimitMax != wantAutoscallingLimitMax {
 				t.Errorf(
-					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimit,
-					gotAutoscallingLimit,
+					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimitMax,
+					gotAutoscallingLimitMax,
 				)
 			}
 
-			gotAutoscallingLimit = project.DefaultEndpointSettings.AutoscalingLimitMinCu
-			if *gotAutoscallingLimit != wantAutoscallingLimit {
+			gotAutoscallingLimitMin := project.DefaultEndpointSettings.AutoscalingLimitMinCu
+			if *gotAutoscallingLimitMin != wantAutoscallingLimitMin {
 				t.Errorf(
-					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimit,
-					gotAutoscallingLimit,
+					"unexpected autoscalling limit, want: %v, got: %v", wantAutoscallingLimitMin,
+					gotAutoscallingLimitMin,
 				)
 			}
 
