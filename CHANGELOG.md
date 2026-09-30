@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.29.0] - 2026-09-30
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-30 03:19:00 GMT.
+
+### Removed
+
+- **[BREAKING]** Removed `slug` attribute from the method `CreateSnapshot`.
+- **[BREAKING]** Removed `Slug` attribute from the type `Snapshot`.
+
 ## [v0.28.0] - 2026-09-23
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-23 02:42:00 GMT.
