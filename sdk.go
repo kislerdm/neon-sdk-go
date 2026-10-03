@@ -3645,8 +3645,9 @@ type ConsumptionHistoryPerTimeframe struct {
 	ActiveTimeSeconds int `json:"active_time_seconds"`
 	// ComputeTimeSeconds Seconds. The number of CPU seconds used by compute endpoints, including compute endpoints that have been deleted.
 	ComputeTimeSeconds int `json:"compute_time_seconds"`
-	// DataStorageBytesHour Bytes-Hour. The amount of Postgres storage consumed hourly.
-	DataStorageBytesHour *int `json:"data_storage_bytes_hour,omitempty"`
+	// DataStorageBytesHour Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// Bytes-Hour. The amount of Postgres storage consumed hourly.
+	DataStorageBytesHour int `json:"data_storage_bytes_hour"`
 	// LogicalSizeBytes Bytes. The amount of logical size consumed.
 	LogicalSizeBytes *int `json:"logical_size_bytes,omitempty"`
 	// LogicalSizeBytesHour Bytes-Hour. The amount of logical size consumed hourly.
@@ -5593,7 +5594,8 @@ type Project struct {
 	CreatedAt time.Time `json:"created_at"`
 	// CreationSource The project creation source
 	CreationSource string `json:"creation_source"`
-	// DataStorageBytesHour Bytes-Hour. Project consumed that much Postgres storage hourly during the billing period. The value has some lag.
+	// DataStorageBytesHour Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// Bytes-Hour. Project consumed that much Postgres storage hourly during the billing period. The value has some lag.
 	// The value is reset at the beginning of each billing period.
 	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
 	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
