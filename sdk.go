@@ -6344,7 +6344,7 @@ type RegionResponse struct {
 	RegionID string `json:"region_id"`
 }
 type Role struct {
-	// AuthenticationMethod Authentication method configured for this role: `password`, `oauth`, or `no_login`.
+	// AuthenticationMethod Authentication method configured for this role: `password`, `oauth`, `oidc`, or `no_login`.
 	AuthenticationMethod *string `json:"authentication_method,omitempty"`
 	// BranchID The ID of the branch this role belongs to.
 	BranchID string `json:"branch_id"`

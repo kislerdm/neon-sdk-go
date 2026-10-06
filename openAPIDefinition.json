@@ -13690,7 +13690,7 @@
                         "type": "boolean"
                     },
                     "authentication_method": {
-                        "description": "Authentication method configured for this role: `password`, `oauth`, or `no_login`.\n",
+                        "description": "Authentication method configured for this role: `password`, `oauth`, `oidc`, or `no_login`.\n",
                         "type": "string",
                         "example": "password"
                     },
