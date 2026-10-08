@@ -3941,6 +3941,11 @@ type DataAPICreateResponse struct {
 type DataAPIReponse struct {
 	// AvailableSchemas List of available database schemas (SubZero only)
 	AvailableSchemas []string `json:"available_schemas,omitempty"`
+	// ObservedAt When `settings` and `available_schemas` were read from the database. While the
+	// compute is suspended they are served from that read, so a change made directly in
+	// the database since then shows up in the first response served while the compute is
+	// active.
+	ObservedAt *time.Time `json:"observed_at,omitempty"`
 	// Settings Configuration settings for the Data API (SubZero only)
 	Settings *DataAPIReponseSettings `json:"settings,omitempty"`
 	// Status The status of the Neon Data API deployment
@@ -4211,6 +4216,30 @@ type FunctionDeployRequest struct {
 	// Zip Optional ZIP archive of the function source code. Omit to reuse the
 	// latest version's bundle (a config-only change). Required for the
 	// first deployment of a function.
+	//
+	// Place `index.mjs` or `index.js` at the archive root, without a
+	// containing directory. If both exist, `index.mjs` is loaded. Export a
+	// request handler function or an object with a `fetch` method. Use
+	// `export default` for ESM or `module.exports` for CommonJS; prefer
+	// `index.mjs` for ESM.
+	//
+	// Upload JavaScript ready to run on Node.js 24. Compile TypeScript
+	// before uploading. Bundle dependencies into the entry module, or
+	// include the required modules and assets in the archive with their
+	// relative paths preserved (including `node_modules` for external
+	// packages). Node.js built-in modules do not need to be bundled.
+	// The API does not transpile, bundle, or install dependencies.
+	// The ZIP is limited to 32 MiB compressed and 128 MiB extracted, with
+	// at most 32,768 entries and 64 MiB per file. Bundle large dependency
+	// trees to keep the archive small. ZIPs larger than 32 MiB are rejected
+	// with HTTP 413 before creating a deployment. The extracted-size,
+	// entry-count, and per-file limits are enforced during the asynchronous
+	// build; an accepted upload that exceeds them fails the build.
+	//
+	// For example, a self-contained ESM bundle needs only `index.mjs`
+	// at the ZIP root. The Neon CLI bundles source into this layout by
+	// default; `neon function deploy --no-bundle` packages a prebuilt
+	// directory or an entry file named `index.mjs` or `index.js`.
 	Zip *string `json:"zip,omitempty"`
 }
 
@@ -5636,7 +5665,8 @@ type Project struct {
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
+	// SyntheticStorageSize Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
@@ -5983,7 +6013,8 @@ type ProjectListItem struct {
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
+	// SyntheticStorageSize Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
