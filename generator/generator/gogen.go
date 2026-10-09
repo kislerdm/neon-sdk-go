@@ -41,13 +41,13 @@ package sdk
 
 import (
 	"bytes"
-    "encoding/json"
-    "errors"
-    "fmt"
-    "io"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"mime/multipart"
-    "net/http"
-    "reflect"
+	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -55,54 +55,72 @@ import (
 
 // Error API error.
 type Error struct {
-	HTTPCode int
-	errorResp
+	HTTPCode  int
+	RequestID string
+	Details   []ErrorDetails
 }
 
 func (e Error) Error() string {
-	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
-}
-
-func (e Error) httpResp() *http.Response {
-	o, _ := json.Marshal(e.errorResp)
-	return &http.Response{
-		Status:        e.Code,
-		StatusCode:    e.HTTPCode,
-		Body:          io.NopCloser(bytes.NewReader(o)),
-		ContentLength: int64(len(o)),
+	var buf = new(strings.Builder)
+	for i, detail := range e.Details {
+		buf.WriteString("[HTTP Code: ")
+		buf.WriteString(strconv.Itoa(e.HTTPCode))
+		buf.WriteString("][Error Code: ")
+		buf.WriteString(detail.Code)
+		buf.WriteString("]")
+		if e.RequestID != "" {
+			buf.WriteString("[Request ID: ")
+			buf.WriteString(e.RequestID)
+			buf.WriteString("]")
+		}
+		buf.WriteString(" ")
+		buf.WriteString(detail.Message)
+		if i < len(e.Details)-1 {
+			buf.WriteString("\n")
+		}
 	}
+	return buf.String()
 }
 
-type errorResp struct {
-	Code    string ` + "`json:\"code\"`" +
-		`
-	Message string ` + "`json:\"message\"`" +
-		`
+type ErrorDetails struct {
+	Code    string ` + "`json:\"code\"`" + `
+	Message string ` + "`json:\"message\"`" + `
 }
 
 func convertErrorResponse(res *http.Response) error {
-	var v errorResp
-	buf, err := io.ReadAll(res.Body)
-	defer func() { _ = res.Body.Close() }()
-	if err != nil {
+	var v struct {
+		RequestID string ` + "`json:\"request_id\"`" + `
+		ErrorDetails
+		Reasons []ErrorDetails ` + "`json:\"reasons\"`" + `
+	}
+	if err := json.NewDecoder(res.Body).Decode(&v); err != nil {
 		return Error{
 			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: "cannot read response bytes",
+			Details: []ErrorDetails{
+				{
+					Code:    "unknown",
+					Message: "could not deserialize API response",
+				},
 			},
 		}
 	}
-	if err := json.Unmarshal(buf, &v); err != nil {
+
+	if len(v.Reasons) > 0 {
 		return Error{
 			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: err.Error(),
-			},
+			Details:  v.Reasons,
 		}
 	}
+
 	return Error{
 		HTTPCode:  res.StatusCode,
-		errorResp: v,
+		RequestID: v.RequestID,
+		Details: []ErrorDetails{
+			{
+				Code:    v.Code,
+				Message: v.Message,
+			},
+		},
 	}
 }
 
@@ -161,18 +179,14 @@ func setHeaders(req *http.Request, token string) {
 }
 
 func (c Client) requestHandler(url string, t string, reqPayload any, responsePayload any) error {
-	var body io.Reader
-	var err error
-
+	var body = new(bytes.Buffer)
 	if reqPayload != nil {
-        if v := reflect.ValueOf(reqPayload); v.Kind() == reflect.Struct || !v.IsNil() {
-            b, err := json.Marshal(reqPayload)
-            if err != nil {
-                return err
-            }
-            body = bytes.NewReader(b)
-        }
-    }
+		if v := reflect.ValueOf(reqPayload); v.Kind() == reflect.Struct || !v.IsNil() {
+			if err := json.NewEncoder(body).Encode(reqPayload); err != nil {
+				return err
+			}
+		}
+	}
 
 	req, _ := http.NewRequest(t, url, body)
 	setHeaders(req, c.cfg.Key)
@@ -182,20 +196,147 @@ func (c Client) requestHandler(url string, t string, reqPayload any, responsePay
 		return err
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return convertErrorResponse(res)
 	}
 
 	if responsePayload != nil && res.StatusCode != http.StatusNoContent {
-		buf, err := io.ReadAll(res.Body)
-	    defer func() { _ = res.Body.Close() }()
+		err := json.NewDecoder(res.Body).Decode(responsePayload)
+		_ = res.Body.Close()
 		if err != nil {
 			return err
 		}
-		return json.Unmarshal(buf, responsePayload)
 	}
 
 	return nil
+}
+
+`
+	errorTestFile = `package sdk
+
+import (
+	"errors"
+	"io"
+	"net/http"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func Test_convertErrorResponse(t *testing.T) {
+	tests := map[string]struct {
+		res  *http.Response
+		want Error
+	}{
+		"default": {
+			res: &http.Response{
+				StatusCode: 404,
+				Body:       io.NopCloser(strings.NewReader(` + "`{\"code\":\"foo\", \"message\":\"bar\", \"request_id\":\"test\"}`" + `)),
+			},
+			want: Error{
+				HTTPCode:  404,
+				RequestID: "test",
+				Details: []ErrorDetails{
+					{
+						Code:    "foo",
+						Message: "bar",
+					},
+				},
+			},
+		},
+		"AcceptProjectTransferRequestSatisfiesPlanError": {
+			res: &http.Response{
+				StatusCode: 406,
+				Body: io.NopCloser(strings.NewReader(
+					` + "`{\"reasons\":[{\"code\":\"foo\", \"message\":\"bar\"},{\"code\":\"baz\", \"message\":\"qux\"}]}`" + `)),
+			},
+			want: Error{
+				HTTPCode: 406,
+				Details: []ErrorDetails{
+					{
+						Code:    "foo",
+						Message: "bar",
+					},
+					{
+						Code:    "baz",
+						Message: "qux",
+					},
+				},
+			},
+		},
+	}
+	t.Parallel()
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := convertErrorResponse(tt.res)
+			if !errors.As(err, &Error{}) {
+				t.Error("wrong error type")
+				return
+			}
+			if !reflect.DeepEqual(tt.want, err.(Error)) {
+				t.Error("unexpected error content")
+				return
+			}
+		})
+	}
+}
+
+func TestError_Error(t *testing.T) {
+	type fields struct {
+		HTTPCode  int
+		RequestID string
+		Details   []ErrorDetails
+	}
+	tests := map[string]struct {
+		fields fields
+		want   string
+	}{
+		"default": {
+			fields: fields{
+				HTTPCode:  404,
+				RequestID: "test",
+				Details:   []ErrorDetails{{Code: "foo", Message: "bar"}},
+			},
+			want: "[HTTP Code: 404][Error Code: foo][Request ID: test] bar",
+		},
+		"AcceptProjectTransferRequestSatisfiesPlanError": {
+			fields: fields{
+				HTTPCode:  406,
+				RequestID: "test",
+				Details: []ErrorDetails{
+					{
+						Code:    "foo",
+						Message: "bar",
+					},
+					{
+						Code:    "baz",
+						Message: "qux",
+					},
+				},
+			},
+			want: "[HTTP Code: 406][Error Code: foo][Request ID: test] bar"+
+"[HTTP Code: 406][Error Code: baz][Request ID: test] qux",
+		},
+		"default-no-requestID": {
+			fields: fields{
+				HTTPCode: 404,
+				Details:  []ErrorDetails{{Code: "foo", Message: "bar"}},
+			},
+			want: "[HTTP Code: 404][Error Code: foo] bar",
+		},
+	}
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			e := Error{
+				HTTPCode:  tt.fields.HTTPCode,
+				RequestID: tt.fields.RequestID,
+				Details:   tt.fields.Details,
+			}
+			if got := e.Error(); got != tt.want {
+				t.Errorf("Error() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 `
@@ -204,8 +345,8 @@ func (c Client) requestHandler(url string, t string, reqPayload any, responsePay
 var hardcodedOperationIDtoMethodImplementation = map[string]string{
 	"createProjectBranchFunctionDeployment": `func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID string, slug string, 
 zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunctionDeploymentResponse, error) {
-	var body bytes.Buffer
-	w := multipart.NewWriter(&body)
+	var body = new(bytes.Buffer)
+	w := multipart.NewWriter(body)
 
 	if zip != nil {
 		part, _ := w.CreateFormFile("zip", "function.zip")
@@ -233,7 +374,7 @@ zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunction
 	}
 
 	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/functions/" + slug + "/deployments"
-	req, _ := http.NewRequest("POST", urlStr, &body)
+	req, _ := http.NewRequest("POST", urlStr, body)
 	setHeaders(req, c.cfg.Key)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
@@ -242,7 +383,7 @@ zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunction
 		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not perform the request: %w", err)
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return NeonFunctionDeploymentResponse{}, convertErrorResponse(res)
 	}
 
@@ -272,7 +413,7 @@ zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunction
 		return ObjectHeaders{}, err
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return ObjectHeaders{}, convertErrorResponse(res)
 	}
 
@@ -332,6 +473,16 @@ func Run(openAPISpec []byte, outputDir string) error {
 	}
 	_ = goModFileOut.Close()
 
+	goErrorTestOut, err := os.OpenFile(filepath.Join(outputDir, "error_test.go"), os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return fmt.Errorf("cannot create error_test.go file: %w", err)
+	}
+	_, err = goErrorTestOut.WriteString(errorTestFile)
+	if err != nil {
+		return fmt.Errorf("cannot write error_test.go file: %w", err)
+	}
+	_ = goErrorTestOut.Close()
+
 	sdkFileOut, err := os.OpenFile(filepath.Join(outputDir, "sdk.go"), os.O_TRUNC|os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("cannot create sdk.go file: %w", err)
@@ -358,7 +509,6 @@ func Run(openAPISpec []byte, outputDir string) error {
 	}
 	_, _ = sdkFileOut.WriteString(methodsDef)
 	_, _ = sdkFileOut.WriteString(typeRepo.TypesDefinition())
-
 	return goFmt(outputDir)
 }
 

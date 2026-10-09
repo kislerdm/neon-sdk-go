@@ -25,52 +25,72 @@ import (
 
 // Error API error.
 type Error struct {
-	HTTPCode int
-	errorResp
+	HTTPCode  int
+	RequestID string
+	Details   []ErrorDetails
 }
 
 func (e Error) Error() string {
-	return "[HTTP Code: " + strconv.Itoa(e.HTTPCode) + "][Error Code: " + e.Code + "] " + e.Message
-}
-
-func (e Error) httpResp() *http.Response {
-	o, _ := json.Marshal(e.errorResp)
-	return &http.Response{
-		Status:        e.Code,
-		StatusCode:    e.HTTPCode,
-		Body:          io.NopCloser(bytes.NewReader(o)),
-		ContentLength: int64(len(o)),
+	var buf = new(strings.Builder)
+	for i, detail := range e.Details {
+		buf.WriteString("[HTTP Code: ")
+		buf.WriteString(strconv.Itoa(e.HTTPCode))
+		buf.WriteString("][Error Code: ")
+		buf.WriteString(detail.Code)
+		buf.WriteString("]")
+		if e.RequestID != "" {
+			buf.WriteString("[Request ID: ")
+			buf.WriteString(e.RequestID)
+			buf.WriteString("]")
+		}
+		buf.WriteString(" ")
+		buf.WriteString(detail.Message)
+		if i < len(e.Details)-1 {
+			buf.WriteString("\n")
+		}
 	}
+	return buf.String()
 }
 
-type errorResp struct {
+type ErrorDetails struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
 func convertErrorResponse(res *http.Response) error {
-	var v errorResp
-	buf, err := io.ReadAll(res.Body)
-	defer func() { _ = res.Body.Close() }()
-	if err != nil {
+	var v struct {
+		RequestID string `json:"request_id"`
+		ErrorDetails
+		Reasons []ErrorDetails `json:"reasons"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&v); err != nil {
 		return Error{
 			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: "cannot read response bytes",
+			Details: []ErrorDetails{
+				{
+					Code:    "unknown",
+					Message: "could not deserialize API response",
+				},
 			},
 		}
 	}
-	if err := json.Unmarshal(buf, &v); err != nil {
+
+	if len(v.Reasons) > 0 {
 		return Error{
 			HTTPCode: res.StatusCode,
-			errorResp: errorResp{
-				Message: err.Error(),
-			},
+			Details:  v.Reasons,
 		}
 	}
+
 	return Error{
 		HTTPCode:  res.StatusCode,
-		errorResp: v,
+		RequestID: v.RequestID,
+		Details: []ErrorDetails{
+			{
+				Code:    v.Code,
+				Message: v.Message,
+			},
+		},
 	}
 }
 
@@ -129,16 +149,12 @@ func setHeaders(req *http.Request, token string) {
 }
 
 func (c Client) requestHandler(url string, t string, reqPayload any, responsePayload any) error {
-	var body io.Reader
-	var err error
-
+	var body = new(bytes.Buffer)
 	if reqPayload != nil {
 		if v := reflect.ValueOf(reqPayload); v.Kind() == reflect.Struct || !v.IsNil() {
-			b, err := json.Marshal(reqPayload)
-			if err != nil {
+			if err := json.NewEncoder(body).Encode(reqPayload); err != nil {
 				return err
 			}
-			body = bytes.NewReader(b)
 		}
 	}
 
@@ -150,17 +166,16 @@ func (c Client) requestHandler(url string, t string, reqPayload any, responsePay
 		return err
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return convertErrorResponse(res)
 	}
 
 	if responsePayload != nil && res.StatusCode != http.StatusNoContent {
-		buf, err := io.ReadAll(res.Body)
-		defer func() { _ = res.Body.Close() }()
+		err := json.NewDecoder(res.Body).Decode(responsePayload)
+		_ = res.Body.Close()
 		if err != nil {
 			return err
 		}
-		return json.Unmarshal(buf, responsePayload)
 	}
 
 	return nil
@@ -1354,7 +1369,7 @@ func (c Client) GetProjectBranchBucketObject(projectID string, branchID string, 
 		return ObjectHeaders{}, err
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return ObjectHeaders{}, convertErrorResponse(res)
 	}
 
@@ -1775,8 +1790,8 @@ func (c Client) DeleteProjectBranchFunction(projectID string, branchID string, s
 // **Note**: This endpoint is currently in Beta.
 func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID string, slug string,
 	zip io.ReadCloser, environment map[string]string, runtime *string) (NeonFunctionDeploymentResponse, error) {
-	var body bytes.Buffer
-	w := multipart.NewWriter(&body)
+	var body = new(bytes.Buffer)
+	w := multipart.NewWriter(body)
 
 	if zip != nil {
 		part, _ := w.CreateFormFile("zip", "function.zip")
@@ -1804,7 +1819,7 @@ func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID
 	}
 
 	urlStr := c.baseURL + "/projects/" + projectID + "/branches/" + branchID + "/functions/" + slug + "/deployments"
-	req, _ := http.NewRequest("POST", urlStr, &body)
+	req, _ := http.NewRequest("POST", urlStr, body)
 	setHeaders(req, c.cfg.Key)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
@@ -1813,7 +1828,7 @@ func (c Client) CreateProjectBranchFunctionDeployment(projectID string, branchID
 		return NeonFunctionDeploymentResponse{}, fmt.Errorf("could not perform the request: %w", err)
 	}
 
-	if res.StatusCode > 299 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return NeonFunctionDeploymentResponse{}, convertErrorResponse(res)
 	}
 
