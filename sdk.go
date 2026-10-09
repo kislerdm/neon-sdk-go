@@ -1940,6 +1940,46 @@ func (c Client) UpdateMaskingRules(projectID string, branchID string, cfg Maskin
 	return v, nil
 }
 
+// EnableProjectBranchRealtime Enables Realtime for the branch, or applies new options to an enabled branch. Provisioning is
+// asynchronous; poll the Realtime state until it is no longer pending.
+func (c Client) EnableProjectBranchRealtime(projectID string, branchID string, cfg *RealtimeOptions) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/realtime", "POST", cfg, nil)
+}
+
+// GetProjectBranchRealtime Retrieves whether Realtime is enabled for the branch, whether a change is still being applied,
+// and, once provisioned, its invocation URL and allowed origins. The shared secret is returned by
+// `GET /projects/{project_id}/branches/{branch_id}/realtime/secret`.
+func (c Client) GetProjectBranchRealtime(projectID string, branchID string) (Realtime, error) {
+	var v Realtime
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/realtime", "GET", nil, &v); err != nil {
+		return Realtime{}, err
+	}
+	return v, nil
+}
+
+// DisableProjectBranchRealtime Disables Realtime for the branch and discards its shared secret. Deprovisioning is asynchronous.
+func (c Client) DisableProjectBranchRealtime(projectID string, branchID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/realtime", "DELETE", nil, nil)
+}
+
+// RotateProjectBranchRealtimeSecret Replaces the branch's Realtime shared secret. Rotation is asynchronous: once the Realtime state is
+// no longer pending, the previous secret stops working and
+// `GET /projects/{project_id}/branches/{branch_id}/realtime/secret` returns the new one.
+func (c Client) RotateProjectBranchRealtimeSecret(projectID string, branchID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/realtime/rotate_secret", "POST", nil, nil)
+}
+
+// GetProjectBranchRealtimeSecret Retrieves the secret the application backend issues Realtime tokens with. Requires permission to
+// read the project's credentials. Returns 404 while Realtime is disabled or before the secret is
+// provisioned. After a rotation, this returns the previous secret until `pending` is false.
+func (c Client) GetProjectBranchRealtimeSecret(projectID string, branchID string) (RealtimeSecret, error) {
+	var v RealtimeSecret
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/realtime/secret", "GET", nil, &v); err != nil {
+		return RealtimeSecret{}, err
+	}
+	return v, nil
+}
+
 // RestoreProjectBranch Restores a branch to an earlier state in its own or another branch's history
 // by specifying an LSN or timestamp.
 // Creates a new branch from the historical state.
@@ -3153,6 +3193,7 @@ var (
 	BillingSubscriptionTypeAwsMarketplace = BillingSubscriptionType{"aws_marketplace"}
 	BillingSubscriptionTypeFreeV2         = BillingSubscriptionType{"free_v2"}
 	BillingSubscriptionTypeFreeV3         = BillingSubscriptionType{"free_v3"}
+	BillingSubscriptionTypeBuild          = BillingSubscriptionType{"build"}
 	BillingSubscriptionTypeLaunch         = BillingSubscriptionType{"launch"}
 	BillingSubscriptionTypeLaunchV3       = BillingSubscriptionType{"launch_v3"}
 	BillingSubscriptionTypeScale          = BillingSubscriptionType{"scale"}
@@ -3169,6 +3210,7 @@ func NewBillingSubscriptionType(s string) (BillingSubscriptionType, error) {
 		"aws_marketplace":  BillingSubscriptionTypeAwsMarketplace,
 		"free_v2":          BillingSubscriptionTypeFreeV2,
 		"free_v3":          BillingSubscriptionTypeFreeV3,
+		"build":            BillingSubscriptionTypeBuild,
 		"launch":           BillingSubscriptionTypeLaunch,
 		"launch_v3":        BillingSubscriptionTypeLaunchV3,
 		"scale":            BillingSubscriptionTypeScale,
@@ -3941,6 +3983,11 @@ type DataAPICreateResponse struct {
 type DataAPIReponse struct {
 	// AvailableSchemas List of available database schemas (SubZero only)
 	AvailableSchemas []string `json:"available_schemas,omitempty"`
+	// ObservedAt When `settings` and `available_schemas` were read from the database. While the
+	// compute is suspended they are served from that read, so a change made directly in
+	// the database since then shows up in the first response served while the compute is
+	// active.
+	ObservedAt *time.Time `json:"observed_at,omitempty"`
 	// Settings Configuration settings for the Data API (SubZero only)
 	Settings *DataAPIReponseSettings `json:"settings,omitempty"`
 	// Status The status of the Neon Data API deployment
@@ -4211,6 +4258,30 @@ type FunctionDeployRequest struct {
 	// Zip Optional ZIP archive of the function source code. Omit to reuse the
 	// latest version's bundle (a config-only change). Required for the
 	// first deployment of a function.
+	//
+	// Place `index.mjs` or `index.js` at the archive root, without a
+	// containing directory. If both exist, `index.mjs` is loaded. Export a
+	// request handler function or an object with a `fetch` method. Use
+	// `export default` for ESM or `module.exports` for CommonJS; prefer
+	// `index.mjs` for ESM.
+	//
+	// Upload JavaScript ready to run on Node.js 24. Compile TypeScript
+	// before uploading. Bundle dependencies into the entry module, or
+	// include the required modules and assets in the archive with their
+	// relative paths preserved (including `node_modules` for external
+	// packages). Node.js built-in modules do not need to be bundled.
+	// The API does not transpile, bundle, or install dependencies.
+	// The ZIP is limited to 32 MiB compressed and 128 MiB extracted, with
+	// at most 32,768 entries and 64 MiB per file. Bundle large dependency
+	// trees to keep the archive small. ZIPs larger than 32 MiB are rejected
+	// with HTTP 413 before creating a deployment. The extracted-size,
+	// entry-count, and per-file limits are enforced during the asynchronous
+	// build; an accepted upload that exceeds them fails the build.
+	//
+	// For example, a self-contained ESM bundle needs only `index.mjs`
+	// at the ZIP root. The Neon CLI bundles source into this layout by
+	// default; `neon function deploy --no-bundle` packages a prebuilt
+	// directory or an entry file named `index.mjs` or `index.js`.
 	Zip *string `json:"zip,omitempty"`
 }
 
@@ -5636,7 +5707,8 @@ type Project struct {
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
+	// SyntheticStorageSize Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
@@ -5983,7 +6055,8 @@ type ProjectListItem struct {
 	Settings *ProjectSettingsData `json:"settings,omitempty"`
 	// StorePasswords Whether or not passwords are stored for roles in the Neon project. Storing passwords facilitates access to Neon features that require authorization.
 	StorePasswords bool `json:"store_passwords"`
-	// SyntheticStorageSize The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
+	// SyntheticStorageSize Deprecated: always returns 0. Use the consumption history v2 endpoints (`/consumption_history/v2/projects`, `/consumption_history/v2/branches`) instead.
+	// The current space occupied by the project in Postgres storage, in bytes. Synthetic Postgres storage size combines the logical data size and Write-Ahead Log (WAL) size for all branches in a project.
 	SyntheticStorageSize *int64 `json:"synthetic_storage_size,omitempty"`
 	// UpdatedAt A timestamp indicating when the project was last updated
 	UpdatedAt time.Time `json:"updated_at"`
@@ -6331,6 +6404,27 @@ type ProjectsWithIntegrationResponse struct {
 	Projects []ProjectsWithIntegrationResponseProjectsItem `json:"projects"`
 }
 type Provisioner string
+type Realtime struct {
+	AllowedOrigins []string `json:"allowed_origins,omitempty"`
+	// Enabled Whether Realtime is enabled for the branch.
+	Enabled       bool    `json:"enabled"`
+	InvocationURL *string `json:"invocation_url,omitempty"`
+	// Pending Whether a provisioning, settings, rotation or deprovisioning change is still being applied.
+	Pending  bool   `json:"pending"`
+	Revision *int32 `json:"revision,omitempty"`
+}
+type RealtimeOptions struct {
+	// AllowedOrigins The browser origins allowed to connect, each `http` or `https` with a host and optional port
+	// and no path. An empty list, or `*` alone, allows any origin. Omitted keeps the current or
+	// inherited value.
+	AllowedOrigins []string `json:"allowed_origins,omitempty"`
+}
+type RealtimeSecret struct {
+	// Pending Whether a change is still being applied. After a rotation, the secret changes when this becomes false.
+	Pending bool `json:"pending"`
+	// Secret The key the application backend issues Realtime tokens with, `nrt_live_1` followed by the unpadded base64url 32-byte AES-256-GCM key.
+	Secret string `json:"secret"`
+}
 type RegionResponse struct {
 	// Default True if this region is selected by default when no region is specified during project creation.
 	Default bool `json:"default"`
@@ -7380,6 +7474,9 @@ type BranchCreateRequestBranch struct {
 	ParentTimestamp *time.Time `json:"parent_timestamp,omitempty"`
 	// Protected Whether the branch is protected. Protected branches (and their computes) cannot be deleted, archived, or reset, and block deletion of the project. Can be gated by `protected_branches_only` in the IP allowlist. Paid plans only.
 	Protected *bool `json:"protected,omitempty"`
+	// Realtime Enable Realtime for the branch with these options. A child of a Realtime branch is enabled
+	// even when this is omitted.
+	Realtime *RealtimeOptions `json:"realtime,omitempty"`
 }
 
 // BranchRecoveryInfoDeletionMethod How the branch was deleted: 'user' for manual deletion, 'ttl' for TTL expiration
@@ -8215,6 +8312,8 @@ type ProjectCreateRequestProject struct {
 	PgVersion *PgVersion `json:"pg_version,omitempty"`
 	// Provisioner Compute provisioner. `k8s-neonvm` (default) supports Autoscaling; `k8s-pod` is fixed-size compute. Also `docker` and `serverless-platform`.
 	Provisioner *Provisioner `json:"provisioner,omitempty"`
+	// Realtime Enable Realtime for the default branch with these options.
+	Realtime *RealtimeOptions `json:"realtime,omitempty"`
 	// RegionID The region identifier. Refer to our [Regions](https://neon.com/docs/introduction/regions) documentation for supported regions. Values are specified in this format: `aws-us-east-1`
 	RegionID *string `json:"region_id,omitempty"`
 	// Settings Project-level settings applied at creation.
