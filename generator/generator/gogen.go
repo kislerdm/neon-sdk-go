@@ -314,7 +314,7 @@ func TestError_Error(t *testing.T) {
 					},
 				},
 			},
-			want: "[HTTP Code: 406][Error Code: foo][Request ID: test] bar"+
+			want: "[HTTP Code: 406][Error Code: foo][Request ID: test] bar\n"+
 "[HTTP Code: 406][Error Code: baz][Request ID: test] qux",
 		},
 		"default-no-requestID": {
