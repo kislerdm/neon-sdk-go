@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.30.0] - 2026-10-09
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-10-09 03:56:00 GMT.
+
+### Added
+
+- Added the methods to manage the [branch realtime](https://neon.com/docs/changelog/2026-09-25#realtime-is-coming-to-neon):
+  - `EnableProjectBranchRealtime`;
+  - `GetProjectBranchRealtime`;
+  - `DisableProjectBranchRealtime`;
+  - `RotateProjectBranchRealtimeSecret`;
+  - `GetProjectBranchRealtimeSecret`.
+
+- Added the category `build` to the `BillingSubscriptionType` enum.
+- Added the attribute `ObservedAt` to the type `DataAPIReponse`.
+- Added a deprecation message for the following attributes:
+  - `Project.DataStorageBytesHour`;
+  - `Project.SyntheticStorageSize`;
+  - `ConsumptionHistoryPerTimeframe.DataStorageBytesHour`
+  - `ProjectListItem.SyntheticStorageSize`.
+  _They are always equal to zero, do not use them_. 
+
+- Added the attribute `Realtime` to the types `ProjectCreateRequestProject` and `BranchCreateRequestBranch` to configure realtime for the branch upon its creation.
+- Added the handling of the API responses with all HTTP status codes below 200 as errors.
+- Added the support for the error message handling that contain multiple failure reasons sent by the API server.
+- Added the support to report the `request_id` in the error messages.
+
+### Changed
+
+- Changed the logic of payload's SerDe that happens in the method `requestHandler`. 
+
 ## [v0.29.0] - 2026-09-30
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-09-30 03:19:00 GMT.
