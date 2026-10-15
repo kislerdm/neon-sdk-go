@@ -1060,6 +1060,62 @@ func (c Client) SendNeonAuthEmailProviderTest(projectID string, branchID string,
 	return v, nil
 }
 
+// CreateNeonAuthOAuthClient Registers an OAuth client with the branch's Neon Auth OAuth provider.
+// For `confidential` clients the response includes the `client_secret`, which is shown only once.
+// Every entry in `resources` must be configured on the OAuth provider plugin.
+func (c Client) CreateNeonAuthOAuthClient(projectID string, branchID string, cfg NeonAuthOAuthClientCreateRequest) (NeonAuthOAuthClientCreated, error) {
+	var v NeonAuthOAuthClientCreated
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients", "POST", cfg, &v); err != nil {
+		return NeonAuthOAuthClientCreated{}, err
+	}
+	return v, nil
+}
+
+// ListNeonAuthOAuthClients Lists the OAuth clients registered for the branch's Neon Auth OAuth provider.
+// Client secrets are never returned.
+func (c Client) ListNeonAuthOAuthClients(projectID string, branchID string) (ListNeonAuthOAuthClientsResponse, error) {
+	var v ListNeonAuthOAuthClientsResponse
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients", "GET", nil, &v); err != nil {
+		return ListNeonAuthOAuthClientsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetNeonAuthOAuthClient Returns an OAuth client registered with the branch's Neon Auth OAuth provider.
+// The client secret is never returned.
+func (c Client) GetNeonAuthOAuthClient(projectID string, branchID string, clientID string) (NeonAuthOAuthClient, error) {
+	var v NeonAuthOAuthClient
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients/"+clientID, "GET", nil, &v); err != nil {
+		return NeonAuthOAuthClient{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthOAuthClient Updates an OAuth client. Only the fields provided in the request body are updated.
+// A provided `resources` list replaces the client's stored list. The client `type` cannot be changed.
+func (c Client) UpdateNeonAuthOAuthClient(projectID string, branchID string, clientID string, cfg NeonAuthOAuthClientUpdateRequest) (NeonAuthOAuthClient, error) {
+	var v NeonAuthOAuthClient
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients/"+clientID, "PATCH", cfg, &v); err != nil {
+		return NeonAuthOAuthClient{}, err
+	}
+	return v, nil
+}
+
+// DeleteNeonAuthOAuthClient Deletes an OAuth client. Tokens already issued to the client are not revoked.
+func (c Client) DeleteNeonAuthOAuthClient(projectID string, branchID string, clientID string) error {
+	return c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients/"+clientID, "DELETE", nil, nil)
+}
+
+// RotateNeonAuthOAuthClientSecret Generates a new secret for a confidential OAuth client and invalidates the previous one.
+// The new secret is shown only once.
+func (c Client) RotateNeonAuthOAuthClientSecret(projectID string, branchID string, clientID string) (NeonAuthOAuthClientSecret, error) {
+	var v NeonAuthOAuthClientSecret
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/oauth-provider/clients/"+clientID+"/rotate_secret", "POST", nil, &v); err != nil {
+		return NeonAuthOAuthClientSecret{}, err
+	}
+	return v, nil
+}
+
 // AddBranchNeonAuthOauthProvider Adds an OAuth provider configuration to the specified branch's Neon Auth integration.
 // After adding, users can authenticate using the configured provider.
 func (c Client) AddBranchNeonAuthOauthProvider(projectID string, branchID string, cfg NeonAuthAddOAuthProviderRequest) (NeonAuthOauthProvider, error) {
@@ -1110,6 +1166,29 @@ func (c Client) UpdateNeonAuthMagicLinkPlugin(projectID string, branchID string,
 	var v NeonAuthMagicLinkConfig
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/magic-link", "PATCH", cfg, &v); err != nil {
 		return NeonAuthMagicLinkConfig{}, err
+	}
+	return v, nil
+}
+
+// GetNeonAuthOAuthProviderPlugin Returns the OAuth provider plugin configuration for Neon Auth.
+// The OAuth provider plugin lets Neon Auth act as an OAuth 2.1 authorization server for your own clients, such as MCP clients.
+func (c Client) GetNeonAuthOAuthProviderPlugin(projectID string, branchID string) (NeonAuthOAuthProviderConfig, error) {
+	var v NeonAuthOAuthProviderConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/oauth-provider", "GET", nil, &v); err != nil {
+		return NeonAuthOAuthProviderConfig{}, err
+	}
+	return v, nil
+}
+
+// UpdateNeonAuthOAuthProviderPlugin Updates the OAuth provider plugin configuration for Neon Auth.
+// Only the fields provided in the request body are updated; omitted fields retain their current values.
+// A provided `resources` list replaces the stored list.
+// A provided `mcp` object replaces the stored MCP configuration and must include `resource`.
+// The plugin can only be enabled on the project's root branch.
+func (c Client) UpdateNeonAuthOAuthProviderPlugin(projectID string, branchID string, cfg NeonAuthOAuthProviderConfigUpdate) (NeonAuthOAuthProviderConfig, error) {
+	var v NeonAuthOAuthProviderConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/plugins/oauth-provider", "PATCH", cfg, &v); err != nil {
+		return NeonAuthOAuthProviderConfig{}, err
 	}
 	return v, nil
 }
@@ -4493,6 +4572,10 @@ type ListNeonAuthIntegrationsResponse struct {
 	// Data Neon Auth integrations configured for the project.
 	Data []NeonAuthIntegration `json:"data"`
 }
+type ListNeonAuthOAuthClientsResponse struct {
+	// Clients OAuth clients registered for the branch.
+	Clients []NeonAuthOAuthClient `json:"clients"`
+}
 type ListNeonAuthOauthProvidersResponse struct {
 	// Providers OAuth providers configured for Neon Auth on the project.
 	Providers []NeonAuthOauthProvider `json:"providers"`
@@ -4958,6 +5041,139 @@ type NeonAuthMagicLinkConfigUpdate struct {
 	// ExpiresIn Minutes until the magic link expires.
 	ExpiresIn *int32 `json:"expires_in,omitempty"`
 }
+type NeonAuthOAuthClient struct {
+	// ClientID The OAuth client ID.
+	ClientID string `json:"client_id"`
+	// CreatedAt When the client was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	// Disabled Whether the client is disabled.
+	Disabled bool `json:"disabled"`
+	// Name Display name of the client.
+	Name string `json:"name"`
+	// RedirectURIs Redirect URIs the client may use.
+	RedirectURIs []string `json:"redirect_uris"`
+	// Resources Identifiers of the protected resources the client is linked to.
+	Resources []string `json:"resources"`
+	// SkipConsent Whether users are not asked for consent when authorizing this client.
+	SkipConsent bool                    `json:"skip_consent"`
+	Type        NeonAuthOAuthClientType `json:"type"`
+}
+type NeonAuthOAuthClientCreateRequest struct {
+	// Name Display name of the client.
+	Name string `json:"name"`
+	// RedirectURIs Redirect URIs the client may use. Must be https, or http on loopback hosts when localhost is allowed.
+	RedirectURIs []string `json:"redirect_uris"`
+	// Resources Identifiers of the protected resources to link the client to. Each must be configured on the OAuth provider plugin.
+	Resources []string `json:"resources"`
+	// SkipConsent Whether to skip the consent prompt for this client.
+	SkipConsent *bool                   `json:"skip_consent,omitempty"`
+	Type        NeonAuthOAuthClientType `json:"type"`
+}
+type NeonAuthOAuthClientCreated struct {
+	NeonAuthOAuthClient
+	// ClientSecret The client secret. Returned only for confidential clients and only in this response.
+	ClientSecret *string `json:"client_secret,omitempty"`
+}
+type NeonAuthOAuthClientSecret struct {
+	// ClientID The OAuth client ID.
+	ClientID string `json:"client_id"`
+	// ClientSecret The new client secret. Shown only once.
+	ClientSecret string `json:"client_secret"`
+}
+
+// NeonAuthOAuthClientType Confidential clients authenticate with a client secret. Public clients have no secret.
+type NeonAuthOAuthClientType struct {
+	v string
+}
+
+func (v NeonAuthOAuthClientType) String() string {
+	return v.v
+}
+
+func (v *NeonAuthOAuthClientType) UnmarshalText(data []byte) error {
+	o, err := NewNeonAuthOAuthClientType(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v NeonAuthOAuthClientType) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	NeonAuthOAuthClientTypeConfidential = NeonAuthOAuthClientType{"confidential"}
+	NeonAuthOAuthClientTypePublic       = NeonAuthOAuthClientType{"public"}
+)
+
+func NewNeonAuthOAuthClientType(s string) (NeonAuthOAuthClientType, error) {
+	m := map[string]NeonAuthOAuthClientType{
+		"confidential": NeonAuthOAuthClientTypeConfidential,
+		"public":       NeonAuthOAuthClientTypePublic,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return NeonAuthOAuthClientType{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
+// NeonAuthOAuthClientUpdateRequest At least one field must be provided.
+type NeonAuthOAuthClientUpdateRequest struct {
+	// Disabled Whether the client is disabled.
+	Disabled *bool `json:"disabled,omitempty"`
+	// Name Display name of the client.
+	Name *string `json:"name,omitempty"`
+	// RedirectURIs Redirect URIs the client may use. When provided, replaces the stored list.
+	RedirectURIs []string `json:"redirect_uris,omitempty"`
+	// Resources Identifiers of the protected resources to link the client to. When provided, replaces the stored list.
+	Resources []string `json:"resources,omitempty"`
+	// SkipConsent Whether to skip the consent prompt for this client.
+	SkipConsent *bool `json:"skip_consent,omitempty"`
+}
+type NeonAuthOAuthProviderConfig struct {
+	// ConsentPage URL of the page that authorization requests redirect to for consent.
+	ConsentPage *string `json:"consent_page,omitempty"`
+	// Enabled Whether the OAuth provider plugin is enabled.
+	Enabled bool `json:"enabled"`
+	// LoginPage URL of the page that authorization requests redirect to for sign-in.
+	LoginPage *string `json:"login_page,omitempty"`
+	// Mcp MCP resource configuration.
+	Mcp *NeonAuthOAuthProviderMcp `json:"mcp,omitempty"`
+	// Resources Protected resources that clients can be linked to.
+	Resources []NeonAuthOAuthProviderResource `json:"resources,omitempty"`
+}
+type NeonAuthOAuthProviderConfigUpdate struct {
+	// ConsentPage URL of the page that authorization requests redirect to for consent.
+	ConsentPage *string `json:"consent_page,omitempty"`
+	// Enabled Whether the OAuth provider plugin is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
+	// LoginPage URL of the page that authorization requests redirect to for sign-in.
+	LoginPage *string `json:"login_page,omitempty"`
+	// Mcp MCP resource configuration. When provided, `resource` is required and the stored MCP configuration is replaced as a whole.
+	Mcp *NeonAuthOAuthProviderMcpUpdate `json:"mcp,omitempty"`
+	// Resources Protected resources that clients can be linked to. When provided, replaces the stored list.
+	Resources []NeonAuthOAuthProviderResource `json:"resources,omitempty"`
+}
+type NeonAuthOAuthProviderMcp struct {
+	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). Defaults to true, but takes effect only when an MCP resource is configured; reads report false otherwise. When false, only clients created through the OAuth clients API can be used, and they can still be linked to the MCP resource.
+	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
+	// Resource The MCP server URL that dynamically registered clients are linked to.
+	Resource *string `json:"resource,omitempty"`
+}
+type NeonAuthOAuthProviderMcpUpdate struct {
+	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). When omitted, the stored value is kept.
+	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
+	// Resource The MCP server URL that dynamically registered clients are linked to.
+	Resource string `json:"resource"`
+}
+type NeonAuthOAuthProviderResource struct {
+	// Identifier Absolute URL identifying a protected resource. Issued access tokens carry it as their audience.
+	Identifier string `json:"identifier"`
+}
 type NeonAuthOauthProvider struct {
 	// ClientID Public identifier for the OAuth application, issued by the provider when the application is registered.
 	ClientID *string `json:"client_id,omitempty"`
@@ -5097,6 +5313,8 @@ type NeonAuthPluginConfigs struct {
 	EmailProvider *NeonAuthEmailServerConfigResponse `json:"email_provider,omitempty"`
 	// MagicLink Configuration for passwordless magic-link email authentication.
 	MagicLink *NeonAuthMagicLinkConfig `json:"magic_link,omitempty"`
+	// OauthProvider Configuration for the OAuth provider plugin, which lets Neon Auth act as an OAuth authorization server for your own clients.
+	OauthProvider *NeonAuthOAuthProviderConfig `json:"oauth_provider,omitempty"`
 	// OauthProviders OAuth provider configurations enabled for this auth setup.
 	OauthProviders []NeonAuthOauthProvider `json:"oauth_providers,omitempty"`
 	// Organization Configuration for the Neon Auth organization plugin, which enables user organizations within the authentication system. This is distinct from a Neon platform organization.
