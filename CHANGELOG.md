@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.31.0] - 2026-10-16
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-10-16 09:13:00 GMT.
+
+### Added
+
+- Added the following methods to manage Neon OAuth client when using Neon as OAuth provider:
+  - `CreateNeonAuthOAuthClient`;
+  - `ListNeonAuthOAuthClients`;
+  - `GetNeonAuthOAuthClient`;
+  - `UpdateNeonAuthOAuthClient`;
+  - `DeleteNeonAuthOAuthClient`;
+  - `RotateNeonAuthOAuthClientSecret`.
+
+- Added the following methods to manage the OAuth provider configuration for Neon Auth:
+  - `GetNeonAuthOAuthProviderPlugin`;
+  - `UpdateNeonAuthOAuthProviderPlugin`.
+
+- Added the field `OauthProvider` to the type `NeonAuthPluginConfigs`.
+
 ## [v0.30.1] - 2026-10-09
 
 ### Fixed
