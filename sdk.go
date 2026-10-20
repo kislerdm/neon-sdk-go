@@ -5159,15 +5159,19 @@ type NeonAuthOAuthProviderConfigUpdate struct {
 	Resources []NeonAuthOAuthProviderResource `json:"resources,omitempty"`
 }
 type NeonAuthOAuthProviderMcp struct {
-	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). Defaults to true, but takes effect only when an MCP resource is configured; reads report false otherwise. When false, only clients created through the OAuth clients API can be used, and they can still be linked to the MCP resource.
+	// ClientIDMetadataDocuments Whether MCP clients may identify themselves with an https Client ID Metadata Document (CIMD) URL. Recommended over dynamic registration. When false, new CIMD clients are rejected and existing CIMD clients fail closed.
+	ClientIDMetadataDocuments *bool `json:"client_id_metadata_documents,omitempty"`
+	// DynamicRegistration Legacy: whether MCP clients may register themselves via dynamic client registration (RFC 7591). Deprecated in favor of Client ID Metadata Documents (CIMD), which are controlled by `client_id_metadata_documents`. Defaults to false, and takes effect only when an MCP resource is configured; reads report false otherwise. When false, only CIMD clients and clients created through the OAuth clients API can be used, and they can still be linked to the MCP resource.
 	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
-	// Resource The MCP server URL that dynamically registered clients are linked to.
+	// Resource The MCP server URL that MCP clients (Client ID Metadata Document and dynamically registered) are linked to. Required for either to be accepted.
 	Resource *string `json:"resource,omitempty"`
 }
 type NeonAuthOAuthProviderMcpUpdate struct {
+	// ClientIDMetadataDocuments Whether MCP clients may identify themselves with an https Client ID Metadata Document (CIMD) URL. When omitted, the stored value is kept.
+	ClientIDMetadataDocuments *bool `json:"client_id_metadata_documents,omitempty"`
 	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). When omitted, the stored value is kept.
 	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
-	// Resource The MCP server URL that dynamically registered clients are linked to.
+	// Resource The MCP server URL that MCP clients (Client ID Metadata Document and dynamically registered) are linked to. Required for either to be accepted.
 	Resource string `json:"resource"`
 }
 type NeonAuthOAuthProviderResource struct {
