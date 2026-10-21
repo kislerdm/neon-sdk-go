@@ -640,6 +640,28 @@ func (c Client) TransferNeonAuthProviderProject(cfg NeonAuthTransferAuthProvider
 	return v, nil
 }
 
+// CountProjects Retrieves the number of active projects you can access in the specified organization, without paging through the list of projects.
+// Projects that are being created or deleted are not counted.
+// If using a personal API key, include the `org_id` parameter to specify which organization to work with.
+// If using an org API key, `org_id` is automatically inferred from the key.
+func (c Client) CountProjects(orgID *string) (ProjectsCountResponse, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if orgID != nil {
+		queryElements = append(queryElements, "org_id="+*orgID)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v ProjectsCountResponse
+	if err := c.requestHandler(c.baseURL+"/projects/count"+query, "GET", nil, &v); err != nil {
+		return ProjectsCountResponse{}, err
+	}
+	return v, nil
+}
+
 // ListSharedProjects Retrieves a list of projects shared with your Neon account.
 // For more information, see [Manage projects](https://neon.com/docs/manage/projects/).
 func (c Client) ListSharedProjects(cursor *string, limit *uint16, search *string, timeout *uint16) (ListSharedProjectsRespObj, error) {
@@ -671,6 +693,7 @@ func (c Client) ListSharedProjects(cursor *string, limit *uint16, search *string
 
 // GetProject Retrieves information about the specified project.
 // Returned details include the project settings, compute configuration, history retention, owner information, and current usage metrics.
+// The usage metrics are not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 func (c Client) GetProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
@@ -846,6 +869,7 @@ func (c Client) CountProjectBranches(projectID string, search *string) (CountPro
 // A project can contain one or more branches.
 // A parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.com/docs/manage/branches/).
+// The usage metrics are not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 func (c Client) GetProjectBranch(projectID string, branchID string) (GetProjectBranchRespObj, error) {
 	var v GetProjectBranchRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
@@ -3322,8 +3346,10 @@ func NewBillingSubscriptionType(s string) (BillingSubscriptionType, error) {
 
 type Branch struct {
 	// ActiveTimeSeconds Total time this branch's compute has been active during the current billing period, in seconds (not weighted by compute size). Distinct from `compute_time_seconds`, which is CU-weighted.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
 	// ComputeTimeSeconds Total Postgres compute time consumed by this branch during the current billing period, in CU-seconds (weighted by compute size). Divide by 3600 for CU-hours.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// CpuUsedSec Deprecated. Use `compute_time_seconds` instead. CPU seconds used by all of the branch's compute endpoints, including deleted ones. This value is reset at the beginning of each billing period.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
@@ -3335,6 +3361,7 @@ type Branch struct {
 	CreationSource string      `json:"creation_source"`
 	CurrentState   BranchState `json:"current_state"`
 	// DataTransferBytes Total data transferred out of the branch, in bytes. Used as a consumption metric.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	DataTransferBytes int64 `json:"data_transfer_bytes"`
 	// Default Whether the branch is the project's default branch
 	Default bool `json:"default"`
@@ -3387,6 +3414,7 @@ type Branch struct {
 	// UpdatedAt A timestamp indicating when the branch was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Data written by this branch during the current billing period, in bytes.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 type BranchAiGateway struct {
@@ -5877,6 +5905,7 @@ type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
 	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
@@ -5891,6 +5920,7 @@ type Project struct {
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// ConsumptionPeriodEnd A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
 	ConsumptionPeriodEnd time.Time `json:"consumption_period_end"`
@@ -5908,6 +5938,7 @@ type Project struct {
 	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
 	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	DataTransferBytes          int64                              `json:"data_transfer_bytes"`
 	DefaultEndpointSettings    *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
 	EffectiveProjectPermission *ProjectEffectiveProjectPermission `json:"effective_project_permission,omitempty"`
@@ -5951,6 +5982,7 @@ type Project struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Bytes. Amount of WAL that travelled through Postgres storage for given project across all branches.
 	// The value has some lag. The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 type ProjectAuditLogLevel struct {
@@ -6240,6 +6272,7 @@ type ProjectJWKSResponse struct {
 // ProjectListItem Essential data about the project. Full data is available at `GET /projects/{project_id}`.
 type ProjectListItem struct {
 	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ActiveTime int64 `json:"active_time"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
 	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
@@ -6622,6 +6655,10 @@ type ProjectUpdateRequest struct {
 type ProjectsApplicationsMapResponse struct {
 	// Applications Map of project IDs to their installed applications. Each key is a project ID; each value is an array of application types (for example, `vercel`, `github`).
 	Applications map[string]any `json:"applications"`
+}
+type ProjectsCountResponse struct {
+	// Count The total number of projects matching the query criteria.
+	Count uint `json:"count"`
 }
 
 // ProjectsIntegrationsMapResponse A map where key is a project ID and a value is a list of installed integrations.
