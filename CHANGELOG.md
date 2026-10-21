@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.33.0] - 2026-10-21
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-10-21 02:46:00 GMT.
+
+### Added
+
+- Added `CountProjects` method to retrieve the number of active projects without paging through the list of projects.
+
 ## [v0.32.0] - 2026-10-20
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-10-20 02:52:00 GMT.
