@@ -271,10 +271,12 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, pr
 //
 // History starts when the account first ingests branch-level consumption data.
 //
-// The `metrics` query parameter is required. Only these six values are supported on this
+// The `metrics` query parameter is required. These values are supported on this
 // endpoint:
 // `compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,
-// `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`.
+// `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
+// `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
+// `functions_invocations`, `functions_egress_bytes`.
 //
 // This endpoint does not support `extra_branches_month` or `snapshot_storage_bytes_month`.
 // Use `GET /consumption_history/v2/projects` for those.
@@ -319,7 +321,9 @@ func (c Client) GetConsumptionHistoryPerBranchV2(cursor *string, limit *uint16, 
 // The `metrics` query parameter is required. Supported values:
 // `compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,
 // `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
-// `extra_branches_month`, `snapshot_storage_bytes_month`.
+// `extra_branches_month`, `snapshot_storage_bytes_month`,
+// `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
+// `functions_invocations`, `functions_egress_bytes`.
 //
 // Consumption metrics within each project are returned in ascending time order (oldest first).
 // This request does not wake project computes.
