@@ -4730,11 +4730,16 @@ type NeonAuthAddDomainToRedirectURIWhitelistRequest struct {
 	Domain string `json:"domain"`
 }
 type NeonAuthAddOAuthProviderRequest struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key supplied in `client_secret`. Only relevant when the OAuth provider is Apple; omit for other providers.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Only relevant when the OAuth provider is Apple; omit for other providers.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID The client ID issued by the OAuth provider for your application. Used to identify the application during the OAuth flow.
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider.
 	ClientSecret *string `json:"client_secret,omitempty"`
-	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`.
+	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.
+	// `apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.
 	ID NeonAuthOauthProviderId `json:"id"`
 	// MicrosoftTenantID Tenant ID for the Microsoft OAuth provider. Only relevant when the OAuth provider is Microsoft; omit or leave blank for other providers.
 	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
@@ -5211,6 +5216,10 @@ type NeonAuthOAuthProviderResource struct {
 	Identifier string `json:"identifier"`
 }
 type NeonAuthOauthProvider struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key. Present only for the Apple OAuth provider.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Present only for the Apple OAuth provider.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID Public identifier for the OAuth application, issued by the provider when the application is registered.
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider.
@@ -5246,6 +5255,7 @@ var (
 	NeonAuthOauthProviderIdGithub    = NeonAuthOauthProviderId{"github"}
 	NeonAuthOauthProviderIdMicrosoft = NeonAuthOauthProviderId{"microsoft"}
 	NeonAuthOauthProviderIdVercel    = NeonAuthOauthProviderId{"vercel"}
+	NeonAuthOauthProviderIdApple     = NeonAuthOauthProviderId{"apple"}
 )
 
 func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
@@ -5254,6 +5264,7 @@ func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
 		"github":    NeonAuthOauthProviderIdGithub,
 		"microsoft": NeonAuthOauthProviderIdMicrosoft,
 		"vercel":    NeonAuthOauthProviderIdVercel,
+		"apple":     NeonAuthOauthProviderIdApple,
 	}
 	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
@@ -5498,6 +5509,10 @@ type NeonAuthTransferAuthProviderProjectResponse struct {
 	URL string `json:"url"`
 }
 type NeonAuthUpdateOAuthProviderRequest struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key supplied in `client_secret`. Supply this field when the provider is apple; it has no effect for other providers.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Supply this field when the provider is apple; it has no effect for other providers.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID The OAuth client ID registered with the provider. Omit to keep the currently configured value.
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider. Omit to leave the existing secret unchanged.
