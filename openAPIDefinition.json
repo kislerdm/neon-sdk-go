@@ -16735,6 +16735,14 @@
                     "client_secret": {
                         "type": "string",
                         "description": "OAuth client secret for the provider."
+                    },
+                    "apple_team_id": {
+                        "type": "string",
+                        "description": "Apple Developer Team ID. Present only for the Apple OAuth provider."
+                    },
+                    "apple_key_id": {
+                        "type": "string",
+                        "description": "Key ID of the Sign in with Apple private key. Present only for the Apple OAuth provider."
                     }
                 }
             },
@@ -16744,7 +16752,8 @@
                     "google",
                     "github",
                     "microsoft",
-                    "vercel"
+                    "vercel",
+                    "apple"
                 ]
             },
             "NeonAuthOauthProviderType": {
@@ -16765,7 +16774,7 @@
                 "properties": {
                     "id": {
                         "$ref": "#/components/schemas/NeonAuthOauthProviderId",
-                        "description": "OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`.\n"
+                        "description": "OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.\n`apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.\n"
                     },
                     "client_id": {
                         "type": "string",
@@ -16778,6 +16787,14 @@
                     "microsoft_tenant_id": {
                         "type": "string",
                         "description": "Tenant ID for the Microsoft OAuth provider. Only relevant when the OAuth provider is Microsoft; omit or leave blank for other providers."
+                    },
+                    "apple_team_id": {
+                        "type": "string",
+                        "description": "Apple Developer Team ID. Only relevant when the OAuth provider is Apple; omit for other providers."
+                    },
+                    "apple_key_id": {
+                        "type": "string",
+                        "description": "Key ID of the Sign in with Apple private key supplied in `client_secret`. Only relevant when the OAuth provider is Apple; omit for other providers."
                     }
                 }
             },
@@ -16798,6 +16815,14 @@
                     "microsoft_tenant_id": {
                         "type": "string",
                         "description": "The tenant ID scoping the Microsoft OAuth provider. Supply this field when the provider type is microsoft; it has no effect for other provider types."
+                    },
+                    "apple_team_id": {
+                        "type": "string",
+                        "description": "Apple Developer Team ID. Supply this field when the provider is apple; it has no effect for other providers."
+                    },
+                    "apple_key_id": {
+                        "type": "string",
+                        "description": "Key ID of the Sign in with Apple private key supplied in `client_secret`. Supply this field when the provider is apple; it has no effect for other providers."
                     }
                 }
             },
