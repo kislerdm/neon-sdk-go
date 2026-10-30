@@ -4736,7 +4736,7 @@ type NeonAuthAddOAuthProviderRequest struct {
 	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID The client ID issued by the OAuth provider for your application. Used to identify the application during the OAuth flow.
 	ClientID *string `json:"client_id,omitempty"`
-	// ClientSecret OAuth client secret for the provider.
+	// ClientSecret OAuth client secret for the provider. For `apple`, the contents of the Sign in with Apple `.p8` private key. For `microsoft`, the client secret value from Microsoft Entra ID.
 	ClientSecret *string `json:"client_secret,omitempty"`
 	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.
 	// `apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.
@@ -5222,10 +5222,12 @@ type NeonAuthOauthProvider struct {
 	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID Public identifier for the OAuth application, issued by the provider when the application is registered.
 	ClientID *string `json:"client_id,omitempty"`
-	// ClientSecret OAuth client secret for the provider.
+	// ClientSecret Masked OAuth client secret for the provider. For `apple`, a masked fingerprint of the Sign in with Apple `.p8` private key; the key itself is never returned.
 	ClientSecret *string `json:"client_secret,omitempty"`
 	// ID The OAuth provider's ID.
 	ID NeonAuthOauthProviderId `json:"id"`
+	// MicrosoftTenantID Tenant ID of the Microsoft OAuth provider. Present only for the Microsoft OAuth provider when a tenant is configured.
+	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
 	// Type OAuth provider key type. `standard` uses your own OAuth credentials. `shared` uses Neon-managed keys intended for development only; they display Neon branding on the OAuth consent screen and must not be used in production.
 	Type NeonAuthOauthProviderType `json:"type"`
 }
@@ -5516,6 +5518,7 @@ type NeonAuthUpdateOAuthProviderRequest struct {
 	// ClientID The OAuth client ID registered with the provider. Omit to keep the currently configured value.
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider. Omit to leave the existing secret unchanged.
+	// For `apple`, a new `.p8` private key must be sent together with its `apple_key_id` in the same request; omit both to keep the stored key.
 	ClientSecret *string `json:"client_secret,omitempty"`
 	// MicrosoftTenantID The tenant ID scoping the Microsoft OAuth provider. Supply this field when the provider type is microsoft; it has no effect for other provider types.
 	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
