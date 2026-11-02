@@ -55,7 +55,7 @@ type EmptyResponse map[string]any`,
 }}}
 `),
 			want: `type FooEnumFooID struct {
-Foo []FooEnumFooID ` + "`json:\"foo\"`\n" +
+Foo []FooEnumFooID ` + "`json:\"foo,omitzero\"`\n" +
 				"}",
 			errFn: assert.NoError,
 		},
@@ -241,7 +241,7 @@ PaginationResponse` +
 type AllowedIps struct {
 ` +
 				"// Ips A list of IP addresses that are allowed to connect to the endpoint.\n" +
-				"Ips []string `json:\"ips\"`\n" +
+				"Ips []string `json:\"ips,omitzero\"`\n" +
 				"// ProtectedBranchesOnly If true, the list will be applied only to protected branches.\n" +
 				"ProtectedBranchesOnly *bool `json:\"protected_branches_only,omitempty\"`\n" +
 				"}",
@@ -353,6 +353,25 @@ return nil
 	"schemas": {
 		"Foo": {
             "type": "object",
+            "properties": {
+                "foo": {
+                    "type": "object"
+                }
+            }
+        }
+	}
+}`),
+			want: `type Foo struct {
+Foo map[string]any ` + "`json:\"foo,omitzero\"`" + `
+}`,
+			errFn: assert.NoError,
+		},
+		"schema with required map": {
+			raw: []byte(`{
+	"schemas": {
+		"Foo": {
+            "type": "object",
+			"required": ["foo"],
             "properties": {
                 "foo": {
                     "type": "object"

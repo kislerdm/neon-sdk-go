@@ -409,7 +409,10 @@ func writeGoStructProperties(schema OpenAPISchema, typeName string, repo *TypesR
 
 			buf.WriteString(" `json:\"")
 			buf.WriteString(jsonAttrName)
-			if !isRequired && !isNillable {
+			switch {
+			case isNillable && !isRequired:
+				buf.WriteString(",omitzero")
+			case !isRequired:
 				buf.WriteString(",omitempty")
 			}
 			buf.WriteString("\"`")

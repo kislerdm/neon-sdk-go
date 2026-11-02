@@ -2856,7 +2856,7 @@ type AddProjectJWKSRequest struct {
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
 	// RoleNames Deprecated. The roles the JWKS should be mapped to. By default, the JWKS is mapped to the `authenticator`, `authenticated`, and `anonymous` roles.
-	RoleNames []string `json:"role_names"`
+	RoleNames []string `json:"role_names,omitzero"`
 	// SkipRoleCreation Deprecated. Only used with Neon RLS. If true, role creation is skipped.
 	SkipRoleCreation *bool `json:"skip_role_creation,omitempty"`
 }
@@ -2929,7 +2929,7 @@ type AdvisorIssue struct {
 // If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
-	Ips []string `json:"ips"`
+	Ips []string `json:"ips,omitzero"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
 	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
 }
@@ -3108,7 +3108,7 @@ type AuthDetailsResponse struct {
 }
 type AvailablePreloadLibraries struct {
 	// Libraries Preload libraries available for the project's Postgres version. Each entry includes `library_name`, `description`, `is_default`, `is_experimental`, and `version`.
-	Libraries []AvailablePreloadLibrary `json:"libraries"`
+	Libraries []AvailablePreloadLibrary `json:"libraries,omitzero"`
 }
 type AvailablePreloadLibrary struct {
 	// Description Human-readable explanation of the library's purpose and behavior.
@@ -3408,7 +3408,7 @@ type Branch struct {
 	// RestoredFrom ID of the snapshot that was the restore source for this branch
 	RestoredFrom *string `json:"restored_from,omitempty"`
 	// RestrictedActions A list of actions that are currently restricted for this branch and the reason why.
-	RestrictedActions []BranchRestrictedAction `json:"restricted_actions"`
+	RestrictedActions []BranchRestrictedAction `json:"restricted_actions,omitzero"`
 	// StateChangedAt A UTC timestamp indicating when the `current_state` began
 	StateChangedAt time.Time `json:"state_changed_at"`
 	// TtlIntervalSeconds The time-to-live (TTL) duration originally configured for the branch, in seconds. This read-only value represents the interval between the time `expires_at` was set and the expiration timestamp itself. It is preserved to ensure the same TTL duration is reapplied when resetting the branch from its parent, and only updates when a new `expires_at` value is set.
@@ -3443,7 +3443,7 @@ type BranchAnonymizedCreateRequest struct {
 	AnnotationCreateValueRequest
 	BranchCreate *BranchCreateRequest `json:"branch_create,omitempty"`
 	// MaskingRules List of masking rules to apply to the branch.
-	MaskingRules []MaskingRule `json:"masking_rules"`
+	MaskingRules []MaskingRule `json:"masking_rules,omitzero"`
 	// StartAnonymization If true, automatically start anonymization after the branch is created.
 	// Defaults to false.
 	StartAnonymization *bool `json:"start_anonymization,omitempty"`
@@ -3452,7 +3452,7 @@ type BranchCreateRequest struct {
 	// Branch Optional configuration for the new branch, for example `name`, `parent_id` (fork from a branch), `parent_lsn` or `parent_timestamp` (point-in-time branching), and `protected`.
 	Branch *BranchCreateRequestBranch `json:"branch,omitempty"`
 	// Endpoints Compute endpoints to create together with the branch. If omitted, the branch is created without any compute endpoint. Endpoints can be added to the branch separately after creation.
-	Endpoints []BranchCreateRequestEndpointOptions `json:"endpoints"`
+	Endpoints []BranchCreateRequestEndpointOptions `json:"endpoints,omitzero"`
 }
 type BranchCreateRequestEndpointOptions struct {
 	// AutoscalingLimitMaxCu Maximum number of Compute Units the endpoint can scale up to. Minimum 0.25.
@@ -3705,7 +3705,7 @@ type ConnectionURIResponse struct {
 }
 type ConnectionURIsOptionalResponse struct {
 	// ConnectionURIs Connection URIs for the compute endpoint, including credentials.
-	ConnectionURIs []ConnectionDetails `json:"connection_uris"`
+	ConnectionURIs []ConnectionDetails `json:"connection_uris,omitzero"`
 }
 type ConnectionURIsResponse struct {
 	// ConnectionURIs Connection URIs for the project. Each entry contains credentials and should be treated as sensitive.
@@ -3832,7 +3832,7 @@ type ConsumptionHistoryPerTimeframe struct {
 }
 type ConsumptionHistoryPerTimeframeV2 struct {
 	// Metrics Consumption metric values recorded for the timeframe.
-	Metrics []ConsumptionMetricValue `json:"metrics"`
+	Metrics []ConsumptionMetricValue `json:"metrics,omitzero"`
 	// TimeframeEnd The specified end date-time for the reported consumption.
 	TimeframeEnd *time.Time `json:"timeframe_end,omitempty"`
 	// TimeframeStart The specified start date-time for the reported consumption.
@@ -4108,7 +4108,7 @@ type DataAPICreateResponse struct {
 // DataAPIReponse Neon Data API response
 type DataAPIReponse struct {
 	// AvailableSchemas List of available database schemas (SubZero only)
-	AvailableSchemas []string `json:"available_schemas"`
+	AvailableSchemas []string `json:"available_schemas,omitzero"`
 	// ObservedAt When `settings` and `available_schemas` were read from the database. While the
 	// compute is suspended they are served from that read, so a change made directly in
 	// the database since then shows up in the first response served while the compute is
@@ -4133,7 +4133,7 @@ type DataAPISettings struct {
 	// DbMaxRows Hard limit on the number of rows returned in a single Data API response. No limit when unset.
 	DbMaxRows *int `json:"db_max_rows,omitempty"`
 	// DbSchemas List of schemas to expose via the API. Default: ["public"]
-	DbSchemas []string `json:"db_schemas"`
+	DbSchemas []string `json:"db_schemas,omitzero"`
 	// JwtCacheMaxLifetime Maximum lifetime of the Data API's JWT cache, in seconds.
 	JwtCacheMaxLifetime *int `json:"jwt_cache_max_lifetime,omitempty"`
 	// JwtRoleClaimKey JWT claim key to use for role extraction
@@ -4363,7 +4363,7 @@ type EndpointUpdateRequest struct {
 }
 type EndpointsOptionalResponse struct {
 	// Endpoints Compute endpoints associated with the project.
-	Endpoints []Endpoint `json:"endpoints"`
+	Endpoints []Endpoint `json:"endpoints,omitzero"`
 }
 type EndpointsResponse struct {
 	// Endpoints Compute endpoints in the project. Each includes `id`, `branch_id`, `host`, and `type`.
@@ -4581,7 +4581,7 @@ type JWKS struct {
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
 	// RoleNames Database role names that are permitted to authenticate using this JWKS configuration.
-	RoleNames []string `json:"role_names"`
+	RoleNames []string `json:"role_names,omitzero"`
 	// UpdatedAt The date and time when the JWKS was last modified
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -5165,9 +5165,9 @@ type NeonAuthOAuthClientUpdateRequest struct {
 	// Name Display name of the client.
 	Name *string `json:"name,omitempty"`
 	// RedirectURIs Redirect URIs the client may use. When provided, replaces the stored list.
-	RedirectURIs []string `json:"redirect_uris"`
+	RedirectURIs []string `json:"redirect_uris,omitzero"`
 	// Resources Identifiers of the protected resources to link the client to. When provided, replaces the stored list.
-	Resources []string `json:"resources"`
+	Resources []string `json:"resources,omitzero"`
 	// SkipConsent Whether to skip the consent prompt for this client.
 	SkipConsent *bool `json:"skip_consent,omitempty"`
 }
@@ -5181,7 +5181,7 @@ type NeonAuthOAuthProviderConfig struct {
 	// Mcp MCP resource configuration.
 	Mcp *NeonAuthOAuthProviderMcp `json:"mcp,omitempty"`
 	// Resources Protected resources that clients can be linked to.
-	Resources []NeonAuthOAuthProviderResource `json:"resources"`
+	Resources []NeonAuthOAuthProviderResource `json:"resources,omitzero"`
 }
 type NeonAuthOAuthProviderConfigUpdate struct {
 	// ConsentPage URL of the page that authorization requests redirect to for consent.
@@ -5193,7 +5193,7 @@ type NeonAuthOAuthProviderConfigUpdate struct {
 	// Mcp MCP resource configuration. When provided, `resource` is required and the stored MCP configuration is replaced as a whole.
 	Mcp *NeonAuthOAuthProviderMcpUpdate `json:"mcp,omitempty"`
 	// Resources Protected resources that clients can be linked to. When provided, replaces the stored list.
-	Resources []NeonAuthOAuthProviderResource `json:"resources"`
+	Resources []NeonAuthOAuthProviderResource `json:"resources,omitzero"`
 }
 type NeonAuthOAuthProviderMcp struct {
 	// ClientIDMetadataDocuments Whether MCP clients may identify themselves with an https Client ID Metadata Document (CIMD) URL. Recommended over dynamic registration. When false, new CIMD clients are rejected and existing CIMD clients fail closed.
@@ -5365,7 +5365,7 @@ type NeonAuthPluginConfigs struct {
 	// OauthProvider Configuration for the OAuth provider plugin, which lets Neon Auth act as an OAuth authorization server for your own clients.
 	OauthProvider *NeonAuthOAuthProviderConfig `json:"oauth_provider,omitempty"`
 	// OauthProviders OAuth provider configurations enabled for this auth setup.
-	OauthProviders []NeonAuthOauthProvider `json:"oauth_providers"`
+	OauthProviders []NeonAuthOauthProvider `json:"oauth_providers,omitzero"`
 	// Organization Configuration for the Neon Auth organization plugin, which enables user organizations within the authentication system. This is distinct from a Neon platform organization.
 	Organization *NeonAuthOrganizationConfig `json:"organization,omitempty"`
 	// PhoneNumber Configuration for the phone number authentication plugin.
@@ -5527,7 +5527,7 @@ type NeonAuthWebhookConfig struct {
 	// Enabled Whether the webhook is active.
 	Enabled bool `json:"enabled"`
 	// EnabledEvents Event types that trigger this webhook. Covers user lifecycle, email/OTP delivery, organization invitations, and phone verification events; see the enum for exact values.
-	EnabledEvents []NeonAuthWebhookConfigEnabledEventsItem `json:"enabled_events"`
+	EnabledEvents []NeonAuthWebhookConfigEnabledEventsItem `json:"enabled_events,omitzero"`
 	// TimeoutSeconds Maximum time, in seconds, to wait for a response from the webhook endpoint.
 	TimeoutSeconds *uint8 `json:"timeout_seconds,omitempty"`
 	// WebhookURL Destination URL that receives webhook event payloads.
@@ -5558,7 +5558,7 @@ type NeonFunctionDeployment struct {
 	// Values are encrypted at rest and are never returned — they are
 	// write-only. To change a value, deploy the variable with the new
 	// value; to remove a variable, deploy it with an empty value.
-	Environment []string `json:"environment"`
+	Environment []string `json:"environment,omitzero"`
 	// Error Human-readable reason the deployment build failed. Present only
 	// when `status` is `failed`.
 	Error *string `json:"error,omitempty"`
@@ -5890,7 +5890,7 @@ type PlanVersion struct {
 // PreloadLibraries The shared libraries to preload into the project's compute instances.
 type PreloadLibraries struct {
 	// EnabledLibraries Names of shared preload libraries to enable for the project.
-	EnabledLibraries []string `json:"enabled_libraries"`
+	EnabledLibraries []string `json:"enabled_libraries,omitzero"`
 	// UseDefaults When true, the project's preload libraries include the platform default set in addition to any libraries listed in `enabled_libraries`.
 	UseDefaults *bool `json:"use_defaults,omitempty"`
 }
@@ -6693,7 +6693,7 @@ type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`
 	// UnavailableProjectIDs A list of project IDs indicating which projects are known to exist, but whose details could not
 	// be fetched within the requested (or implicit) time limit
-	UnavailableProjectIDs []string `json:"unavailable_project_ids"`
+	UnavailableProjectIDs []string `json:"unavailable_project_ids,omitzero"`
 }
 type ProjectsWithIntegrationResponse struct {
 	// Projects Projects that have the requested integration, each including the project details and associated integration metadata.
@@ -6701,7 +6701,7 @@ type ProjectsWithIntegrationResponse struct {
 }
 type Provisioner string
 type Realtime struct {
-	AllowedOrigins []string `json:"allowed_origins"`
+	AllowedOrigins []string `json:"allowed_origins,omitzero"`
 	// Enabled Whether Realtime is enabled for the branch.
 	Enabled       bool    `json:"enabled"`
 	InvocationURL *string `json:"invocation_url,omitempty"`
@@ -6713,7 +6713,7 @@ type RealtimeOptions struct {
 	// AllowedOrigins The browser origins allowed to connect, each `http` or `https` with a host and optional port
 	// and no path. An empty list, or `*` alone, allows any origin. Omitted keeps the current or
 	// inherited value.
-	AllowedOrigins []string `json:"allowed_origins"`
+	AllowedOrigins []string `json:"allowed_origins,omitzero"`
 }
 type RealtimeSecret struct {
 	// Pending Whether a change is still being applied. After a rotation, the secret changes when this becomes false.
@@ -7819,7 +7819,7 @@ type BranchSchemaJSONTablesItem struct {
 	// Columns Columns belonging to this table, each describing a column's name and attributes.
 	Columns []BranchSchemaJSONTablesItemColumnsItem `json:"columns"`
 	// Constraints Table constraints defined in the branch schema, such as primary key, foreign key, unique, and check constraints.
-	Constraints []BranchSchemaJSONTablesItemConstraintsItem `json:"constraints"`
+	Constraints []BranchSchemaJSONTablesItemConstraintsItem `json:"constraints,omitzero"`
 	// Name Name of the table within the schema.
 	Name string `json:"name"`
 	// Schema Postgres schema (namespace) that contains the table, for example `public`.
