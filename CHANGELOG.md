@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.32.0] - 2026-11-02
+
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-11-02 06:26:00 GMT.
+
+### Added
+
+- Added `CountProjects` to retrieve the number of active projects in an organization.
+- Added Neon Functions metrics to consumption-history support: active and waiting capacity microseconds, invocations, and egress bytes.
+- Added Apple OAuth provider support and Microsoft tenant configuration for Neon Auth, plus Client ID Metadata Documents support for OAuth MCP clients.
+
+### Changed
+
+- Change SerDe of arrays and maps. They are now serialized even when empty.
+
 ## [v0.31.0] - 2026-10-16
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-10-16 09:13:00 GMT.

@@ -271,10 +271,12 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, pr
 //
 // History starts when the account first ingests branch-level consumption data.
 //
-// The `metrics` query parameter is required. Only these six values are supported on this
+// The `metrics` query parameter is required. These values are supported on this
 // endpoint:
 // `compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,
-// `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`.
+// `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
+// `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
+// `functions_invocations`, `functions_egress_bytes`.
 //
 // This endpoint does not support `extra_branches_month` or `snapshot_storage_bytes_month`.
 // Use `GET /consumption_history/v2/projects` for those.
@@ -319,7 +321,9 @@ func (c Client) GetConsumptionHistoryPerBranchV2(cursor *string, limit *uint16, 
 // The `metrics` query parameter is required. Supported values:
 // `compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,
 // `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
-// `extra_branches_month`, `snapshot_storage_bytes_month`.
+// `extra_branches_month`, `snapshot_storage_bytes_month`,
+// `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
+// `functions_invocations`, `functions_egress_bytes`.
 //
 // Consumption metrics within each project are returned in ascending time order (oldest first).
 // This request does not wake project computes.
@@ -640,6 +644,28 @@ func (c Client) TransferNeonAuthProviderProject(cfg NeonAuthTransferAuthProvider
 	return v, nil
 }
 
+// CountProjects Retrieves the number of active projects you can access in the specified organization, without paging through the list of projects.
+// Projects that are being created or deleted are not counted.
+// If using a personal API key, include the `org_id` parameter to specify which organization to work with.
+// If using an org API key, `org_id` is automatically inferred from the key.
+func (c Client) CountProjects(orgID *string) (ProjectsCountResponse, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if orgID != nil {
+		queryElements = append(queryElements, "org_id="+*orgID)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v ProjectsCountResponse
+	if err := c.requestHandler(c.baseURL+"/projects/count"+query, "GET", nil, &v); err != nil {
+		return ProjectsCountResponse{}, err
+	}
+	return v, nil
+}
+
 // ListSharedProjects Retrieves a list of projects shared with your Neon account.
 // For more information, see [Manage projects](https://neon.com/docs/manage/projects/).
 func (c Client) ListSharedProjects(cursor *string, limit *uint16, search *string, timeout *uint16) (ListSharedProjectsRespObj, error) {
@@ -671,6 +697,7 @@ func (c Client) ListSharedProjects(cursor *string, limit *uint16, search *string
 
 // GetProject Retrieves information about the specified project.
 // Returned details include the project settings, compute configuration, history retention, owner information, and current usage metrics.
+// The usage metrics are not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 func (c Client) GetProject(projectID string) (ProjectResponse, error) {
 	var v ProjectResponse
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID, "GET", nil, &v); err != nil {
@@ -846,6 +873,7 @@ func (c Client) CountProjectBranches(projectID string, search *string) (CountPro
 // A project can contain one or more branches.
 // A parent branch is identified by a `parent_id` value, which is the `id` of the parent branch.
 // For related information, see [Manage branches](https://neon.com/docs/manage/branches/).
+// The usage metrics are not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 func (c Client) GetProjectBranch(projectID string, branchID string) (GetProjectBranchRespObj, error) {
 	var v GetProjectBranchRespObj
 	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID, "GET", nil, &v); err != nil {
@@ -2828,7 +2856,7 @@ type AddProjectJWKSRequest struct {
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
 	// RoleNames Deprecated. The roles the JWKS should be mapped to. By default, the JWKS is mapped to the `authenticator`, `authenticated`, and `anonymous` roles.
-	RoleNames []string `json:"role_names,omitempty"`
+	RoleNames []string `json:"role_names"`
 	// SkipRoleCreation Deprecated. Only used with Neon RLS. If true, role creation is skipped.
 	SkipRoleCreation *bool `json:"skip_role_creation,omitempty"`
 }
@@ -2901,7 +2929,7 @@ type AdvisorIssue struct {
 // If protected_branches_only is true, the list will be applied only to protected branches.
 type AllowedIps struct {
 	// Ips A list of IP addresses that are allowed to connect to the endpoint.
-	Ips []string `json:"ips,omitempty"`
+	Ips []string `json:"ips"`
 	// ProtectedBranchesOnly If true, the list will be applied only to protected branches.
 	ProtectedBranchesOnly *bool `json:"protected_branches_only,omitempty"`
 }
@@ -3080,7 +3108,7 @@ type AuthDetailsResponse struct {
 }
 type AvailablePreloadLibraries struct {
 	// Libraries Preload libraries available for the project's Postgres version. Each entry includes `library_name`, `description`, `is_default`, `is_experimental`, and `version`.
-	Libraries []AvailablePreloadLibrary `json:"libraries,omitempty"`
+	Libraries []AvailablePreloadLibrary `json:"libraries"`
 }
 type AvailablePreloadLibrary struct {
 	// Description Human-readable explanation of the library's purpose and behavior.
@@ -3322,8 +3350,10 @@ func NewBillingSubscriptionType(s string) (BillingSubscriptionType, error) {
 
 type Branch struct {
 	// ActiveTimeSeconds Total time this branch's compute has been active during the current billing period, in seconds (not weighted by compute size). Distinct from `compute_time_seconds`, which is CU-weighted.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
 	// ComputeTimeSeconds Total Postgres compute time consumed by this branch during the current billing period, in CU-seconds (weighted by compute size). Divide by 3600 for CU-hours.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// CpuUsedSec Deprecated. Use `compute_time_seconds` instead. CPU seconds used by all of the branch's compute endpoints, including deleted ones. This value is reset at the beginning of each billing period.
 	CpuUsedSec int64 `json:"cpu_used_sec"`
@@ -3335,6 +3365,7 @@ type Branch struct {
 	CreationSource string      `json:"creation_source"`
 	CurrentState   BranchState `json:"current_state"`
 	// DataTransferBytes Total data transferred out of the branch, in bytes. Used as a consumption metric.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	DataTransferBytes int64 `json:"data_transfer_bytes"`
 	// Default Whether the branch is the project's default branch
 	Default bool `json:"default"`
@@ -3377,7 +3408,7 @@ type Branch struct {
 	// RestoredFrom ID of the snapshot that was the restore source for this branch
 	RestoredFrom *string `json:"restored_from,omitempty"`
 	// RestrictedActions A list of actions that are currently restricted for this branch and the reason why.
-	RestrictedActions []BranchRestrictedAction `json:"restricted_actions,omitempty"`
+	RestrictedActions []BranchRestrictedAction `json:"restricted_actions"`
 	// StateChangedAt A UTC timestamp indicating when the `current_state` began
 	StateChangedAt time.Time `json:"state_changed_at"`
 	// TtlIntervalSeconds The time-to-live (TTL) duration originally configured for the branch, in seconds. This read-only value represents the interval between the time `expires_at` was set and the expiration timestamp itself. It is preserved to ensure the same TTL duration is reapplied when resetting the branch from its parent, and only updates when a new `expires_at` value is set.
@@ -3387,6 +3418,7 @@ type Branch struct {
 	// UpdatedAt A timestamp indicating when the branch was last updated
 	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Data written by this branch during the current billing period, in bytes.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/branches`.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 type BranchAiGateway struct {
@@ -3411,7 +3443,7 @@ type BranchAnonymizedCreateRequest struct {
 	AnnotationCreateValueRequest
 	BranchCreate *BranchCreateRequest `json:"branch_create,omitempty"`
 	// MaskingRules List of masking rules to apply to the branch.
-	MaskingRules []MaskingRule `json:"masking_rules,omitempty"`
+	MaskingRules []MaskingRule `json:"masking_rules"`
 	// StartAnonymization If true, automatically start anonymization after the branch is created.
 	// Defaults to false.
 	StartAnonymization *bool `json:"start_anonymization,omitempty"`
@@ -3420,7 +3452,7 @@ type BranchCreateRequest struct {
 	// Branch Optional configuration for the new branch, for example `name`, `parent_id` (fork from a branch), `parent_lsn` or `parent_timestamp` (point-in-time branching), and `protected`.
 	Branch *BranchCreateRequestBranch `json:"branch,omitempty"`
 	// Endpoints Compute endpoints to create together with the branch. If omitted, the branch is created without any compute endpoint. Endpoints can be added to the branch separately after creation.
-	Endpoints []BranchCreateRequestEndpointOptions `json:"endpoints,omitempty"`
+	Endpoints []BranchCreateRequestEndpointOptions `json:"endpoints"`
 }
 type BranchCreateRequestEndpointOptions struct {
 	// AutoscalingLimitMaxCu Maximum number of Compute Units the endpoint can scale up to. Minimum 0.25.
@@ -3673,7 +3705,7 @@ type ConnectionURIResponse struct {
 }
 type ConnectionURIsOptionalResponse struct {
 	// ConnectionURIs Connection URIs for the compute endpoint, including credentials.
-	ConnectionURIs []ConnectionDetails `json:"connection_uris,omitempty"`
+	ConnectionURIs []ConnectionDetails `json:"connection_uris"`
 }
 type ConnectionURIsResponse struct {
 	// ConnectionURIs Connection URIs for the project. Each entry contains credentials and should be treated as sensitive.
@@ -3800,7 +3832,7 @@ type ConsumptionHistoryPerTimeframe struct {
 }
 type ConsumptionHistoryPerTimeframeV2 struct {
 	// Metrics Consumption metric values recorded for the timeframe.
-	Metrics []ConsumptionMetricValue `json:"metrics,omitempty"`
+	Metrics []ConsumptionMetricValue `json:"metrics"`
 	// TimeframeEnd The specified end date-time for the reported consumption.
 	TimeframeEnd *time.Time `json:"timeframe_end,omitempty"`
 	// TimeframeStart The specified start date-time for the reported consumption.
@@ -4076,7 +4108,7 @@ type DataAPICreateResponse struct {
 // DataAPIReponse Neon Data API response
 type DataAPIReponse struct {
 	// AvailableSchemas List of available database schemas (SubZero only)
-	AvailableSchemas []string `json:"available_schemas,omitempty"`
+	AvailableSchemas []string `json:"available_schemas"`
 	// ObservedAt When `settings` and `available_schemas` were read from the database. While the
 	// compute is suspended they are served from that read, so a change made directly in
 	// the database since then shows up in the first response served while the compute is
@@ -4101,7 +4133,7 @@ type DataAPISettings struct {
 	// DbMaxRows Hard limit on the number of rows returned in a single Data API response. No limit when unset.
 	DbMaxRows *int `json:"db_max_rows,omitempty"`
 	// DbSchemas List of schemas to expose via the API. Default: ["public"]
-	DbSchemas []string `json:"db_schemas,omitempty"`
+	DbSchemas []string `json:"db_schemas"`
 	// JwtCacheMaxLifetime Maximum lifetime of the Data API's JWT cache, in seconds.
 	JwtCacheMaxLifetime *int `json:"jwt_cache_max_lifetime,omitempty"`
 	// JwtRoleClaimKey JWT claim key to use for role extraction
@@ -4331,7 +4363,7 @@ type EndpointUpdateRequest struct {
 }
 type EndpointsOptionalResponse struct {
 	// Endpoints Compute endpoints associated with the project.
-	Endpoints []Endpoint `json:"endpoints,omitempty"`
+	Endpoints []Endpoint `json:"endpoints"`
 }
 type EndpointsResponse struct {
 	// Endpoints Compute endpoints in the project. Each includes `id`, `branch_id`, `host`, and `type`.
@@ -4549,7 +4581,7 @@ type JWKS struct {
 	// ProviderName The name of the authentication provider (e.g., Clerk, Stytch, Auth0)
 	ProviderName string `json:"provider_name"`
 	// RoleNames Database role names that are permitted to authenticate using this JWKS configuration.
-	RoleNames []string `json:"role_names,omitempty"`
+	RoleNames []string `json:"role_names"`
 	// UpdatedAt The date and time when the JWKS was last modified
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -4698,11 +4730,16 @@ type NeonAuthAddDomainToRedirectURIWhitelistRequest struct {
 	Domain string `json:"domain"`
 }
 type NeonAuthAddOAuthProviderRequest struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key supplied in `client_secret`. Only relevant when the OAuth provider is Apple; omit for other providers.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Only relevant when the OAuth provider is Apple; omit for other providers.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID The client ID issued by the OAuth provider for your application. Used to identify the application during the OAuth flow.
 	ClientID *string `json:"client_id,omitempty"`
-	// ClientSecret OAuth client secret for the provider.
+	// ClientSecret OAuth client secret for the provider. For `apple`, the contents of the Sign in with Apple `.p8` private key. For `microsoft`, the client secret value from Microsoft Entra ID.
 	ClientSecret *string `json:"client_secret,omitempty"`
-	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`.
+	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.
+	// `apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.
 	ID NeonAuthOauthProviderId `json:"id"`
 	// MicrosoftTenantID Tenant ID for the Microsoft OAuth provider. Only relevant when the OAuth provider is Microsoft; omit or leave blank for other providers.
 	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
@@ -5128,9 +5165,9 @@ type NeonAuthOAuthClientUpdateRequest struct {
 	// Name Display name of the client.
 	Name *string `json:"name,omitempty"`
 	// RedirectURIs Redirect URIs the client may use. When provided, replaces the stored list.
-	RedirectURIs []string `json:"redirect_uris,omitempty"`
+	RedirectURIs []string `json:"redirect_uris"`
 	// Resources Identifiers of the protected resources to link the client to. When provided, replaces the stored list.
-	Resources []string `json:"resources,omitempty"`
+	Resources []string `json:"resources"`
 	// SkipConsent Whether to skip the consent prompt for this client.
 	SkipConsent *bool `json:"skip_consent,omitempty"`
 }
@@ -5144,7 +5181,7 @@ type NeonAuthOAuthProviderConfig struct {
 	// Mcp MCP resource configuration.
 	Mcp *NeonAuthOAuthProviderMcp `json:"mcp,omitempty"`
 	// Resources Protected resources that clients can be linked to.
-	Resources []NeonAuthOAuthProviderResource `json:"resources,omitempty"`
+	Resources []NeonAuthOAuthProviderResource `json:"resources"`
 }
 type NeonAuthOAuthProviderConfigUpdate struct {
 	// ConsentPage URL of the page that authorization requests redirect to for consent.
@@ -5156,18 +5193,22 @@ type NeonAuthOAuthProviderConfigUpdate struct {
 	// Mcp MCP resource configuration. When provided, `resource` is required and the stored MCP configuration is replaced as a whole.
 	Mcp *NeonAuthOAuthProviderMcpUpdate `json:"mcp,omitempty"`
 	// Resources Protected resources that clients can be linked to. When provided, replaces the stored list.
-	Resources []NeonAuthOAuthProviderResource `json:"resources,omitempty"`
+	Resources []NeonAuthOAuthProviderResource `json:"resources"`
 }
 type NeonAuthOAuthProviderMcp struct {
-	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). Defaults to true, but takes effect only when an MCP resource is configured; reads report false otherwise. When false, only clients created through the OAuth clients API can be used, and they can still be linked to the MCP resource.
+	// ClientIDMetadataDocuments Whether MCP clients may identify themselves with an https Client ID Metadata Document (CIMD) URL. Recommended over dynamic registration. When false, new CIMD clients are rejected and existing CIMD clients fail closed.
+	ClientIDMetadataDocuments *bool `json:"client_id_metadata_documents,omitempty"`
+	// DynamicRegistration Legacy: whether MCP clients may register themselves via dynamic client registration (RFC 7591). Deprecated in favor of Client ID Metadata Documents (CIMD), which are controlled by `client_id_metadata_documents`. Defaults to false, and takes effect only when an MCP resource is configured; reads report false otherwise. When false, only CIMD clients and clients created through the OAuth clients API can be used, and they can still be linked to the MCP resource.
 	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
-	// Resource The MCP server URL that dynamically registered clients are linked to.
+	// Resource The MCP server URL that MCP clients (Client ID Metadata Document and dynamically registered) are linked to. Required for either to be accepted.
 	Resource *string `json:"resource,omitempty"`
 }
 type NeonAuthOAuthProviderMcpUpdate struct {
+	// ClientIDMetadataDocuments Whether MCP clients may identify themselves with an https Client ID Metadata Document (CIMD) URL. When omitted, the stored value is kept.
+	ClientIDMetadataDocuments *bool `json:"client_id_metadata_documents,omitempty"`
 	// DynamicRegistration Whether MCP clients may register themselves via dynamic client registration (RFC 7591). When omitted, the stored value is kept.
 	DynamicRegistration *bool `json:"dynamic_registration,omitempty"`
-	// Resource The MCP server URL that dynamically registered clients are linked to.
+	// Resource The MCP server URL that MCP clients (Client ID Metadata Document and dynamically registered) are linked to. Required for either to be accepted.
 	Resource string `json:"resource"`
 }
 type NeonAuthOAuthProviderResource struct {
@@ -5175,12 +5216,18 @@ type NeonAuthOAuthProviderResource struct {
 	Identifier string `json:"identifier"`
 }
 type NeonAuthOauthProvider struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key. Present only for the Apple OAuth provider.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Present only for the Apple OAuth provider.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID Public identifier for the OAuth application, issued by the provider when the application is registered.
 	ClientID *string `json:"client_id,omitempty"`
-	// ClientSecret OAuth client secret for the provider.
+	// ClientSecret Masked OAuth client secret for the provider. For `apple`, a masked fingerprint of the Sign in with Apple `.p8` private key; the key itself is never returned.
 	ClientSecret *string `json:"client_secret,omitempty"`
 	// ID The OAuth provider's ID.
 	ID NeonAuthOauthProviderId `json:"id"`
+	// MicrosoftTenantID Tenant ID of the Microsoft OAuth provider. Present only for the Microsoft OAuth provider when a tenant is configured.
+	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
 	// Type OAuth provider key type. `standard` uses your own OAuth credentials. `shared` uses Neon-managed keys intended for development only; they display Neon branding on the OAuth consent screen and must not be used in production.
 	Type NeonAuthOauthProviderType `json:"type"`
 }
@@ -5210,6 +5257,7 @@ var (
 	NeonAuthOauthProviderIdGithub    = NeonAuthOauthProviderId{"github"}
 	NeonAuthOauthProviderIdMicrosoft = NeonAuthOauthProviderId{"microsoft"}
 	NeonAuthOauthProviderIdVercel    = NeonAuthOauthProviderId{"vercel"}
+	NeonAuthOauthProviderIdApple     = NeonAuthOauthProviderId{"apple"}
 )
 
 func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
@@ -5218,6 +5266,7 @@ func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
 		"github":    NeonAuthOauthProviderIdGithub,
 		"microsoft": NeonAuthOauthProviderIdMicrosoft,
 		"vercel":    NeonAuthOauthProviderIdVercel,
+		"apple":     NeonAuthOauthProviderIdApple,
 	}
 	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
@@ -5316,7 +5365,7 @@ type NeonAuthPluginConfigs struct {
 	// OauthProvider Configuration for the OAuth provider plugin, which lets Neon Auth act as an OAuth authorization server for your own clients.
 	OauthProvider *NeonAuthOAuthProviderConfig `json:"oauth_provider,omitempty"`
 	// OauthProviders OAuth provider configurations enabled for this auth setup.
-	OauthProviders []NeonAuthOauthProvider `json:"oauth_providers,omitempty"`
+	OauthProviders []NeonAuthOauthProvider `json:"oauth_providers"`
 	// Organization Configuration for the Neon Auth organization plugin, which enables user organizations within the authentication system. This is distinct from a Neon platform organization.
 	Organization *NeonAuthOrganizationConfig `json:"organization,omitempty"`
 	// PhoneNumber Configuration for the phone number authentication plugin.
@@ -5462,9 +5511,14 @@ type NeonAuthTransferAuthProviderProjectResponse struct {
 	URL string `json:"url"`
 }
 type NeonAuthUpdateOAuthProviderRequest struct {
+	// AppleKeyID Key ID of the Sign in with Apple private key supplied in `client_secret`. Supply this field when the provider is apple; it has no effect for other providers.
+	AppleKeyID *string `json:"apple_key_id,omitempty"`
+	// AppleTeamID Apple Developer Team ID. Supply this field when the provider is apple; it has no effect for other providers.
+	AppleTeamID *string `json:"apple_team_id,omitempty"`
 	// ClientID The OAuth client ID registered with the provider. Omit to keep the currently configured value.
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider. Omit to leave the existing secret unchanged.
+	// For `apple`, a new `.p8` private key must be sent together with its `apple_key_id` in the same request; omit both to keep the stored key.
 	ClientSecret *string `json:"client_secret,omitempty"`
 	// MicrosoftTenantID The tenant ID scoping the Microsoft OAuth provider. Supply this field when the provider type is microsoft; it has no effect for other provider types.
 	MicrosoftTenantID *string `json:"microsoft_tenant_id,omitempty"`
@@ -5473,7 +5527,7 @@ type NeonAuthWebhookConfig struct {
 	// Enabled Whether the webhook is active.
 	Enabled bool `json:"enabled"`
 	// EnabledEvents Event types that trigger this webhook. Covers user lifecycle, email/OTP delivery, organization invitations, and phone verification events; see the enum for exact values.
-	EnabledEvents []NeonAuthWebhookConfigEnabledEventsItem `json:"enabled_events,omitempty"`
+	EnabledEvents []NeonAuthWebhookConfigEnabledEventsItem `json:"enabled_events"`
 	// TimeoutSeconds Maximum time, in seconds, to wait for a response from the webhook endpoint.
 	TimeoutSeconds *uint8 `json:"timeout_seconds,omitempty"`
 	// WebhookURL Destination URL that receives webhook event payloads.
@@ -5504,7 +5558,7 @@ type NeonFunctionDeployment struct {
 	// Values are encrypted at rest and are never returned — they are
 	// write-only. To change a value, deploy the variable with the new
 	// value; to remove a variable, deploy it with an empty value.
-	Environment []string `json:"environment,omitempty"`
+	Environment []string `json:"environment"`
 	// Error Human-readable reason the deployment build failed. Present only
 	// when `status` is `failed`.
 	Error *string `json:"error,omitempty"`
@@ -5836,7 +5890,7 @@ type PlanVersion struct {
 // PreloadLibraries The shared libraries to preload into the project's compute instances.
 type PreloadLibraries struct {
 	// EnabledLibraries Names of shared preload libraries to enable for the project.
-	EnabledLibraries []string `json:"enabled_libraries,omitempty"`
+	EnabledLibraries []string `json:"enabled_libraries"`
 	// UseDefaults When true, the project's preload libraries include the platform default set in addition to any libraries listed in `enabled_libraries`.
 	UseDefaults *bool `json:"use_defaults,omitempty"`
 }
@@ -5873,6 +5927,7 @@ type Project struct {
 	// ActiveTimeSeconds Seconds. Control plane observed endpoints of this project being active this amount of wall-clock time.
 	// The value has some lag.
 	// The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ActiveTimeSeconds int64 `json:"active_time_seconds"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
 	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
@@ -5887,6 +5942,7 @@ type Project struct {
 	// Examples:
 	// 1. An endpoint that uses 1 CPU for 1 second is equal to `compute_time=1`.
 	// 2. An endpoint that uses 2 CPUs simultaneously for 1 second is equal to `compute_time=2`.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ComputeTimeSeconds int64 `json:"compute_time_seconds"`
 	// ConsumptionPeriodEnd A date-time indicating when Neon Cloud plans to stop measuring consumption for current consumption period.
 	ConsumptionPeriodEnd time.Time `json:"consumption_period_end"`
@@ -5904,6 +5960,7 @@ type Project struct {
 	DataStorageBytesHour int64 `json:"data_storage_bytes_hour"`
 	// DataTransferBytes Bytes. Egress traffic from the Neon cloud to the client for given project over the billing period.
 	// Includes deleted endpoints. The value has some lag. The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	DataTransferBytes          int64                              `json:"data_transfer_bytes"`
 	DefaultEndpointSettings    *DefaultEndpointSettings           `json:"default_endpoint_settings,omitempty"`
 	EffectiveProjectPermission *ProjectEffectiveProjectPermission `json:"effective_project_permission,omitempty"`
@@ -5947,6 +6004,7 @@ type Project struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// WrittenDataBytes Bytes. Amount of WAL that travelled through Postgres storage for given project across all branches.
 	// The value has some lag. The value is reset at the beginning of each billing period.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	WrittenDataBytes int64 `json:"written_data_bytes"`
 }
 type ProjectAuditLogLevel struct {
@@ -6236,6 +6294,7 @@ type ProjectJWKSResponse struct {
 // ProjectListItem Essential data about the project. Full data is available at `GET /projects/{project_id}`.
 type ProjectListItem struct {
 	// ActiveTime Control plane observed endpoints of this project being active this amount of wall-clock time.
+	// Not intended for billing or metering. For billing, use `/consumption_history/v2/projects`.
 	ActiveTime int64 `json:"active_time"`
 	// BranchLogicalSizeLimit The logical size limit for a branch. The value is in MiB.
 	BranchLogicalSizeLimit int64 `json:"branch_logical_size_limit"`
@@ -6619,6 +6678,10 @@ type ProjectsApplicationsMapResponse struct {
 	// Applications Map of project IDs to their installed applications. Each key is a project ID; each value is an array of application types (for example, `vercel`, `github`).
 	Applications map[string]any `json:"applications"`
 }
+type ProjectsCountResponse struct {
+	// Count The total number of projects matching the query criteria.
+	Count uint `json:"count"`
+}
 
 // ProjectsIntegrationsMapResponse A map where key is a project ID and a value is a list of installed integrations.
 type ProjectsIntegrationsMapResponse struct {
@@ -6630,7 +6693,7 @@ type ProjectsResponse struct {
 	Projects []ProjectListItem `json:"projects"`
 	// UnavailableProjectIDs A list of project IDs indicating which projects are known to exist, but whose details could not
 	// be fetched within the requested (or implicit) time limit
-	UnavailableProjectIDs []string `json:"unavailable_project_ids,omitempty"`
+	UnavailableProjectIDs []string `json:"unavailable_project_ids"`
 }
 type ProjectsWithIntegrationResponse struct {
 	// Projects Projects that have the requested integration, each including the project details and associated integration metadata.
@@ -6638,7 +6701,7 @@ type ProjectsWithIntegrationResponse struct {
 }
 type Provisioner string
 type Realtime struct {
-	AllowedOrigins []string `json:"allowed_origins,omitempty"`
+	AllowedOrigins []string `json:"allowed_origins"`
 	// Enabled Whether Realtime is enabled for the branch.
 	Enabled       bool    `json:"enabled"`
 	InvocationURL *string `json:"invocation_url,omitempty"`
@@ -6650,7 +6713,7 @@ type RealtimeOptions struct {
 	// AllowedOrigins The browser origins allowed to connect, each `http` or `https` with a host and optional port
 	// and no path. An empty list, or `*` alone, allows any origin. Omitted keeps the current or
 	// inherited value.
-	AllowedOrigins []string `json:"allowed_origins,omitempty"`
+	AllowedOrigins []string `json:"allowed_origins"`
 }
 type RealtimeSecret struct {
 	// Pending Whether a change is still being applied. After a rotation, the secret changes when this becomes false.
@@ -7756,7 +7819,7 @@ type BranchSchemaJSONTablesItem struct {
 	// Columns Columns belonging to this table, each describing a column's name and attributes.
 	Columns []BranchSchemaJSONTablesItemColumnsItem `json:"columns"`
 	// Constraints Table constraints defined in the branch schema, such as primary key, foreign key, unique, and check constraints.
-	Constraints []BranchSchemaJSONTablesItemConstraintsItem `json:"constraints,omitempty"`
+	Constraints []BranchSchemaJSONTablesItemConstraintsItem `json:"constraints"`
 	// Name Name of the table within the schema.
 	Name string `json:"name"`
 	// Schema Postgres schema (namespace) that contains the table, for example `public`.
