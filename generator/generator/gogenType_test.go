@@ -55,7 +55,7 @@ type EmptyResponse map[string]any`,
 }}}
 `),
 			want: `type FooEnumFooID struct {
-Foo []FooEnumFooID ` + "`json:\"foo,omitempty\"`\n" +
+Foo []FooEnumFooID ` + "`json:\"foo\"`\n" +
 				"}",
 			errFn: assert.NoError,
 		},
@@ -241,7 +241,7 @@ PaginationResponse` +
 type AllowedIps struct {
 ` +
 				"// Ips A list of IP addresses that are allowed to connect to the endpoint.\n" +
-				"Ips []string `json:\"ips,omitempty\"`\n" +
+				"Ips []string `json:\"ips\"`\n" +
 				"// ProtectedBranchesOnly If true, the list will be applied only to protected branches.\n" +
 				"ProtectedBranchesOnly *bool `json:\"protected_branches_only,omitempty\"`\n" +
 				"}",
@@ -346,6 +346,24 @@ return fmt.Errorf("unknown discriminator value: %q", t)
 return nil
 }
 `,
+			errFn: assert.NoError,
+		},
+		"schema with map": {
+			raw: []byte(`{
+	"schemas": {
+		"Foo": {
+            "type": "object",
+            "properties": {
+                "foo": {
+                    "type": "object"
+                }
+            }
+        }
+	}
+}`),
+			want: `type Foo struct {
+Foo map[string]any ` + "`json:\"foo\"`" + `
+}`,
 			errFn: assert.NoError,
 		},
 	}
