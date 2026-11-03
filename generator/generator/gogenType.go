@@ -513,6 +513,7 @@ func newGoNameFromJsonAttribute(s string) string {
 
 	var o = new(strings.Builder)
 	s = strings.ToLower(s)
+	s = strings.ReplaceAll(s, " ", "_")
 	s = strings.Join(strings.Split(s, "_"), ".")
 	s = strings.Join(strings.Split(s, "."), "-")
 	s = strings.Join(strings.Split(s, "-"), ":")

@@ -385,6 +385,27 @@ Foo map[string]any ` + "`json:\"foo\"`" + `
 }`,
 			errFn: assert.NoError,
 		},
+		"type with a space in the attr. name": {
+			raw: []byte(`{
+			"schemas": {
+				"ExplainData": {
+	                "type": "object",
+	                "required": [
+	                    "QUERY PLAN"
+	                ],
+	                "properties": {
+	                    "QUERY PLAN": {
+	                        "type": "string"
+	                    }
+	                }
+	            }
+			}
+}`),
+			want: `type ExplainData struct {
+QueryPlan string ` + "`json:\"QUERY PLAN\"`" + `
+}`,
+			errFn: assert.NoError,
+		},
 	}
 
 	t.Parallel()

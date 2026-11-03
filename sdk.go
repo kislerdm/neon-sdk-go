@@ -4824,6 +4824,8 @@ type NeonAuthEmailAndPasswordConfig struct {
 	Enabled bool `json:"enabled"`
 	// RequireEmailVerification Whether email verification is required before users can sign in
 	RequireEmailVerification bool `json:"require_email_verification"`
+	// RevokeSessionsOnPasswordReset Whether all of a user's sessions are revoked when their password is reset
+	RevokeSessionsOnPasswordReset bool `json:"revoke_sessions_on_password_reset"`
 	// SendVerificationEmailOnSignIn Whether to send a verification email when users sign in
 	SendVerificationEmailOnSignIn bool `json:"send_verification_email_on_sign_in"`
 	// SendVerificationEmailOnSignUp Whether to send a verification email when users sign up
@@ -4840,6 +4842,8 @@ type NeonAuthEmailAndPasswordConfigUpdate struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// RequireEmailVerification When true, users must verify their email address before they can sign in. Omitting this field from an update request leaves the current value unchanged.
 	RequireEmailVerification *bool `json:"require_email_verification,omitempty"`
+	// RevokeSessionsOnPasswordReset Whether all of a user's sessions are revoked when their password is reset. When omitted, the current setting is not changed.
+	RevokeSessionsOnPasswordReset *bool `json:"revoke_sessions_on_password_reset,omitempty"`
 	// SendVerificationEmailOnSignIn Whether to send a verification email when a user with an unverified email signs in.
 	SendVerificationEmailOnSignIn *bool `json:"send_verification_email_on_sign_in,omitempty"`
 	// SendVerificationEmailOnSignUp Whether to send a verification email when users sign up.

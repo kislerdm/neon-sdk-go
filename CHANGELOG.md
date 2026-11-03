@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.36.0] - 2026-11-02
+## [v0.36.0] - 2026-11-03
 
-### Changed
+The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-11-03 19:12:00 GMT.
 
-- Changed serialization of non-required slice and map attributes, so they are not included in the API request's payload if they are not initialized to their non-zero values.
+### Added
+
+- Added the field `RevokeSessionsOnPasswordReset` to the types `NeonAuthEmailAndPasswordConfig` and `NeonAuthEmailAndPasswordConfigUpdate`.
 
 ## [v0.35.0] - 2026-11-02
 
