@@ -1088,6 +1088,17 @@ func (c Client) SendNeonAuthEmailProviderTest(projectID string, branchID string,
 	return v, nil
 }
 
+// UpdateNeonAuthLogsExport Enables or disables exporting Neon Auth events for the branch to Neon Platform logs.
+// Only supported for Neon Auth (`better_auth`) integrations.
+// When logs export is not available for the project, only disabling is accepted.
+func (c Client) UpdateNeonAuthLogsExport(projectID string, branchID string, cfg NeonAuthLogsExportConfig) (NeonAuthLogsExportConfig, error) {
+	var v NeonAuthLogsExportConfig
+	if err := c.requestHandler(c.baseURL+"/projects/"+projectID+"/branches/"+branchID+"/auth/logs_export", "PATCH", cfg, &v); err != nil {
+		return NeonAuthLogsExportConfig{}, err
+	}
+	return v, nil
+}
+
 // CreateNeonAuthOAuthClient Registers an OAuth client with the branch's Neon Auth OAuth provider.
 // For `confidential` clients the response includes the `client_secret`, which is shown only once.
 // Every entry in `resources` must be configured on the OAuth provider plugin.
@@ -1448,6 +1459,10 @@ func (c Client) DeleteProjectBranchBucketObject(projectID string, branchID strin
 // specified branch, including objects inherited from ancestor branches.
 // Served by the user's session (no customer S3 credentials required).
 //
+// For organizations on the per-project role model, downloading object
+// bytes requires the Editor role or higher. Viewers can list objects
+// but not download them.
+//
 // The body is returned as `application/octet-stream` so a browser treats
 // it as a download; the `Content-Length` and `ETag` response headers echo
 // the stored object metadata.
@@ -1514,6 +1529,9 @@ type ObjectHeaders struct {
 // project write access.
 // - `download` returns a presigned `GET` URL (the caller `GET`s the
 // bytes straight from `url`). Authorized with project read access.
+// For organizations on the per-project role model, it also requires
+// the Editor role or higher, because the URL grants access to the
+// object's bytes.
 //
 // The platform mints a short-lived credential and builds the SigV4-signed
 // URL against the branch's S3 data-plane host, returning it together with
@@ -1666,6 +1684,11 @@ func (c Client) RotateCredential(projectID string, branchID string, tokenID stri
 // registered to another resource is rejected with `409` and no detail about
 // the owner. Re-registering the same domain for the same entity is idempotent.
 //
+// For organizations on the per-project role model, registering a custom
+// domain requires the project Admin role. Other callers receive `403` with
+// code `CUSTOM_DOMAIN_ADMIN_REQUIRED`. Organization API keys keep write-level
+// access.
+//
 // **Note**: This endpoint is currently in Beta.
 func (c Client) RegisterProjectBranchCustomDomain(projectID string, branchID string, cfg CustomDomainRegisterRequest) (CustomDomain, error) {
 	var v CustomDomain
@@ -1701,6 +1724,11 @@ func (c Client) ListProjectBranchCustomDomains(projectID string, branchID string
 }
 
 // DeleteProjectBranchCustomDomain Removes a custom domain registered on the branch and stops routing it.
+//
+// For organizations on the per-project role model, deleting a custom domain
+// requires the project Admin role. Other callers receive `403` with code
+// `CUSTOM_DOMAIN_ADMIN_REQUIRED`. Organization API keys keep write-level
+// access.
 //
 // **Note**: This endpoint is currently in Beta.
 func (c Client) DeleteProjectBranchCustomDomain(projectID string, branchID string, domain string) error {
@@ -3639,6 +3667,9 @@ func NewBucketAccessLevel(s string) (BucketAccessLevel, error) {
 type BucketCreateRequest struct {
 	// AccessLevel Access level for the bucket. Defaults to `private`. Set to `public_read`
 	// to allow anonymous `GetObject`/`HeadObject` on objects in this bucket.
+	// For organizations on the per-project role model, creating a
+	// `public_read` bucket requires the project Admin role or an
+	// organization API key.
 	AccessLevel *BucketCreateRequestAccessLevel `json:"access_level,omitempty"`
 	// Name The bucket name.
 	Name string `json:"name"`
@@ -4107,13 +4138,21 @@ type DataAPICreateResponse struct {
 
 // DataAPIReponse Neon Data API response
 type DataAPIReponse struct {
+	// AuthProvider How this Data API verifies JWTs, as recorded by the last create that named a provider. `neon_auth` verifies Neon Auth tokens; `external` verifies tokens from a third-party identity provider via `jwks_url`. Absent when no provider is recorded: the Data API was created before providers were recorded, or it was created without naming one. Treat an absent value as unknown and fall back to the branch's Neon Auth state (`GET /projects/{project_id}/branches/{branch_id}/auth`). The value can differ from the current setup (for example, a JWKS added later), and it is also absent in responses served from the state cache while the compute is suspended. A child branch inherits its parent's Data API and reports the parent's provider.
+	AuthProvider *DataAPIReponseAuthProvider `json:"auth_provider,omitempty"`
 	// AvailableSchemas List of available database schemas (SubZero only)
 	AvailableSchemas []string `json:"available_schemas,omitzero"`
+	// JwksURL URL of the JWKS endpoint the Data API verifies JWTs against. Only set when `auth_provider` is `external`.
+	JwksURL *string `json:"jwks_url,omitempty"`
+	// JwtAudience Expected `aud` claim in incoming JWTs, as given at creation. Only set when `auth_provider` is `external` and an audience was given.
+	JwtAudience *string `json:"jwt_audience,omitempty"`
 	// ObservedAt When `settings` and `available_schemas` were read from the database. While the
 	// compute is suspended they are served from that read, so a change made directly in
 	// the database since then shows up in the first response served while the compute is
 	// active.
 	ObservedAt *time.Time `json:"observed_at,omitempty"`
+	// ProviderName Display name of the external authentication provider, as given at creation (for example "Clerk"). Only set when `auth_provider` is `external` and a name was given.
+	ProviderName *string `json:"provider_name,omitempty"`
 	// Settings Configuration settings for the Data API (SubZero only)
 	Settings *DataAPIReponseSettings `json:"settings,omitempty"`
 	// Status The status of the Neon Data API deployment
@@ -5066,6 +5105,10 @@ type NeonAuthIntegration struct {
 	// TransferStatus Ownership transfer state for the auth provider project. `initiated` means a transfer was requested but not completed. `finished` means it completed successfully.
 	TransferStatus *NeonAuthProviderProjectTransferStatus `json:"transfer_status,omitempty"`
 }
+type NeonAuthLogsExportConfig struct {
+	// Enabled Whether Neon Auth events are exported to Neon Platform logs.
+	Enabled bool `json:"enabled"`
+}
 type NeonAuthMagicLinkConfig struct {
 	// DisableSignUp Whether to disable sign-up via magic link.
 	DisableSignUp bool `json:"disable_sign_up"`
@@ -5364,6 +5407,8 @@ type NeonAuthPluginConfigs struct {
 	EmailAndPassword *NeonAuthEmailAndPasswordConfig `json:"email_and_password,omitempty"`
 	// EmailProvider Email server configuration used to send authentication emails.
 	EmailProvider *NeonAuthEmailServerConfigResponse `json:"email_provider,omitempty"`
+	// LogsExport Whether Neon Auth events for the branch are exported to Neon Platform logs.
+	LogsExport *NeonAuthLogsExportConfig `json:"logs_export,omitempty"`
 	// MagicLink Configuration for passwordless magic-link email authentication.
 	MagicLink *NeonAuthMagicLinkConfig `json:"magic_link,omitempty"`
 	// OauthProvider Configuration for the OAuth provider plugin, which lets Neon Auth act as an OAuth authorization server for your own clients.
@@ -7893,6 +7938,9 @@ type BranchUpdateRequestBranch struct {
 
 // BucketCreateRequestAccessLevel Access level for the bucket. Defaults to `private`. Set to `public_read`
 // to allow anonymous `GetObject`/`HeadObject` on objects in this bucket.
+// For organizations on the per-project role model, creating a
+// `public_read` bucket requires the project Admin role or an
+// organization API key.
 type BucketCreateRequestAccessLevel struct {
 	v string
 }
@@ -8013,6 +8061,46 @@ func NewDataAPICreateRequestAuthProvider(s string) (DataAPICreateRequestAuthProv
 	return v, nil
 }
 
+// DataAPIReponseAuthProvider How this Data API verifies JWTs, as recorded by the last create that named a provider. `neon_auth` verifies Neon Auth tokens; `external` verifies tokens from a third-party identity provider via `jwks_url`. Absent when no provider is recorded: the Data API was created before providers were recorded, or it was created without naming one. Treat an absent value as unknown and fall back to the branch's Neon Auth state (`GET /projects/{project_id}/branches/{branch_id}/auth`). The value can differ from the current setup (for example, a JWKS added later), and it is also absent in responses served from the state cache while the compute is suspended. A child branch inherits its parent's Data API and reports the parent's provider.
+type DataAPIReponseAuthProvider struct {
+	v string
+}
+
+func (v DataAPIReponseAuthProvider) String() string {
+	return v.v
+}
+
+func (v *DataAPIReponseAuthProvider) UnmarshalText(data []byte) error {
+	o, err := NewDataAPIReponseAuthProvider(string(data))
+	if err != nil {
+		return err
+	}
+	*v = o
+	return nil
+}
+
+func (v DataAPIReponseAuthProvider) MarshalText() ([]byte, error) {
+	return []byte(v.v), nil
+}
+
+var (
+	DataAPIReponseAuthProviderNeonAuth = DataAPIReponseAuthProvider{"neon_auth"}
+	DataAPIReponseAuthProviderExternal = DataAPIReponseAuthProvider{"external"}
+)
+
+func NewDataAPIReponseAuthProvider(s string) (DataAPIReponseAuthProvider, error) {
+	m := map[string]DataAPIReponseAuthProvider{
+		"neon_auth": DataAPIReponseAuthProviderNeonAuth,
+		"external":  DataAPIReponseAuthProviderExternal,
+	}
+	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
+	v, ok := m[s]
+	if !ok {
+		return DataAPIReponseAuthProvider{}, fmt.Errorf("unknown value: %v", s)
+	}
+	return v, nil
+}
+
 // DataAPIReponseSettings Configuration settings for the Data API (SubZero only)
 type DataAPIReponseSettings struct {
 	DataAPISettings
@@ -8094,7 +8182,7 @@ type EndpointUpdateRequestEndpoint struct {
 	// PoolerEnabled Deprecated. To enable connection pooling, append `-pooler` to the endpoint ID in the connection string.
 	// See [How to use connection pooling](https://neon.com/docs/connect/connection-pooling#how-to-use-connection-pooling)
 	PoolerEnabled *bool `json:"pooler_enabled,omitempty"`
-	// Provisioner Compute provisioner. `k8s-neonvm` (default) supports Autoscaling; `k8s-pod` is fixed-size compute. Also `docker` and `serverless-platform`.
+	// Provisioner Legacy field; do not send it. An update never changes the provisioner: `k8s-neonvm` is accepted and ignored for backward compatibility, and any other value is rejected. On Lakebase, any value is rejected.
 	Provisioner *Provisioner          `json:"provisioner,omitempty"`
 	Settings    *EndpointSettingsData `json:"settings,omitempty"`
 	// SuspendTimeoutSeconds Scale-to-zero idle timeout, in seconds, before the compute suspends. `0` uses the plan default; `-1` disables scale-to-zero (never suspends). Minimum is plan-dependent (Scale: 60); maximum 604800 (one week). Free cannot change it; Launch can only enable or disable; Scale can set any value.
