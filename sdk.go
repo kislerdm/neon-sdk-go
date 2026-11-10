@@ -4777,7 +4777,8 @@ type NeonAuthAddOAuthProviderRequest struct {
 	ClientID *string `json:"client_id,omitempty"`
 	// ClientSecret OAuth client secret for the provider. For `apple`, the contents of the Sign in with Apple `.p8` private key. For `microsoft`, the client secret value from Microsoft Entra ID.
 	ClientSecret *string `json:"client_secret,omitempty"`
-	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.
+	// ID OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`, `discord`.
+	// `discord` requires custom credentials: set `client_id` and `client_secret` from your Discord application.
 	// `apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.
 	ID NeonAuthOauthProviderId `json:"id"`
 	// MicrosoftTenantID Tenant ID for the Microsoft OAuth provider. Only relevant when the OAuth provider is Microsoft; omit or leave blank for other providers.
@@ -5305,6 +5306,7 @@ var (
 	NeonAuthOauthProviderIdMicrosoft = NeonAuthOauthProviderId{"microsoft"}
 	NeonAuthOauthProviderIdVercel    = NeonAuthOauthProviderId{"vercel"}
 	NeonAuthOauthProviderIdApple     = NeonAuthOauthProviderId{"apple"}
+	NeonAuthOauthProviderIdDiscord   = NeonAuthOauthProviderId{"discord"}
 )
 
 func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
@@ -5314,6 +5316,7 @@ func NewNeonAuthOauthProviderId(s string) (NeonAuthOauthProviderId, error) {
 		"microsoft": NeonAuthOauthProviderIdMicrosoft,
 		"vercel":    NeonAuthOauthProviderIdVercel,
 		"apple":     NeonAuthOauthProviderIdApple,
+		"discord":   NeonAuthOauthProviderIdDiscord,
 	}
 	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]

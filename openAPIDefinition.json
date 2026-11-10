@@ -16882,7 +16882,8 @@
                     "github",
                     "microsoft",
                     "vercel",
-                    "apple"
+                    "apple",
+                    "discord"
                 ]
             },
             "NeonAuthOauthProviderType": {
@@ -16903,7 +16904,7 @@
                 "properties": {
                     "id": {
                         "$ref": "#/components/schemas/NeonAuthOauthProviderId",
-                        "description": "OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`.\n`apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.\n"
+                        "description": "OAuth provider to configure for Neon Auth. Known values: `google`, `github`, `microsoft`, `vercel`, `apple`, `discord`.\n`discord` requires custom credentials: set `client_id` and `client_secret` from your Discord application.\n`apple` requires custom credentials: set `client_id` to the Services ID, `client_secret` to the contents of the `.p8` private key, and supply `apple_team_id` and `apple_key_id`.\n"
                     },
                     "client_id": {
                         "type": "string",
