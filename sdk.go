@@ -2046,6 +2046,9 @@ func (c Client) ListProjectBranchLogFieldValues(projectID string, branchID strin
 // apply, because those bound the query rather than form part of the
 // expression.
 //
+// `source=neon_auth` returns a 404 `telemetry_not_enabled` response when
+// Neon Auth logs are not enabled for this project.
+//
 // Give the window either as `since` — a duration ending at `end_time`, or
 // at the current time when `end_time` is omitted — or as an explicit
 // `start_time`. Supplying both is rejected.
@@ -3883,6 +3886,11 @@ type CreateBranchNeonAuthNewUserRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 type CreateCredentialRequest struct {
+	// ExpiresAt When the credential stops working. Omit it for a credential that
+	// doesn't expire. Must be at least 1 minute and at most 365 days from
+	// now. Rotating the credential keeps the same expiry, and an expired
+	// credential can't be rotated.
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// Name Free-form customer label for the credential.
 	Name *string `json:"name,omitempty"`
 	// PrincipalType Principal type for the credential. Only `user` is customer-managed
@@ -6224,6 +6232,7 @@ var (
 	ProjectBranchLogSourceFunction   = ProjectBranchLogSource{"function"}
 	ProjectBranchLogSourceStorage    = ProjectBranchLogSource{"storage"}
 	ProjectBranchLogSourcePgEndpoint = ProjectBranchLogSource{"pg_endpoint"}
+	ProjectBranchLogSourceNeonAuth   = ProjectBranchLogSource{"neon_auth"}
 )
 
 func NewProjectBranchLogSource(s string) (ProjectBranchLogSource, error) {
@@ -6231,6 +6240,7 @@ func NewProjectBranchLogSource(s string) (ProjectBranchLogSource, error) {
 		"function":    ProjectBranchLogSourceFunction,
 		"storage":     ProjectBranchLogSourceStorage,
 		"pg_endpoint": ProjectBranchLogSourcePgEndpoint,
+		"neon_auth":   ProjectBranchLogSourceNeonAuth,
 	}
 	s = strings.TrimLeft(strings.TrimRight(s, "\""), "\"")
 	v, ok := m[s]
