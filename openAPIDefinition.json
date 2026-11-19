@@ -1440,10 +1440,10 @@
                                 "type": "object",
                                 "properties": {
                                     "org_id": {
-                                        "description": "The Neon organization ID to transfer the project to. If not provided, the project will be\ntransferred to the current user or organization account.\n",
-                                        "example": "org-cool-darkness-12345678",
                                         "type": "string",
-                                        "pattern": "^[a-z0-9-]{1,60}$"
+                                        "pattern": "^[a-z0-9-]{1,60}$",
+                                        "description": "The Neon organization ID to transfer the project to. If not provided, the project will be\ntransferred to the current user or organization account.\n",
+                                        "example": "org-cool-darkness-12345678"
                                     }
                                 }
                             }
@@ -7086,8 +7086,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
                             },
                             "minItems": 0,
                             "maxItems": 100
@@ -7216,7 +7216,7 @@
         "/consumption_history/v2/projects": {
             "get": {
                 "summary": "Retrieve project consumption metrics",
-                "description": "Returns consumption metrics for up to `limit` projects per page. If `project_ids` is omitted,\nprojects in the organization are included across pages (use `cursor`). If `project_ids` is\nprovided, the response is limited to those projects (up to 100). Available for accounts on\nLaunch, Scale, Agent, Business, and Enterprise plans.\n\nHistory starts when the account upgrades to an eligible plan.\n\nThe `metrics` query parameter is required. Supported values:\n`compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,\n`instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,\n`extra_branches_month`, `snapshot_storage_bytes_month`,\n`functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,\n`functions_invocations`, `functions_egress_bytes`.\n\nConsumption metrics within each project are returned in ascending time order (oldest first).\nThis request does not wake project computes.\n",
+                "description": "Returns consumption metrics for up to `limit` projects per page. If `project_ids` is omitted,\nprojects in the organization are included across pages (use `cursor`). If `project_ids` is\nprovided, the response is limited to those projects (up to 100). Available for accounts on\nLaunch, Scale, Agent, Business, and Enterprise plans.\n\nHistory starts when the account upgrades to an eligible plan.\n\nThe `metrics` query parameter is required. Supported values:\n`compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,\n`instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,\n`extra_branches_month`, `snapshot_storage_bytes_month`,\n`functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,\n`functions_invocations`, `functions_egress_bytes`,\n`ai_gateway_input_tokens`, `ai_gateway_output_tokens`, `ai_gateway_total_tokens`,\n`ai_gateway_cached_input_tokens`, `ai_gateway_cache_creation_tokens`, `ai_gateway_reasoning_tokens`.\n\nConsumption metrics within each project are returned in ascending time order (oldest first).\nThis request does not wake project computes.\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -7248,8 +7248,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
                             },
                             "minItems": 0,
                             "maxItems": 100
@@ -7297,7 +7297,7 @@
                     {
                         "name": "metrics",
                         "required": true,
-                        "description": "Required. List the metrics to return. Supported values:\n- `compute_unit_seconds`\n- `root_branch_bytes_month`\n- `child_branch_bytes_month`\n- `instant_restore_bytes_month`\n- `public_network_transfer_bytes`\n- `private_network_transfer_bytes`\n- `extra_branches_month`\n- `snapshot_storage_bytes_month`\n- `functions_active_capacity_microseconds`\n- `functions_waiting_capacity_microseconds`\n- `functions_invocations`\n- `functions_egress_bytes`\n\nPass multiple values as repeated query parameters or a comma-separated list:\n- `metrics=compute_unit_seconds&metrics=extra_branches_month`\n- `metrics=compute_unit_seconds,extra_branches_month`\n",
+                        "description": "Required. List the metrics to return. Supported values:\n- `compute_unit_seconds`\n- `root_branch_bytes_month`\n- `child_branch_bytes_month`\n- `instant_restore_bytes_month`\n- `public_network_transfer_bytes`\n- `private_network_transfer_bytes`\n- `extra_branches_month`\n- `snapshot_storage_bytes_month`\n- `functions_active_capacity_microseconds`\n- `functions_waiting_capacity_microseconds`\n- `functions_invocations`\n- `functions_egress_bytes`\n- `ai_gateway_input_tokens`\n- `ai_gateway_output_tokens`\n- `ai_gateway_total_tokens`\n- `ai_gateway_cached_input_tokens`\n- `ai_gateway_cache_creation_tokens`\n- `ai_gateway_reasoning_tokens`\n\nPass multiple values as repeated query parameters or a comma-separated list:\n- `metrics=compute_unit_seconds&metrics=extra_branches_month`\n- `metrics=compute_unit_seconds,extra_branches_month`\n",
                         "in": "query",
                         "schema": {
                             "$ref": "#/components/schemas/ConsumptionHistoryQueryMetrics"
@@ -7371,7 +7371,7 @@
         "/consumption_history/v2/branches": {
             "get": {
                 "summary": "Retrieve branch consumption metrics",
-                "description": "Returns consumption metrics for each branch across one or more projects listed in\n`project_ids` (1 to 100 projects). Available for accounts on paid usage-based Launch, Scale,\nAgent, and Enterprise plans.\n\nHistory starts when the account first ingests branch-level consumption data.\n\nThe `metrics` query parameter is required. These values are supported on this\nendpoint:\n`compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,\n`instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,\n`functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,\n`functions_invocations`, `functions_egress_bytes`.\n\nThis endpoint does not support `extra_branches_month` or `snapshot_storage_bytes_month`.\nUse `GET /consumption_history/v2/projects` for those.\n\nConsumption metrics within each branch are returned in ascending time order (oldest first).\nThis request does not wake project computes.\n",
+                "description": "Returns consumption metrics for each branch across one or more projects listed in\n`project_ids` (1 to 100 projects). Available for accounts on paid usage-based Launch, Scale,\nAgent, and Enterprise plans.\n\nHistory starts when the account first ingests branch-level consumption data.\n\nThe `metrics` query parameter is required. These values are supported on this\nendpoint:\n`compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,\n`instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,\n`functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,\n`functions_invocations`, `functions_egress_bytes`,\n`ai_gateway_input_tokens`, `ai_gateway_output_tokens`, `ai_gateway_total_tokens`,\n`ai_gateway_cached_input_tokens`, `ai_gateway_cache_creation_tokens`, `ai_gateway_reasoning_tokens`.\n\nThis endpoint does not support `extra_branches_month` or `snapshot_storage_bytes_month`.\nUse `GET /consumption_history/v2/projects` for those.\n\nConsumption metrics within each branch are returned in ascending time order (oldest first).\nThis request does not wake project computes.\n",
                 "tags": [
                     "Consumption"
                 ],
@@ -7405,8 +7405,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
                             },
                             "minItems": 1,
                             "maxItems": 100
@@ -7419,8 +7419,8 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$",
-                                "type": "string"
+                                "type": "string",
+                                "pattern": "^([a-z0-9-]{1,60}(,[a-z0-9-]{1,60}){0,99})?$"
                             },
                             "minItems": 0,
                             "maxItems": 100
@@ -7468,7 +7468,7 @@
                     {
                         "name": "metrics",
                         "required": true,
-                        "description": "Required. List the metrics to return. Only these values are supported:\n- `compute_unit_seconds`\n- `root_branch_bytes_month`\n- `child_branch_bytes_month`\n- `instant_restore_bytes_month`\n- `public_network_transfer_bytes`\n- `private_network_transfer_bytes`\n- `functions_active_capacity_microseconds`\n- `functions_waiting_capacity_microseconds`\n- `functions_invocations`\n- `functions_egress_bytes`\n\nNot supported on this endpoint: `extra_branches_month`, `snapshot_storage_bytes_month`.\nUse `GET /consumption_history/v2/projects` for those.\n\nPass multiple values as repeated query parameters or a comma-separated list:\n- `metrics=compute_unit_seconds&metrics=public_network_transfer_bytes`\n- `metrics=compute_unit_seconds,public_network_transfer_bytes`\n",
+                        "description": "Required. List the metrics to return. Only these values are supported:\n- `compute_unit_seconds`\n- `root_branch_bytes_month`\n- `child_branch_bytes_month`\n- `instant_restore_bytes_month`\n- `public_network_transfer_bytes`\n- `private_network_transfer_bytes`\n- `functions_active_capacity_microseconds`\n- `functions_waiting_capacity_microseconds`\n- `functions_invocations`\n- `functions_egress_bytes`\n- `ai_gateway_input_tokens`\n- `ai_gateway_output_tokens`\n- `ai_gateway_total_tokens`\n- `ai_gateway_cached_input_tokens`\n- `ai_gateway_cache_creation_tokens`\n- `ai_gateway_reasoning_tokens`\n\nNot supported on this endpoint: `extra_branches_month`, `snapshot_storage_bytes_month`.\nUse `GET /consumption_history/v2/projects` for those.\n\nPass multiple values as repeated query parameters or a comma-separated list:\n- `metrics=compute_unit_seconds&metrics=public_network_transfer_bytes`\n- `metrics=compute_unit_seconds,public_network_transfer_bytes`\n",
                         "in": "query",
                         "schema": {
                             "$ref": "#/components/schemas/ConsumptionHistoryQueryMetrics"
@@ -8409,6 +8409,54 @@
                 "responses": {
                     "200": {
                         "description": "Deleted the VPC endpoint from the specified Neon organization"
+                    },
+                    "default": {
+                        "$ref": "#/components/responses/GeneralError"
+                    }
+                }
+            }
+        },
+        "/regions/{region_id}/vpc_endpoint_services": {
+            "get": {
+                "summary": "List VPC endpoint service names for a region",
+                "description": "Lists the AWS VPC endpoint service names Neon currently offers in the\ngiven region, for PrivateLink / Neon Private Networking. Add every name\nreturned for your region when configuring your VPC endpoint.\nThe list is always empty for non-AWS regions, and for AWS regions without PrivateLink.\n\n**Note:** Not all regions are available to all organizations. Pass the `org_id`\nparameter to check region availability for your organization. Unknown regions,\nand regions not available to the caller, return 404.\n",
+                "tags": [
+                    "Region"
+                ],
+                "x-stability-level": "beta",
+                "operationId": "getRegionVPCEndpointServices",
+                "parameters": [
+                    {
+                        "name": "region_id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Cloud region (for example, `aws-us-east-1`).",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
+                        }
+                    },
+                    {
+                        "name": "org_id",
+                        "description": "Organization ID. When provided, the region must be available to this organization.\nRecommended for accurate region availability.\n",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9-]{1,60}$"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The region's VPC endpoint service names",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegionVPCEndpointServicesResponse"
+                                }
+                            }
+                        }
                     },
                     "default": {
                         "$ref": "#/components/responses/GeneralError"
@@ -11091,9 +11139,9 @@
                         "type": "string"
                     },
                     "branch_id": {
-                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`."
                     },
                     "jwt_audience": {
                         "description": "Expected `aud` claim in incoming JWTs. When set, tokens with a different audience are rejected; tokens with no audience are still accepted. Omit to skip audience validation.",
@@ -11132,14 +11180,14 @@
                         "type": "string"
                     },
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`."
                     },
                     "branch_id": {
-                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`."
                     },
                     "jwks_url": {
                         "description": "URL of the provider's JWKS endpoint used to verify JWTs.",
@@ -11292,9 +11340,9 @@
                         "type": "object",
                         "properties": {
                             "project_id": {
-                                "description": "If set, the API key can access only this project",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "If set, the API key can access only this project"
                             }
                         }
                     }
@@ -11348,9 +11396,9 @@
                         "type": "object",
                         "properties": {
                             "project_id": {
-                                "description": "If set, the API key can access only this project",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "If set, the API key can access only this project"
                             }
                         }
                     }
@@ -11411,9 +11459,9 @@
                         "type": "object",
                         "properties": {
                             "project_id": {
-                                "description": "If set, the API key can access only this project",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "If set, the API key can access only this project"
                             }
                         }
                     }
@@ -11467,9 +11515,9 @@
                         "type": "object",
                         "properties": {
                             "project_id": {
-                                "description": "If set, the API key can access only this project",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "If set, the API key can access only this project"
                             }
                         }
                     }
@@ -11519,19 +11567,19 @@
                         "format": "uuid"
                     },
                     "project_id": {
-                        "description": "The ID of the project this operation ran on.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project this operation ran on."
                     },
                     "branch_id": {
-                        "description": "The ID of the branch this operation ran on.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch this operation ran on."
                     },
                     "endpoint_id": {
-                        "description": "The ID of the compute endpoint this operation ran on.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the compute endpoint this operation ran on."
                     },
                     "action": {
                         "$ref": "#/components/schemas/OperationAction"
@@ -11687,9 +11735,9 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints."
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -11789,9 +11837,9 @@
                         "format": "date-time"
                     },
                     "org_id": {
-                        "description": "ID of the organization that owns the project. Project permissions are granted to organization members as configured by the organization's admins, independent of which member created the project.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "ID of the organization that owns the project. Project permissions are granted to organization members as configured by the organization's admins, independent of which member created the project.\n"
                     },
                     "org_name": {
                         "type": "string",
@@ -11912,9 +11960,9 @@
                         "deprecated": true
                     },
                     "id": {
-                        "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints."
                     },
                     "platform_id": {
                         "description": "The cloud platform identifier. Currently, only AWS is supported, for which the identifier is `aws`.\n",
@@ -12022,10 +12070,10 @@
                         "format": "date-time"
                     },
                     "org_id": {
-                        "description": "The Neon organization ID. Returned as `id` from `GET /users/me/organizations`.",
-                        "example": "org-cool-darkness-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon organization ID. Returned as `id` from `GET /users/me/organizations`.",
+                        "example": "org-cool-darkness-12345678"
                     },
                     "maintenance_scheduled_for": {
                         "description": "A timestamp indicating when project update begins. If set, computes might experience a brief restart around this time.\n",
@@ -12164,9 +12212,9 @@
                                 "maximum": 2592000
                             },
                             "org_id": {
-                                "description": "ID of the organization that will own the project. If omitted when using an organization API key, it is inferred from the key.\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "ID of the organization that will own the project. If omitted when using an organization API key, it is inferred from the key.\n"
                             }
                         }
                     }
@@ -12220,9 +12268,9 @@
                         "description": "The unique identifier for the transfer request"
                     },
                     "project_id": {
-                        "description": "The ID of the project that is being transferred",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project that is being transferred"
                     },
                     "created_at": {
                         "type": "string",
@@ -12419,11 +12467,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address of the user to grant project access to.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the user to grant project access to."
                     }
                 }
             },
@@ -12643,9 +12691,9 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`."
                     },
                     "periods": {
                         "type": "array",
@@ -12664,9 +12712,9 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`."
                     },
                     "periods": {
                         "type": "array",
@@ -12700,15 +12748,15 @@
                 "type": "object",
                 "properties": {
                     "project_id": {
-                        "description": "The ID of the project that owns this branch.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project that owns this branch."
                     },
                     "branch_id": {
-                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
-                        "example": "br-cool-darkness-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
+                        "example": "br-cool-darkness-12345678"
                     },
                     "periods": {
                         "type": "array",
@@ -13035,19 +13083,19 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The branch ID. This value is generated when a branch is created. A `branch_id` value has a `br` prefix. For example: `br-small-term-683261`.\n"
                     },
                     "project_id": {
-                        "description": "The ID of the project this branch belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project this branch belongs to."
                     },
                     "parent_id": {
-                        "description": "The `branch_id` of the parent branch\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The `branch_id` of the parent branch\n"
                     },
                     "parent_lsn": {
                         "description": "The Log Sequence Number (LSN) on the parent branch from which this branch was created.\nWhen restoring a branch using the `POST /projects/{project_id}/branches/{branch_id}/restore` endpoint,\nthis value isn\u2019t finalized until all operations related to the restore have completed successfully.\n",
@@ -13338,9 +13386,9 @@
                         "description": "Optional configuration for the new branch, for example `name`, `parent_id` (fork from a branch), `parent_lsn` or `parent_timestamp` (point-in-time branching), and `protected`.",
                         "properties": {
                             "parent_id": {
-                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "The `branch_id` of the parent branch. If omitted or empty, the branch will be created from the project's default branch.\n"
                             },
                             "name": {
                                 "description": "The branch name\n",
@@ -13372,9 +13420,9 @@
                                 "type": "boolean"
                             },
                             "init_source": {
-                                "example": "parent-data",
                                 "description": "Source of initialization for the branch. `parent-data` copies schema and data from the parent branch. `parent-schema` copies schema only from the parent branch. `schema-only` creates a new root branch containing schema only, using `parent_id` as the source; optionally, `parent_lsn` or `parent_timestamp` can narrow the source point. `import` initializes the branch from an external import.",
-                                "type": "string"
+                                "type": "string",
+                                "example": "parent-data"
                             },
                             "expires_at": {
                                 "description": "The timestamp when the branch is scheduled to expire and be automatically deleted. Must be set by the client following the [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6) format with precision up to seconds (such as 2025-06-09T18:02:16Z). Deletion is performed by a background job and may not occur exactly at the specified time.\n\nAccess to this feature is currently limited to participants in the Early Access Program.\n",
@@ -13424,9 +13472,9 @@
                 ],
                 "properties": {
                     "source_branch_id": {
-                        "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The `branch_id` of the restore source branch.\nIf `source_timestamp` and `source_lsn` are omitted, the branch will be restored to head.\nIf `source_branch_id` is equal to the branch's id, `source_timestamp` or `source_lsn` is required.\n"
                     },
                     "source_lsn": {
                         "description": "A Postgres LSN (for example, `0/1A2B3C4`) on the source branch to restore from.\nMutually exclusive with `source_timestamp`. Omit both to restore to head.\n",
@@ -13600,14 +13648,14 @@
                 ],
                 "properties": {
                     "project_id": {
-                        "description": "The ID of the project this branch belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project this branch belongs to."
                     },
                     "branch_id": {
-                        "description": "The ID of the anonymized branch.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the anonymized branch."
                     },
                     "state": {
                         "description": "The current state of the anonymized branch. `created`: branch record exists but setup has not started. `initialized`: setup is complete and the branch is ready for anonymization. `initialization_error`: an error occurred during setup. `anonymizing`: the anonymization process is currently running. `anonymized`: anonymization completed successfully. `error`: an error occurred during anonymization.\n",
@@ -13784,23 +13832,23 @@
                         "type": "string"
                     },
                     "id": {
-                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The compute endpoint ID. Compute endpoint IDs have an `ep-` prefix. For example: `ep-little-smoke-851426`\n"
                     },
                     "name": {
                         "type": "string",
                         "description": "Optional name of the compute endpoint\n"
                     },
                     "project_id": {
-                        "description": "The ID of the project this compute endpoint belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the project this compute endpoint belongs to."
                     },
                     "branch_id": {
-                        "description": "The ID of the branch this compute endpoint belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch this compute endpoint belongs to."
                     },
                     "autoscaling_limit_min_cu": {
                         "description": "The minimum number of Compute Units\n",
@@ -14028,9 +14076,9 @@
                         ],
                         "properties": {
                             "branch_id": {
-                                "description": "The ID of the branch the compute endpoint will be associated with\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "description": "The ID of the branch the compute endpoint will be associated with\n"
                             },
                             "region_id": {
                                 "description": "The region where the compute endpoint will be created. Only the project's `region_id` is permitted.\n",
@@ -14098,10 +14146,10 @@
                         "description": "Parameters for the compute endpoint update.",
                         "properties": {
                             "branch_id": {
-                                "deprecated": true,
-                                "description": "Deprecated. The destination branch ID; must not have an existing read-write endpoint.\n",
                                 "type": "string",
-                                "pattern": "^[a-z0-9-]{1,60}$"
+                                "pattern": "^[a-z0-9-]{1,60}$",
+                                "deprecated": true,
+                                "description": "Deprecated. The destination branch ID; must not have an existing read-write endpoint.\n"
                             },
                             "autoscaling_limit_min_cu": {
                                 "description": "The minimum number of Compute Units. The minimum value is `0.25`.\nSee [Compute size and Autoscaling configuration](https://neon.com/docs/manage/endpoints#compute-size-and-autoscaling-configuration)\nfor more information.\n",
@@ -14419,9 +14467,9 @@
                 ],
                 "properties": {
                     "branch_id": {
-                        "description": "The ID of the branch this role belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch this role belongs to."
                     },
                     "name": {
                         "description": "Postgres role name within the branch.\n",
@@ -14647,11 +14695,11 @@
                         "type": "string"
                     },
                     "email": {
-                        "description": "Billing email, to receive emails related to invoices and subscriptions.\n",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Billing email, to receive emails related to invoices and subscriptions.\n"
                     },
                     "address_city": {
                         "description": "Billing address city.\n",
@@ -14797,9 +14845,9 @@
                         "format": "int64"
                     },
                     "branch_id": {
-                        "description": "The ID of the branch this database belongs to.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The ID of the branch this database belongs to."
                     },
                     "name": {
                         "description": "The database name\n",
@@ -14933,16 +14981,16 @@
                         "description": "The invitation ID."
                     },
                     "email": {
-                        "description": "Email of the invited user",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email of the invited user"
                     },
                     "org_id": {
-                        "description": "Organization id as it is stored in Neon",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Organization id as it is stored in Neon"
                     },
                     "invited_by": {
                         "description": "UUID for the user_id who extended the invitation",
@@ -14990,10 +15038,10 @@
                         "description": "The Neon user ID."
                     },
                     "org_id": {
-                        "description": "The Neon organization ID. Returned as `id` from `GET /users/me/organizations`.",
-                        "example": "org-cool-darkness-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon organization ID. Returned as `id` from `GET /users/me/organizations`.",
+                        "example": "org-cool-darkness-12345678"
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -15015,11 +15063,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address of the organization member's user account.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the organization member's user account."
                     },
                     "has_mfa": {
                         "type": "boolean",
@@ -15062,9 +15110,9 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The Neon organization ID. Use as the `org_id` path parameter in other endpoints.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon organization ID. Use as the `org_id` path parameter in other endpoints."
                     },
                     "name": {
                         "type": "string",
@@ -15099,6 +15147,12 @@
                     "require_mfa": {
                         "description": "If true, all members must have MFA enabled to access this organization",
                         "type": "boolean"
+                    },
+                    "sso_enforcement_grace_until": {
+                        "description": "When this organization's SSO enforcement grace period ends, if enforcement was recently\nenabled. Present only while the grace window is still open \u2014 sessions established before\nenforcement keep working until then. Lets members see the deadline for signing in through\nthe organization's identity provider before enforcement applies to them.\n",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 }
             },
@@ -15143,11 +15197,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address of the person to invite to the organization.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the person to invite to the organization."
                     },
                     "role": {
                         "$ref": "#/components/schemas/MemberRole"
@@ -15192,6 +15246,29 @@
                             "$ref": "#/components/schemas/MemberWithUser"
                         },
                         "description": "Members of the organization, each combining membership details (role, status) with the associated user's identity."
+                    }
+                }
+            },
+            "RegionVPCEndpointServicesResponse": {
+                "type": "object",
+                "required": [
+                    "region_id",
+                    "vpc_endpoint_service_names"
+                ],
+                "properties": {
+                    "region_id": {
+                        "type": "string",
+                        "example": "aws-us-east-1"
+                    },
+                    "vpc_endpoint_service_names": {
+                        "type": "array",
+                        "description": "Fully-qualified AWS VPC endpoint service names. Always empty for non-AWS regions, and for AWS regions without PrivateLink.",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "com.amazonaws.vpce.us-east-1.vpce-svc-01aeec2f4b558bc22"
+                        ]
                     }
                 }
             },
@@ -15259,11 +15336,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address associated with this auth account.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address associated with this auth account."
                     },
                     "image": {
                         "type": "string",
@@ -15323,11 +15400,11 @@
                         "description": "Authentication provider accounts linked to the current user."
                     },
                     "email": {
-                        "description": "Email address of the authenticated user.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the authenticated user."
                     },
                     "id": {
                         "type": "string",
@@ -15411,9 +15488,9 @@
                 ],
                 "properties": {
                     "destination_org_id": {
-                        "description": "The destination organization identifier",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The destination organization identifier"
                     },
                     "project_ids": {
                         "type": "array",
@@ -15559,11 +15636,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address of the project owner.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the project owner."
                     },
                     "name": {
                         "type": "string",
@@ -15642,9 +15719,9 @@
                             ],
                             "properties": {
                                 "id": {
-                                    "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints.",
                                     "type": "string",
-                                    "pattern": "^[a-z0-9-]{1,60}$"
+                                    "pattern": "^[a-z0-9-]{1,60}$",
+                                    "description": "The Neon project ID. Use as the `project_id` path parameter in other endpoints."
                                 },
                                 "integration": {
                                     "type": "string",
@@ -15982,16 +16059,16 @@
                         "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     },
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
-                        "example": "wispy-forest-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
+                        "example": "wispy-forest-12345678"
                     },
                     "branch_id": {
-                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
-                        "example": "br-cool-darkness-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
+                        "example": "br-cool-darkness-12345678"
                     },
                     "database_name": {
                         "type": "string",
@@ -16079,10 +16156,10 @@
                 ],
                 "properties": {
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
-                        "example": "wispy-forest-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
+                        "example": "wispy-forest-12345678"
                     },
                     "auth_provider": {
                         "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
@@ -16102,19 +16179,19 @@
                 ],
                 "properties": {
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`."
                     },
                     "auth_provider": {
                         "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
                     },
                     "email": {
-                        "description": "Email address of the new user.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the new user."
                     },
                     "name": {
                         "type": "string",
@@ -16135,11 +16212,11 @@
                 ],
                 "properties": {
                     "email": {
-                        "description": "Email address of the new Neon Auth user to create.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "Email address of the new Neon Auth user to create."
                     },
                     "name": {
                         "type": "string",
@@ -16700,9 +16777,9 @@
                 ],
                 "properties": {
                     "project_id": {
-                        "description": "The Neon project ID. Returned as `id` from `GET /projects`.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon project ID. Returned as `id` from `GET /projects`."
                     },
                     "auth_provider": {
                         "$ref": "#/components/schemas/NeonAuthSupportedAuthProvider"
@@ -17123,11 +17200,11 @@
                         "description": "Display name shown as the sender in outgoing emails."
                     },
                     "recipient_email": {
-                        "description": "The email address to send the test email to.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "The email address to send the test email to."
                     }
                 }
             },
@@ -17139,11 +17216,11 @@
                 ],
                 "properties": {
                     "recipient_email": {
-                        "description": "The email address to send the test email to.",
                         "type": "string",
                         "format": "email",
                         "minLength": 1,
-                        "maxLength": 256
+                        "maxLength": 256,
+                        "description": "The email address to send the test email to."
                     }
                 }
             },
@@ -17278,10 +17355,10 @@
                         "description": "Project identifier assigned by the auth provider for this integration."
                     },
                     "branch_id": {
-                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
-                        "example": "br-cool-darkness-12345678",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The Neon branch ID. Returned as `id` from `GET /projects/{project_id}/branches`.",
+                        "example": "br-cool-darkness-12345678"
                     },
                     "db_name": {
                         "type": "string",
@@ -17647,9 +17724,9 @@
                 ],
                 "properties": {
                     "id": {
-                        "description": "The snapshot ID.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "The snapshot ID."
                     },
                     "name": {
                         "type": "string",
@@ -17664,9 +17741,9 @@
                         "description": "Point in time captured by the snapshot, in RFC 3339 format (UTC)."
                     },
                     "source_branch_id": {
-                        "description": "Branch from which this snapshot was created.",
                         "type": "string",
-                        "pattern": "^[a-z0-9-]{1,60}$"
+                        "pattern": "^[a-z0-9-]{1,60}$",
+                        "description": "Branch from which this snapshot was created."
                     },
                     "created_at": {
                         "type": "string",
