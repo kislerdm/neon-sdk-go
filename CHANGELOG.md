@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.37.0] - 2026-11-20
+
+### Added
+
+- Added `UpdateNeonAuthLogsExport` to enable or disable exporting Neon Auth events to Neon Platform logs.
+- Added `GetRegionVPCEndpointServices` to retrieve VPC endpoint service names for a region.
+- Added AI Gateway and object storage metrics to the v2 consumption-history API.
+- Added Discord as a Neon Auth OAuth provider.
+- Added auth-provider metadata fields (`AuthProvider`, `JwksURL`, `ProviderName`, and `JwtAudience`) to `DataAPIReponse`.
+- Added `LogsExport` to `NeonAuthPluginConfigs` and introduced the `NeonAuthLogsExportConfig` type.
+- Added `SsoEnforcementGraceUntil` to `Organization`.
+- Added `neon_auth` as a `ProjectBranchLogSource` value.
+- Added `ExpiresAt` to `CreateCredentialRequest`.
+
+### Changed
+
+- Documented per-project role requirements for public bucket creation, object downloads, presigned download URLs, and custom-domain management.
+
 ## [v0.36.0] - 2026-11-03
 
 The release incorporates the up-to-date [API contract](openAPIDefinition.json) as of 2026-11-03 19:12:00 GMT.
