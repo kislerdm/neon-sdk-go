@@ -276,9 +276,13 @@ func (c Client) GetConsumptionHistoryPerProject(cursor *string, limit *uint8, pr
 // `compute_unit_seconds`, `root_branch_bytes_month`, `child_branch_bytes_month`,
 // `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
 // `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
-// `functions_invocations`, `functions_egress_bytes`.
+// `functions_invocations`, `functions_egress_bytes`,
+// `ai_gateway_input_tokens`, `ai_gateway_output_tokens`, `ai_gateway_total_tokens`,
+// `ai_gateway_cached_input_tokens`, `ai_gateway_cache_creation_tokens`, `ai_gateway_reasoning_tokens`,
+// `object_storage_network_transfer_bytes`.
 //
-// This endpoint does not support `extra_branches_month` or `snapshot_storage_bytes_month`.
+// This endpoint does not support `extra_branches_month`, `snapshot_storage_bytes_month`,
+// or `object_storage_bytes_month`.
 // Use `GET /consumption_history/v2/projects` for those.
 //
 // Consumption metrics within each branch are returned in ascending time order (oldest first).
@@ -323,7 +327,10 @@ func (c Client) GetConsumptionHistoryPerBranchV2(cursor *string, limit *uint16, 
 // `instant_restore_bytes_month`, `public_network_transfer_bytes`, `private_network_transfer_bytes`,
 // `extra_branches_month`, `snapshot_storage_bytes_month`,
 // `functions_active_capacity_microseconds`, `functions_waiting_capacity_microseconds`,
-// `functions_invocations`, `functions_egress_bytes`.
+// `functions_invocations`, `functions_egress_bytes`,
+// `ai_gateway_input_tokens`, `ai_gateway_output_tokens`, `ai_gateway_total_tokens`,
+// `ai_gateway_cached_input_tokens`, `ai_gateway_cache_creation_tokens`, `ai_gateway_reasoning_tokens`,
+// `object_storage_bytes_month`, `object_storage_network_transfer_bytes`.
 //
 // Consumption metrics within each project are returned in ascending time order (oldest first).
 // This request does not wake project computes.
@@ -2802,6 +2809,32 @@ func (c Client) GetActiveRegions(orgID *string) (ActiveRegionsResponse, error) {
 	var v ActiveRegionsResponse
 	if err := c.requestHandler(c.baseURL+"/regions"+query, "GET", nil, &v); err != nil {
 		return ActiveRegionsResponse{}, err
+	}
+	return v, nil
+}
+
+// GetRegionVPCEndpointServices Lists the AWS VPC endpoint service names Neon currently offers in the
+// given region, for PrivateLink / Neon Private Networking. Add every name
+// returned for your region when configuring your VPC endpoint.
+// The list is always empty for non-AWS regions, and for AWS regions without PrivateLink.
+//
+// **Note:** Not all regions are available to all organizations. Pass the `org_id`
+// parameter to check region availability for your organization. Unknown regions,
+// and regions not available to the caller, return 404.
+func (c Client) GetRegionVPCEndpointServices(regionID string, orgID *string) (RegionVPCEndpointServicesResponse, error) {
+	var (
+		queryElements []string
+		query         string
+	)
+	if orgID != nil {
+		queryElements = append(queryElements, "org_id="+*orgID)
+	}
+	if len(queryElements) > 0 {
+		query = "?" + strings.Join(queryElements, "&")
+	}
+	var v RegionVPCEndpointServicesResponse
+	if err := c.requestHandler(c.baseURL+"/regions/"+regionID+"/vpc_endpoint_services"+query, "GET", nil, &v); err != nil {
+		return RegionVPCEndpointServicesResponse{}, err
 	}
 	return v, nil
 }
@@ -5878,6 +5911,11 @@ type Organization struct {
 	Plan string `json:"plan"`
 	// RequireMfa If true, all members must have MFA enabled to access this organization
 	RequireMfa *bool `json:"require_mfa,omitempty"`
+	// SsoEnforcementGraceUntil When this organization's SSO enforcement grace period ends, if enforcement was recently
+	// enabled. Present only while the grace window is still open — sessions established before
+	// enforcement keep working until then. Lets members see the deadline for signing in through
+	// the organization's identity provider before enforcement applies to them.
+	SsoEnforcementGraceUntil *time.Time `json:"sso_enforcement_grace_until,omitempty"`
 	// UpdatedAt A timestamp indicating when the organization was updated
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -6794,6 +6832,11 @@ type RegionResponse struct {
 	Name string `json:"name"`
 	// RegionID Cloud region where the resource's Postgres compute and storage reside (for example, `aws-us-east-1`). Valid values are returned by `GET /regions`.
 	RegionID string `json:"region_id"`
+}
+type RegionVPCEndpointServicesResponse struct {
+	RegionID string `json:"region_id"`
+	// VpcEndpointServiceNames Fully-qualified AWS VPC endpoint service names. Always empty for non-AWS regions, and for AWS regions without PrivateLink.
+	VpcEndpointServiceNames []string `json:"vpc_endpoint_service_names"`
 }
 type Role struct {
 	// AuthenticationMethod Authentication method configured for this role: `password`, `oauth`, `oidc`, or `no_login`.
