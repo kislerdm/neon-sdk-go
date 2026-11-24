@@ -7375,7 +7375,6 @@
                 "tags": [
                     "Consumption"
                 ],
-                "x-stability-level": "beta",
                 "operationId": "getConsumptionHistoryPerBranchV2",
                 "parameters": [
                     {
@@ -15149,7 +15148,7 @@
                         "type": "boolean"
                     },
                     "sso_enforcement_grace_until": {
-                        "description": "When this organization's SSO enforcement grace period ends, if enforcement was recently\nenabled. Present only while the grace window is still open \u2014 sessions established before\nenforcement keep working until then. Lets members see the deadline for signing in through\nthe organization's identity provider before enforcement applies to them.\n",
+                        "description": "When this organization's SSO enforcement grace period ends, if enforcement was recently\nenabled. Present only while the grace window is still open \u2014 sessions established before\nenforcement keep working until then. Lets members see the deadline for signing in through\nthe organization's identity provider before enforcement applies to them.\nOmitted for browser sessions that already satisfy the organization's SSO requirements.\nAn absent value does not mean that SSO enforcement is disabled.\n",
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
