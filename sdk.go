@@ -5915,6 +5915,8 @@ type Organization struct {
 	// enabled. Present only while the grace window is still open — sessions established before
 	// enforcement keep working until then. Lets members see the deadline for signing in through
 	// the organization's identity provider before enforcement applies to them.
+	// Omitted for browser sessions that already satisfy the organization's SSO requirements.
+	// An absent value does not mean that SSO enforcement is disabled.
 	SsoEnforcementGraceUntil *time.Time `json:"sso_enforcement_grace_until,omitempty"`
 	// UpdatedAt A timestamp indicating when the organization was updated
 	UpdatedAt time.Time `json:"updated_at"`
