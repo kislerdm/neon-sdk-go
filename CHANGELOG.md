@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.38.0] - 2026-11-25
+
+### Added
+
+- Added `IdentityProviderIdChatgpt` to support ChatGPT as an IdP, i.e., enum value of the type `IdentityProviderId`.
+
 ## [v0.37.0] - 2026-11-20
 
 ### Added
