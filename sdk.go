@@ -409,9 +409,12 @@ func (c Client) RevokeOrgApiKey(orgID string, keyID int64) (OrgApiKeyRevokeRespo
 	return v, nil
 }
 
-// GetOrganizationSpendingLimit Returns the configured monthly spending limit for the specified organization.
-// `spending_limit_cents: null` indicates that no limit is currently set.
-// Available to organization members with read access on Launch and Scale plans only.
+// GetOrganizationSpendingLimit Returns the organization's monthly spending notification threshold, in cents.
+// Neon emails organization admins when monthly charges reach 80% and 100% of the threshold.
+// The threshold is an alert only: it doesn't cap spending or suspend computes.
+// `spending_limit_cents: null` indicates that no threshold is set.
+// Available to organization members with read access on Launch and Scale plans only. Other plans return `422`.
+// See [Spending notifications](https://neon.com/docs/introduction/spending-notifications).
 func (c Client) GetOrganizationSpendingLimit(orgID string) (SpendingLimitResponse, error) {
 	var v SpendingLimitResponse
 	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/billing/spending_limit", "GET", nil, &v); err != nil {
@@ -420,11 +423,12 @@ func (c Client) GetOrganizationSpendingLimit(orgID string) (SpendingLimitRespons
 	return v, nil
 }
 
-// SetOrganizationSpendingLimit Sets the monthly spending limit for the specified organization.
-// To remove a previously configured limit, send a DELETE request to this endpoint.
-// When a limit is configured, email notifications are sent at 80% and 100% of the limit.
-// Computes are not suspended when the limit is reached.
-// Available to organization admins on Launch and Scale plans only.
+// SetOrganizationSpendingLimit Sets a monthly spending notification threshold for the organization, in cents.
+// Neon emails organization admins when monthly charges reach 80% and 100% of the threshold.
+// The threshold is an alert only: computes keep running when it's reached.
+// To remove the threshold, send a DELETE request to this endpoint.
+// Available to organization admins on Launch and Scale plans only. Other plans return `422`.
+// See [Spending notifications](https://neon.com/docs/introduction/spending-notifications).
 func (c Client) SetOrganizationSpendingLimit(orgID string, cfg SpendingLimitUpdateRequest) (SpendingLimitResponse, error) {
 	var v SpendingLimitResponse
 	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/billing/spending_limit", "PUT", cfg, &v); err != nil {
@@ -433,9 +437,9 @@ func (c Client) SetOrganizationSpendingLimit(orgID string, cfg SpendingLimitUpda
 	return v, nil
 }
 
-// DeleteOrganizationSpendingLimit Removes the configured monthly spending limit for the specified organization.
-// Idempotent — removing an already-unset limit still succeeds.
-// Available to organization admins on Launch and Scale plans only.
+// DeleteOrganizationSpendingLimit Removes the organization's monthly spending notification threshold, which stops the spending notification emails.
+// Idempotent: removing an already-unset threshold still succeeds.
+// Available to organization admins on Launch and Scale plans only. Other plans return `422`.
 func (c Client) DeleteOrganizationSpendingLimit(orgID string) (EmptyResponse, error) {
 	var v EmptyResponse
 	if err := c.requestHandler(c.baseURL+"/organizations/"+orgID+"/billing/spending_limit", "DELETE", nil, &v); err != nil {
@@ -3232,9 +3236,10 @@ type BillingAccount struct {
 	PlanDetails *PlanDetails `json:"plan_details,omitempty"`
 	// QuotaResetAtLast Timestamp of the last quota reset. Set to the account creation time when the account is first created.
 	QuotaResetAtLast time.Time `json:"quota_reset_at_last"`
-	// SpendingLimitCents Monthly spending cap in cents for V3 paid plans. When set,
-	// notifications are sent at 80% and 100% of this limit. `null`
-	// means no limit is configured.
+	// SpendingLimitCents Monthly spending notification threshold in cents, on Launch and
+	// Scale plans. When set, Neon sends email notifications at 80% and
+	// 100% of this threshold; computes are not suspended. `null` means no
+	// threshold is configured.
 	SpendingLimitCents *int64 `json:"spending_limit_cents,omitempty"`
 	// State State of the billing account. `UNKNOWN`: state is not determined. `active`: the account is active and in normal operation. `suspended`: the account has been suspended. `deactivated`: the account has been deactivated. `deleted`: the account has been deleted.
 	State            BillingAccountState     `json:"state"`
@@ -4610,6 +4615,7 @@ var (
 	IdentityProviderIdHasura      = IdentityProviderId{"hasura"}
 	IdentityProviderIdMicrosoft   = IdentityProviderId{"microsoft"}
 	IdentityProviderIdMicrosoftv2 = IdentityProviderId{"microsoftv2"}
+	IdentityProviderIdChatgpt     = IdentityProviderId{"chatgpt"}
 	IdentityProviderIdVercelmp    = IdentityProviderId{"vercelmp"}
 	IdentityProviderIdKeycloak    = IdentityProviderId{"keycloak"}
 )
@@ -4621,6 +4627,7 @@ func NewIdentityProviderId(s string) (IdentityProviderId, error) {
 		"hasura":      IdentityProviderIdHasura,
 		"microsoft":   IdentityProviderIdMicrosoft,
 		"microsoftv2": IdentityProviderIdMicrosoftv2,
+		"chatgpt":     IdentityProviderIdChatgpt,
 		"vercelmp":    IdentityProviderIdVercelmp,
 		"keycloak":    IdentityProviderIdKeycloak,
 	}
@@ -7022,17 +7029,17 @@ type SnapshotUpdateRequest struct {
 	Snapshot SnapshotUpdateRequestSnapshot `json:"snapshot"`
 }
 type SpendingLimitResponse struct {
-	// SpendingLimitCents Monthly spending cap in cents. `null` indicates that no limit
-	// is currently configured.
+	// SpendingLimitCents Monthly spending notification threshold in cents. `null` indicates
+	// that no threshold is currently configured.
 	SpendingLimitCents int64 `json:"spending_limit_cents"`
 }
 type SpendingLimitUpdateRequest struct {
-	// SpendingLimitCents Monthly spending cap in cents. Must be positive. To remove a
-	// previously configured limit, send a DELETE request to the
-	// spending_limit endpoint — `0` and `null` are rejected here.
-	// The cap is alert-only: notifications fire at 80% and 100%, but
-	// computes are not suspended. Setting a cap below the period's
-	// already-accrued spend is permitted and will trigger the
+	// SpendingLimitCents Monthly spending notification threshold in cents. Must be positive.
+	// To remove a previously configured threshold, send a DELETE request
+	// to the spending_limit endpoint — `0` and `null` are rejected here.
+	// The threshold is alert-only: notifications are sent at 80% and 100%,
+	// but computes are not suspended. Setting a threshold below the
+	// period's already-accrued spend is permitted and triggers the
 	// over-limit notification on the next worker run.
 	SpendingLimitCents int64 `json:"spending_limit_cents"`
 }
